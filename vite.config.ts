@@ -1,6 +1,8 @@
 import {defineConfig} from 'vite';
-import {viteStaticCopy} from 'vite-plugin-static-copy';
 import webExtension from "vite-plugin-web-extension";
+import zipPack from "vite-plugin-zip-pack";
+import pkg from "./package.json";
+import manifest from "./manifest.json";
 
 export default defineConfig({
   publicDir: false, // webExtension plugin does this already
@@ -10,16 +12,27 @@ export default defineConfig({
     minify: false
   },
   plugins: [
-    viteStaticCopy({
-      targets: [
-        {
-          src: 'manifest.json',
-          dest: './'
-        }
-      ]
-    }),
+    // viteStaticCopy({
+    //   targets: [
+    //     {
+    //       src: 'manifest.json',
+    //       dest: './'
+    //     }
+    //   ]
+    // }),
     webExtension({
-      skipManifestValidation: true
+      skipManifestValidation: true,
+      browser: "firefox",
+      manifest: () => {
+        return {
+          ...manifest,
+          version: pkg.version,
+          description: pkg.description
+        }
+      }
+    }),
+    zipPack({
+      outFileName: `${pkg.name}-${pkg.version}.zip`
     })
   ]
 });

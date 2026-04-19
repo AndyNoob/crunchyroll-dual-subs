@@ -1,8 +1,6 @@
 {
   "manifest_version": 3,
   "name": "Crunchyroll Dual Subs",
-  "version": "0.0.1",
-  "description": "Display English and English [CC] subtitles at the same time.",
   "permissions": [
     "storage",
     "webRequest",
