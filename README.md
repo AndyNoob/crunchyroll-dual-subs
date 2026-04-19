@@ -1,5 +1,5 @@
 # Crunchyroll Dual Sub
-Firefox extension created to fix the annoying issue of not being able to use `English` and `English [CC]` subtitles at the same time[^1]. The extension is in early development but is guaranteed to work on shows such as One Piece where there are both types of subtitles. 
+Firefox extension created to fix the annoying issue of not being able to use `English` and `English [CC]` subtitles at the same time[^1]. The extension is in early development but is guaranteed to work on shows such as One Piece where there are both types of subtitles. This extension supports [Croptix](https://github.com/stratumadev/croptix) (Vilos player).
 
 ## How it works
 When the Crunchyroll watch page is loaded, the extension intercepts and reads your profile for your preferred/selected subtitle language and type. The extension then retrieves the episode's subtitle data in the same manner. Finally, the extension determines the alternate subtitle and loads it. 

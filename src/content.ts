@@ -9,9 +9,21 @@ let altCues: Cue[];
 
 console.log(document.querySelectorAll("video"))
 
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 async function init() {
   videoEl = document.querySelector("video");
+  let counter = 5;
+  while (!videoEl && counter-- > 0) {
+    await sleep(1000);
+    videoEl = document.querySelector("video");
+  }
   if (!videoEl) {
+    console.warn(`[dual-sub] skipping ${location.href} because video player is not found`);
     return Promise.reject("failed to init, could not find video player");
   }
 
