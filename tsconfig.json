@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    /* Browser Environment */
+    "target": "ES2022",           /* Standard for modern Firefox */
+    "lib": ["DOM", "DOM.Iterable", "ES2022"], /* Critical for browser APIs */
+    "module": "ESNext",           /* Allows using 'import/export' */
+    "moduleResolution": "bundler", /* Best for Vite/Webpack/Parcel */
+
+    /* Output Settings */
+    "outDir": "./dist",           /* Keeps your project clean */
+    "sourceMap": true,            /* Helps you debug in Firefox DevTools */
+
+    /* Strictness (Keep these for better code) */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+
+    /* Modern Defaults */
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["src/**/*"]
+}

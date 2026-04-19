@@ -1,0 +1,23 @@
+{
+  "name": "cr-dual-subs",
+  "version": "0.0.1-alpha",
+  "description": "Display English and English [CC] subtitles at the same time.",
+  "type": "module",
+  "scripts": {
+    "build": "vite buid",
+    "dev": "vite dev"
+  },
+  "author": "AndyNoob",
+  "license": "MIT",
+  "dependencies": {
+    "frazy-parser": "^2.10.2"
+  },
+  "devDependencies": {
+    "@types/firefox-webext-browser": ">=143.0.0",
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.8",
+    "vite-plugin-static-copy": "^3.4.0",
+    "vite-plugin-web-extension": "^4.5.1"
+  }
+}

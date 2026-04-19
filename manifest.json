@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "Crunchyroll Dual Subs",
+  "version": "0.0.1",
+  "description": "Display English and English [CC] subtitles at the same time.",
+  "permissions": [
+    "storage",
+    "webRequest",
+    "webRequestFilterResponse",
+    "webRequestBlocking"
+  ],
+  "host_permissions": [
+    "*://www.crunchyroll.com/*",
+    "*://static.crunchyroll.com/*",
+    "*://*.crunchyroll.com/*",
+    "*://*.crunchyrollcdn.com/*"
+  ],
+  "background": {
+    "scripts": [
+      "src/background.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "css": [
+        "static/overlay.css"
+      ],
+      "js": [
+        "src/content.js"
+      ],
+      "matches": [
+        "*://www.crunchyroll.com/watch/*",
+        "*://*.crunchyroll.com/*",
+        "*://*.crunchyrollcdn.com/*"
+      ],
+      "run_at": "document_idle",
+      "match_about_blank": true,
+      "match_origin_as_fallback": true,
+      "all_frames": true
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "cr-dual-sub@andynoob",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    }
+  }
+}

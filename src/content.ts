@@ -1,0 +1,89 @@
+
+let videoEl: HTMLVideoElement;
+let overlayRoot: HTMLDivElement;
+let overlayText: HTMLDivElement;
+
+let lastRendered = "";
+
+let altCues: Cue[];
+
+console.log(document.querySelectorAll("video"))
+
+async function init() {
+  videoEl = document.querySelector("video");
+  if (!videoEl) {
+    return Promise.reject("failed to init, could not find video player");
+  }
+
+  console.log(`[dual-sub] init on frame ${browser.runtime.getFrameId(window)}`)
+
+  ensureOverlay();
+
+  console.log("[dual-sub] grabbing cues...");
+  altCues = await browser.runtime.sendMessage({type: "GET_CUES"});
+  console.log(`[dual-sub] grabbed ${altCues.length} cues.`);
+  console.log("[dual-sub] starting renderloop...")
+  requestAnimationFrame(renderLoop);
+  console.log("[dual-sub] subtitle animation started");
+  console.log("[dual-sub] successfully init.")
+  return Promise.resolve()
+}
+
+function ensureOverlay() {
+  console.log("[dual-sub] ensuring overlay")
+  if (overlayRoot) return;
+
+  const video = videoEl;
+  const container = video?.parentElement;
+  if (!video || !container) return;
+
+  const computed = getComputedStyle(container);
+  if (computed.position === "static") {
+    container.style.position = "relative";
+  }
+
+  overlayRoot = document.createElement("div");
+  overlayRoot.id = "cr-dual-subs-root";
+
+  overlayText = document.createElement("div");
+  overlayText.id = "cr-dual-subs-secondary";
+
+  overlayRoot.appendChild(overlayText);
+  container.appendChild(overlayRoot);
+}
+
+function renderLoop() {
+  if (!videoEl || !overlayText) {
+    console.error("[dual-sub] overlay or video doesn't exist while rendering");
+    // requestAnimationFrame(renderLoop);
+    return;
+  }
+
+  const time = videoEl.currentTime;
+  const secondaryCue = getActiveCue(altCues, time);
+  const nextText = secondaryCue?.text || "";
+
+  if (nextText !== lastRendered) {
+    overlayText.textContent = nextText;
+    overlayText.style.display = nextText.length > 0 ? "block" : "none";
+    lastRendered = nextText;
+  }
+  requestAnimationFrame(renderLoop);
+}
+
+function getActiveCue(cues: Cue[], time): Cue | null {
+  // TODO use binary search
+  for (const cue of cues) {
+    if (time >= cue.start && time <= cue.end) return cue;
+  }
+  return null;
+}
+
+init().then();
+
+export interface Cue {
+  id: number,
+  start: number,
+  end: number,
+  text: string
+}
