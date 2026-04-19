@@ -9,6 +9,11 @@ While the extension is able to process most types of subtitle formats (Crunchyro
 
 Furthermore, the extension is not able to detect when/if you change your preferred/selected subtitle. Simply reload the page if you do so. 
 
+## How to build
+1. `npm install`
+2. `npm run build`
+3. Find archive in `dist-zip/` or built files in `dist/`
+
 ## Credits
 While not completely vibe-coded, this project was made with the help of GPT-5.2/5.3.
 
