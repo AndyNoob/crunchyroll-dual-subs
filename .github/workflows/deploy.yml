@@ -24,11 +24,14 @@ jobs:
 
       - name: Git archive it
         run: git archive --format=zip --output=./cr-dual-subs-src.zip HEAD
-        
-      - uses: yayuyokitano/firefox-addon@v0.0.6-alpha
+
+      - uses: browser-actions/release-firefox-addon@latest
         with:
-          api_key: ${{ secrets.AMO_ISSUER }}
-          api_secret: ${{ secrets.AMO_SECRET }}
-          guid: 'cr-dual-sub@andynoob'
-          xpi_path: dist-zip/cr-dual-subs.zip
-          src_path: cr-dual-subs-src.zip
+          addon-id: 'cr-dual-sub@andynoob'
+          addon-path: 'dist-zip/cr-dual-subs.zip'
+          source-path: 'cr-dual-subs-src.zip'
+          auth-api-issuer: ${{ secrets.AMO_ISSUER }}
+          auth-api-secret: ${{ secrets.AMO_SECRET }}
+          license: 'MIT'
+          approval-note: |
+            The steps to build project is in README.md.
