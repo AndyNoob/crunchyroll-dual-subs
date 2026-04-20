@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy this extension
 
 on:
   workflow_dispatch:
@@ -19,6 +19,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Grab project version
+        id: version
+        run: echo "version=$(npm pkg get version --workspaces=false | jq -r .)" >> $GITHUB_OUTPUT
+
+      - name: "Extract changelog"
+        id: changelog
+        uses: sean0x42/markdown-extract@v2
+        with:
+          file: CHANGELOG.md
+          pattern: ${{ steps.version.outputs.version }}
+
       - name: Build it
         run: npm run build
 
@@ -35,3 +46,4 @@ jobs:
           license: 'MIT'
           approval-note: |
             The steps to build project is in README.md.
+          release-note: ${{ steps.changelog.outputs.markdown }}
