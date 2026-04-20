@@ -1,3 +1,9 @@
+# 0.1.0
+1. Add confirm box to refresh page if subtitle can't be found; 
+2. Auto grab profile data if not found; 
+3. Per tab cache of subs, profiles, and authorization; 
+4. Fix page loading speed;
+
 # 0.0.4
 1. Fix AGAIN cues not reloading properly when video changes by detecting tab changing this time
 
