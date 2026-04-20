@@ -29,6 +29,6 @@ jobs:
         with:
           api_key: ${{ secrets.AMO_ISSUER }}
           api_secret: ${{ secrets.AMO_SECRET }}
-          guid: '{cr-dual-sub@andynoob}'
+          guid: 'cr-dual-sub@andynoob'
           xpi_path: dist-zip/cr-dual-subs.zip
           src_path: cr-dual-subs-src.zip
