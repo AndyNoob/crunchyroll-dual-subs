@@ -42,12 +42,11 @@ declare global {
     dualSub: {
       profile: Profile;
       subOptions: { url: string, ccs: Subtitle, subs: Subtitle };
-      loadAltSubtitles: typeof loadAltSubtitles;
     };
   }
 }
 
-window.dualSub.loadAltSubtitles = loadAltSubtitles;
+window.dualSub = {};
 
 export function handlePlayback(playback) {
   const ccs: Subtitle = playback["captions"];

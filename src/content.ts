@@ -76,7 +76,10 @@ function renderLoop() {
   const time = videoEl.currentTime;
 
   if (time < lastTime) {
-    browser.runtime.sendMessage({type: "GET_CUES"}).then(r => altCues = r);
+    browser.runtime.sendMessage({type: "GET_CUES"}).then(r => {
+      altCues = r;
+      console.log(`[dual-sub] reloaded cues (${altCues.length} loaded)`);
+    });
   }
 
   const secondaryCue = getActiveCue(altCues, time);
