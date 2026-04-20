@@ -25,10 +25,10 @@ jobs:
       - name: Git archive it
         run: git archive --format=zip --output=./cr-dual-subs-src.zip HEAD
         
-      - uses: yayuyokitano/firefox-addon@v0.0.3-alpha
+      - uses: yayuyokitano/firefox-addon@v0.0.6-alpha
         with:
           api_key: ${{ secrets.AMO_ISSUER }}
           api_secret: ${{ secrets.AMO_SECRET }}
-          guid: 'cr-dual-sub@andynoob'
+          guid: '{cr-dual-sub@andynoob}'
           xpi_path: dist-zip/cr-dual-subs.zip
           src_path: cr-dual-subs-src.zip
