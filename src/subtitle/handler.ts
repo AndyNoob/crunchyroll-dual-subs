@@ -42,18 +42,26 @@ declare global {
     dualSub: {
       profile: Profile;
       subOptions: { url: string, ccs: Subtitle, subs: Subtitle };
+      cues: Cue[]
     };
   }
 }
 
 window.dualSub = {};
 
-export function handlePlayback(playback) {
+export async function handlePlayback(playback, tabId: number) {
   const ccs: Subtitle = playback["captions"];
   const subs: Subtitle = playback["subtitles"];
   subOptions = {url: playback["url"], ccs, subs}
   window.dualSub.subOptions = subOptions;
-  loadAltSubtitles(() => console.log("[dual-sub] alt sub loaded")).then(r => altCues = r);
+  loadAltSubtitles(() => console.log("[dual-sub] alt sub loaded")).then(r => {
+    altCues = r;
+    window.dualSub.cues = altCues;
+    browser.tabs.sendMessage(tabId, {
+      type: "REFRESH_CUES",
+      cues: altCues
+    }).catch(e => console.warn("[dual-sub]", e));
+  });
 }
 
 export function handleProfile(data) {

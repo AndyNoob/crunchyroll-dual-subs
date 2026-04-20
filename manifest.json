@@ -5,7 +5,8 @@
     "storage",
     "webRequest",
     "webRequestFilterResponse",
-    "webRequestBlocking"
+    "webRequestBlocking",
+    "tabs"
   ],
   "host_permissions": [
     "*://www.crunchyroll.com/*",

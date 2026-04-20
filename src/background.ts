@@ -29,7 +29,7 @@ browser.webRequest.onBeforeRequest.addListener((details) => {
 
         try {
           if (isProfile) handleProfile(parsed);
-          else handlePlayback(parsed);
+          else await handlePlayback(parsed, details.tabId);
           console.log(`[dual-sub] processed ${isProfile ? "profiles" : "playback"} data on tab ${details.tabId}`);
         } catch (err) {
           console.error("[dual-sub] processing failed:", err);

@@ -1,3 +1,6 @@
+# 0.0.4
+1. Fix AGAIN cues not reloading properly when video changes by detecting tab changing this time
+
 # 0.0.3
 1. Fix null error with `window.dualsub`
 2. Fix cues not reloading properly when video changes

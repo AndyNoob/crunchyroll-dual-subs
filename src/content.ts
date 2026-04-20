@@ -1,4 +1,3 @@
-
 let videoEl: HTMLVideoElement;
 let overlayRoot: HTMLDivElement;
 let overlayText: HTMLDivElement;
@@ -32,12 +31,20 @@ async function init() {
   ensureOverlay();
 
   console.log("[dual-sub] grabbing cues...");
-  altCues = await browser.runtime.sendMessage({type: "GET_CUES"});
+  altCues = (await browser.runtime.sendMessage({type: "GET_CUES"}));
   console.log(`[dual-sub] grabbed ${altCues.length} cues.`);
-  console.log("[dual-sub] starting renderloop...")
+  console.log("[dual-sub] starting renderloop...");
   requestAnimationFrame(renderLoop);
   console.log("[dual-sub] subtitle animation started");
-  console.log("[dual-sub] successfully init.")
+
+  browser.runtime.onMessage.addListener((msg) => {
+    if (msg?.type !== "REFRESH_CUES") return;
+    altCues = msg.cues;
+    console.log(`[dual-sub] refreshed cues (${altCues.length} loaded)`);
+  });
+  console.log("[dual-sub] added tab update listener");
+
+  console.log("[dual-sub] successfully init.");
   return Promise.resolve()
 }
 
@@ -74,13 +81,6 @@ function renderLoop() {
   }
 
   const time = videoEl.currentTime;
-
-  if (time < lastTime) {
-    browser.runtime.sendMessage({type: "GET_CUES"}).then(r => {
-      altCues = r;
-      console.log(`[dual-sub] reloaded cues (${altCues.length} loaded)`);
-    });
-  }
 
   const secondaryCue = getActiveCue(altCues, time);
   const nextText = secondaryCue?.text || "";
