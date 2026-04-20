@@ -64,6 +64,8 @@ function ensureOverlay() {
   container.appendChild(overlayRoot);
 }
 
+let lastTime = 0;
+
 function renderLoop() {
   if (!videoEl || !overlayText) {
     console.error("[dual-sub] overlay or video doesn't exist while rendering");
@@ -72,6 +74,11 @@ function renderLoop() {
   }
 
   const time = videoEl.currentTime;
+
+  if (time < lastTime) {
+    browser.runtime.sendMessage({type: "GET_CUES"}).then(r => altCues = r);
+  }
+
   const secondaryCue = getActiveCue(altCues, time);
   const nextText = secondaryCue?.text || "";
 
@@ -80,6 +87,9 @@ function renderLoop() {
     overlayText.style.display = nextText.length > 0 ? "block" : "none";
     lastRendered = nextText;
   }
+
+  lastTime = time;
+
   requestAnimationFrame(renderLoop);
 }
 

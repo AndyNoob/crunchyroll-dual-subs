@@ -1,6 +1,6 @@
 import {parseSubs} from "frazy-parser";
-import type {Cue} from "./content";
-import {loadAltSubtitles} from "./subtitle-loader";
+import type {Cue} from "../content";
+import {loadAltSubtitles} from "./loader";
 
 export async function fetchAndParseSubtitle(url): Promise<Cue[]> {
   console.log(`[dual-sub] fetching sub from ${url}`);
@@ -33,14 +33,27 @@ function normalizeFrazyCues(parsed: any[]): Cue[] {
   }));
 }
 
-export let subOptions: {ccs: Subtitle, subs: Subtitle};
+export let subOptions: { url: string, ccs: Subtitle, subs: Subtitle };
 export let profile: Profile;
 export let altCues: Cue[];
+
+declare global {
+  interface Window {
+    dualSub: {
+      profile: Profile;
+      subOptions: { url: string, ccs: Subtitle, subs: Subtitle };
+      loadAltSubtitles: typeof loadAltSubtitles;
+    };
+  }
+}
+
+window.dualSub.loadAltSubtitles = loadAltSubtitles;
 
 export function handlePlayback(playback) {
   const ccs: Subtitle = playback["captions"];
   const subs: Subtitle = playback["subtitles"];
-  subOptions = {ccs, subs}
+  subOptions = {url: playback["url"], ccs, subs}
+  window.dualSub.subOptions = subOptions;
   loadAltSubtitles(() => console.log("[dual-sub] alt sub loaded")).then(r => altCues = r);
 }
 
@@ -55,6 +68,7 @@ export function handleProfile(data) {
   }
 
   profile = selected;
+  window.dualSub.profile = profile;
 }
 
 export interface Subtitle {

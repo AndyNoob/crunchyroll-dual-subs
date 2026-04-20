@@ -1,4 +1,4 @@
-import {altCues, handlePlayback, handleProfile} from "./subtitle-handler";
+import {altCues, handlePlayback, handleProfile} from "./subtitle/handler";
 
 console.log("[dual-sub] background loaded");
 
