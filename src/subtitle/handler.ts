@@ -98,9 +98,3 @@ export interface Profile {
   subLanguage: string;
   preferCc: boolean;
 }
-
-export enum SubType {
-  Cc = "cc",
-  Sub = "sub",
-  Unknown = null
-}
