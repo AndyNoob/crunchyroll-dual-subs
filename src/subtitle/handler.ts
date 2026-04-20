@@ -1,6 +1,7 @@
 import {parseSubs} from "frazy-parser";
 import type {Cue} from "../content";
 import {loadAltSubtitles} from "./loader";
+import {getAuthorization} from "../background";
 
 export async function fetchAndParseSubtitle(url): Promise<Cue[]> {
   console.log(`[dual-sub] fetching sub from ${url}`);
@@ -33,38 +34,38 @@ function normalizeFrazyCues(parsed: any[]): Cue[] {
   }));
 }
 
-export let subOptions: { url: string, ccs: Subtitle, subs: Subtitle };
-export let profile: Profile;
-export let altCues: Cue[];
-
-declare global {
-  interface Window {
-    dualSub: {
-      profile: Profile;
-      subOptions: { url: string, ccs: Subtitle, subs: Subtitle };
-      cues: Cue[]
-    };
-  }
+export function getSubOpt(tabId: number): SubOptions | undefined {
+  return subOptMap.get(tabId);
 }
+export function getProfile(tabId: number): Profile | undefined {
+  return profileMap.get(tabId);
+}
+export function getAltCues(tabId: number): Cue[] | undefined {
+  return cueMap.get(tabId);
+}
+const subOptMap = new Map<number, SubOptions>();
+const cueMap = new Map<number, Cue[]>();
+const profileMap = new Map<number, Profile>();
 
-window.dualSub = {};
-
-export async function handlePlayback(playback, tabId: number) {
+export async function handlePlayback(playback, tabId: number): Promise<Cue[]> {
   const ccs: Subtitle = playback["captions"];
   const subs: Subtitle = playback["subtitles"];
-  subOptions = {url: playback["url"], ccs, subs}
-  window.dualSub.subOptions = subOptions;
-  loadAltSubtitles(() => console.log("[dual-sub] alt sub loaded")).then(r => {
-    altCues = r;
-    window.dualSub.cues = altCues;
-    browser.tabs.sendMessage(tabId, {
-      type: "REFRESH_CUES",
-      cues: altCues
-    }).catch(e => console.warn("[dual-sub]", e));
-  });
+  subOptMap.set(tabId, {url: playback["url"], ccs, subs});
+  const profile = getProfile(tabId);
+  if (!profile) {
+    console.log("[dual-sub] profile isn't loaded on handle playback.");
+    await grabProfile(tabId);
+  }
+  const cues = await loadAltSubtitles(() => console.log("[dual-sub] alt cues loaded"), tabId);
+  cueMap.set(tabId, cues);
+  browser.tabs.sendMessage(tabId, {
+    type: "REFRESH_CUES",
+    cues: cues
+  }).catch(e => console.warn("[dual-sub] failed to notify cue refresh", e));
+  return cues;
 }
 
-export function handleProfile(data) {
+export function handleProfile(data: object, tabId: number): Profile {
   const profiles: Profile[] = (data?.["profiles"] as [RawProfile]).map(a => mapProfile(a));
   let selected: Profile;
   for (let profile: Profile of profiles) {
@@ -73,9 +74,34 @@ export function handleProfile(data) {
       break;
     }
   }
+  profileMap.set(tabId, selected);
+  return selected;
+}
 
-  profile = selected;
-  window.dualSub.profile = profile;
+export async function grabProfile(tabId: number): Promise<Profile> {
+  const response = await fetch("https://www.crunchyroll.com/accounts/v1/me/multiprofile", {
+    headers: {
+      "Authorization": getAuthorization(tabId)!
+    }
+  });
+  if (!response.ok) return Promise.reject("failed to grab profile");
+  return handleProfile(await response.json(), tabId);
+}
+
+export async function grabPlayback(tabId: number) {
+  const url = (await browser.tabs.get(tabId)).url;
+  if (!url) return Promise.reject(`could not find url of tab ${tabId}`);
+  const contentId = url.match(/crunchyroll\.com\/watch\/(.+)\//)![1];
+  const device = "firefox"; // phone,tablet,android_tv,firefox,chrome
+  const deviceType = "web";
+  // courtesy of https://github.com/Crunchyroll-Plus/crunchyroll-docs/blob/release/Services/Play/GET/getPlayStream.md
+  const response = await fetch(`https://www.crunchyroll.com/playback/v3/${contentId}/${deviceType}/${device}/play`, {
+    headers: {
+      "Authorization": getAuthorization(tabId)!
+    }
+  });
+  if (!response.ok) return Promise.reject("failed to grab playback");
+  return await handlePlayback(await response.json(), tabId);
 }
 
 export interface Subtitle {
@@ -104,4 +130,10 @@ export interface Profile {
   isSelected: boolean;
   subLanguage: string;
   preferCc: boolean;
+}
+
+export interface SubOptions {
+  url: string,
+  ccs: Subtitle,
+  subs: Subtitle
 }

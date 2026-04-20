@@ -1,6 +1,6 @@
 {
   "name": "cr-dual-subs",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Display English and English [CC] subtitles at the same time.",
   "type": "module",
   "scripts": {

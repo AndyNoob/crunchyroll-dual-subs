@@ -6,8 +6,6 @@ let lastRendered = "";
 
 let altCues: Cue[];
 
-console.log(document.querySelectorAll("video"))
-
 function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -15,15 +13,29 @@ function sleep(ms) {
 }
 
 async function init() {
+  let url;
+  try {
+    url = await browser.runtime.sendMessage({type: "GET_URL"});
+  } catch (e) {
+    console.error(e);
+    return Promise.reject("could not get url of top");
+  }
+  if (!url) return Promise.reject("could not get url of top");
+  if (location.href !== url) console.log(`[dual-sub] loading ${location.href} inside ${url}`);
+  if (!url.includes("/watch/")) {
+    console.log(`[dual-sub] skipping ${location.href} because the top url is not a watch page`);
+    return Promise.resolve("not a watch page");
+  }
+  console.log(`[dual-sub] not skipping ${location.href}`);
   videoEl = document.querySelector("video");
-  let counter = 5;
+  let counter = 3;
   while (!videoEl && counter-- > 0) {
     await sleep(1000);
     videoEl = document.querySelector("video");
   }
   if (!videoEl) {
     console.warn(`[dual-sub] skipping ${location.href} because video player is not found`);
-    return Promise.reject("failed to init, could not find video player");
+    return Promise.reject("failed and skipping init, could not find video player");
   }
 
   console.log(`[dual-sub] init on frame ${browser.runtime.getFrameId(window)}`)
@@ -31,7 +43,14 @@ async function init() {
   ensureOverlay();
 
   console.log("[dual-sub] grabbing cues...");
-  altCues = (await browser.runtime.sendMessage({type: "GET_CUES"}));
+  try {
+    altCues = (await browser.runtime.sendMessage({type: "GET_CUES"}));
+  } catch {
+    if (confirm("[Crunchyroll Dual Sub] Please reload watch page, could not retrieve subtitle data.")) {
+      await browser.runtime.sendMessage({type: "REFRESH_TAB"});
+    }
+    return Promise.reject("failed to grab cues");
+  }
   console.log(`[dual-sub] grabbed ${altCues.length} cues.`);
   console.log("[dual-sub] starting renderloop...");
   requestAnimationFrame(renderLoop);
@@ -104,7 +123,10 @@ function getActiveCue(cues: Cue[], time): Cue | null {
   return null;
 }
 
-init().then();
+init().then().catch(r => {
+  console.error(`[dual-sub] failed to init extension on ${location.href}`);
+  console.error(r);
+});
 
 export interface Cue {
   id: number,
