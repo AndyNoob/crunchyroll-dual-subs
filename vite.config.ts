@@ -32,7 +32,7 @@ export default defineConfig({
       }
     }),
     zipPack({
-      outFileName: `${pkg.name}-${pkg.version}.zip`
+      outFileName: `${pkg.name}.zip`
     })
   ]
 });
