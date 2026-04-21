@@ -28,7 +28,7 @@ async function init() {
   }
   console.log(`[dual-sub] not skipping ${location.href}`);
   videoEl = document.querySelector("video");
-  let counter = 3;
+  let counter = 4;
   while (!videoEl && counter-- > 0) {
     await sleep(1000);
     videoEl = document.querySelector("video");
@@ -43,14 +43,41 @@ async function init() {
   ensureOverlay();
 
   console.log("[dual-sub] grabbing cues...");
+
   try {
-    altCues = (await browser.runtime.sendMessage({type: "GET_CUES"}));
-  } catch {
-    if (confirm("[Crunchyroll Dual Sub] Please reload watch page, could not retrieve subtitle data.")) {
-      await browser.runtime.sendMessage({type: "REFRESH_TAB"});
+    altCues = await browser.runtime.sendMessage({type: "GET_CUES"});
+  } catch {}
+
+  if (!altCues || !altCues.length) {
+    let lastError;
+
+    // this seems to trigger a request that contains auth headers, in case
+    // the background script is asleep at this point
+    const wasPaused = videoEl.paused;
+    if (wasPaused) {
+      await videoEl.play();
+    } else {
+      await videoEl.pause();
     }
-    return Promise.reject("failed to grab cues");
+    await sleep(10);
+    if (wasPaused) {
+      await videoEl.pause();
+    } else {
+      await videoEl.play();
+    }
+
+    await sleep(3000);
+    altCues = (await browser.runtime.sendMessage({type: "GET_CUES"}).catch((r) => lastError = r));
+
+    if (!altCues || !altCues.length) {
+      console.warn("[dual-subs] failed to grab cues", lastError);
+      if (confirm("[Crunchyroll Dual Sub] Please reload watch page, could not retrieve subtitle data.")) {
+        await browser.runtime.sendMessage({type: "REFRESH_TAB"});
+      }
+      return Promise.reject("failed to grab cues");
+    }
   }
+
   console.log(`[dual-sub] grabbed ${altCues.length} cues.`);
   console.log("[dual-sub] starting renderloop...");
   requestAnimationFrame(renderLoop);
@@ -80,10 +107,10 @@ function ensureOverlay() {
     container.style.position = "relative";
   }
 
-  overlayRoot = document.createElement("div");
+  overlayRoot = document.querySelector("#cr-dual-subs-root") ?? document.createElement("div");
   overlayRoot.id = "cr-dual-subs-root";
 
-  overlayText = document.createElement("div");
+  overlayText = document.querySelector("#cr-dual-subs-secondary") ?? document.createElement("div");
   overlayText.id = "cr-dual-subs-secondary";
 
   overlayRoot.appendChild(overlayText);

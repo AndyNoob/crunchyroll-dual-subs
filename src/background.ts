@@ -1,4 +1,5 @@
 import {getAltCues, grabPlayback, handlePlayback, handleProfile} from "./subtitle/handler";
+import HttpHeaders = browser.webRequest.HttpHeaders;
 
 console.log("[dual-sub] background loaded");
 
@@ -55,13 +56,16 @@ browser.runtime.onMessage.addListener(async (msg, sender) => {
   const isValid = sender.tab && sender.tab.id && sender.tab.id >= 0;
   if (!isValid) return Promise.reject();
   if (msg?.type === "GET_CUES") {
-    const altCues = getAltCues(sender.tab!.id!);
+    let altCues = getAltCues(sender.tab!.id!);
     if (!altCues || altCues.length === 0) {
-      console.log("[dual-sub] playback is undefined, grabbing...");
-      if (!getAuthorization(sender.tab!.id)) {
+      console.log("[dual-sub] playback is undefined upon request, grabbing...");
+      const headers = getHeaders(sender.tab!.id);
+      if (!headers) {
+        console.log("[dual-sub] headers not set");
         return Promise.reject("auth data not found.");
       }
-      await grabPlayback(sender.tab!.id!);
+      altCues = await grabPlayback(sender.tab!.id!);
+      console.log(`[dual-sub] grabbed ${altCues?.length} cues upon request`);
     }
     return Promise.resolve(altCues);
   }
@@ -73,44 +77,18 @@ browser.runtime.onMessage.addListener(async (msg, sender) => {
   }
 });
 
-export const getAuthorization: (number) => string | undefined = (tabId) => {
-  return authMap.get(tabId);
+export const getHeaders: (number) => HttpHeaders | undefined = (tabId) => {
+  return headersMap.get(tabId);
 };
-const authMap = new Map<number, string>();
+const headersMap = new Map<number, HttpHeaders>();
 
-browser.webRequest.onBeforeRequest.addListener((details) => {
-    if (details.tabId < 0) return;
-    console.log(`[dual-sub] received token request with id ${details.requestId}`);
-    const filter = browser.webRequest.filterResponseData(details.requestId);
-    const decoder = new TextDecoder("utf-8");
-
-    let data = "";
-
-    filter.ondata = (e) => {
-      const decoded = decoder.decode(e.data);
-      data += decoded;
-      filter.write(e.data);
-    }
-
-    filter.onstop = () => {
-      console.log(`[dual-sub] finishing token request id ${details.requestId}`);
-      let parsed: any;
-      try {
-        parsed = JSON.parse(data);
-      } catch {
-        console.warn(`[dual-sub] request id ${details.requestId} is extraneous`);
-        console.log(data);
-        filter.disconnect();
-        return;
-      }
-      authMap.set(details.tabId, `${parsed["token_type"]} ${parsed["access_token"]}`);
-      console.log(`[dual-sub] auth token set for tab ${details.tabId}`);
-      filter.disconnect();
-    }
-  }, {
-    urls: [
-      "*://www.crunchyroll.com/auth/v1/token"
-    ]
-  },
-  ["blocking"]
-);
+browser.webRequest.onSendHeaders.addListener((details) => {
+  if (details.tabId < 0) return;
+  if (details.requestHeaders === undefined) return;
+  headersMap.set(details.tabId, details.requestHeaders);
+  console.log(`[dual-sub] headers set for tab ${details.tabId} based off of ${details.url}`);
+}, {
+  urls: [
+    "*://www.crunchyroll.com/*"
+  ]
+}, ["requestHeaders"]);

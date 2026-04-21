@@ -1,3 +1,9 @@
+# 0.2.0
+1. Ensure overlays aren't added twice 
+2. Make sure playback data requests are sent with proper headers 
+3. Enhance content.ts init logic to give buffer for cue loading 
+4. Add a video play/pause hack to grab headers when background.ts is reawakened
+
 # 0.1.0
 1. Add confirm box to refresh page if subtitle can't be found; 
 2. Auto grab profile data if not found; 
