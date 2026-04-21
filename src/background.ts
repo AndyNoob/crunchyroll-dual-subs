@@ -1,6 +1,6 @@
 import {getAltCues, grabPlayback, handlePlayback, handleProfile} from "./subtitle/handler";
-import HttpHeaders = browser.webRequest.HttpHeaders;
-
+import type {Header} from "./subtitle/handler";
+import browser from "webextension-polyfill";
 console.log("[dual-sub] background loaded");
 
 browser.webRequest.onBeforeRequest.addListener((details) => {
@@ -77,10 +77,10 @@ browser.runtime.onMessage.addListener(async (msg, sender) => {
   }
 });
 
-export const getHeaders: (number) => HttpHeaders | undefined = (tabId) => {
+export const getHeaders: (number) => Header[] | undefined = (tabId) => {
   return headersMap.get(tabId);
 };
-const headersMap = new Map<number, HttpHeaders>();
+const headersMap = new Map<number, Header[]>();
 
 browser.webRequest.onSendHeaders.addListener((details) => {
   if (details.tabId < 0) return;

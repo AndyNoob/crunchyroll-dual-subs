@@ -1,3 +1,5 @@
+import browser from "webextension-polyfill";
+
 let videoEl: HTMLVideoElement;
 let overlayRoot: HTMLDivElement;
 let overlayText: HTMLDivElement;
@@ -67,7 +69,7 @@ async function init() {
     }
 
     await sleep(3000);
-    altCues = (await browser.runtime.sendMessage({type: "GET_CUES"}).catch((r) => lastError = r));
+    altCues = await browser.runtime.sendMessage({type: "GET_CUES"}).catch((r) => lastError = r) as Cue[];
 
     if (!altCues || !altCues.length) {
       console.warn("[dual-subs] failed to grab cues", lastError);

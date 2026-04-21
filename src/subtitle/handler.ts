@@ -2,7 +2,7 @@ import {parseSubs} from "frazy-parser";
 import type {Cue} from "../content";
 import {loadAltSubtitles} from "./loader";
 import {getHeaders} from "../background";
-import HttpHeaders = browser.webRequest.HttpHeaders;
+import browser from "webextension-polyfill";
 
 export async function fetchAndParseSubtitle(url): Promise<Cue[]> {
   console.log(`[dual-sub] fetching sub from ${url}`);
@@ -125,7 +125,7 @@ export async function grabPlayback(tabId: number) {
   return await handlePlayback(await response.json(), tabId);
 }
 
-function findHeaderValue(headers: HttpHeaders, name: string): string {
+function findHeaderValue(headers: Header[], name: string): string {
   return headers.find((h) => h.name === name)!.value!;
 }
 
@@ -161,4 +161,9 @@ export interface SubOptions {
   url: string,
   ccs: Subtitle,
   subs: Subtitle
+}
+
+export interface Header {
+  name: string,
+  value?: string
 }
