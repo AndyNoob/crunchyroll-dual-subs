@@ -4,7 +4,7 @@ import {loadAltSubtitles} from "./loader";
 import {getHeaders} from "../background";
 import browser from "webextension-polyfill";
 
-export async function fetchAndParseSubtitle(url): Promise<Cue[]> {
+export async function fetchAndParseSubtitle(url: string): Promise<Cue[]> {
   console.log(`[dual-sub] fetching sub from ${url}`);
   const res = await fetch(url);
   if (!res.ok) {
@@ -24,12 +24,12 @@ function cleanSubtitleText(text: string): string {
 }
 
 function normalizeFrazyCues(parsed: any[]): Cue[] {
-  return parsed.map(cue => ({
+  return parsed.map((cue: any) => ({
     id: cue.id,
     start: cue.start,
     end: cue.end,
     text: (cue.body || [])
-      .map(part => cleanSubtitleText(part.text || ""))
+      .map((part: any) => cleanSubtitleText(part.text || ""))
       .join("\n")
       .trim()
   }));
@@ -48,7 +48,7 @@ const subOptMap = new Map<number, SubOptions>();
 const cueMap = new Map<number, Cue[]>();
 const profileMap = new Map<number, Profile>();
 
-export async function handlePlayback(playback, tabId: number): Promise<Cue[]> {
+export async function handlePlayback(playback: any, tabId: number): Promise<Cue[]> {
   const ccs: Subtitle = playback["captions"];
   const subs: Subtitle = playback["subtitles"];
   subOptMap.set(tabId, {url: playback["url"], ccs, subs});
@@ -67,15 +67,16 @@ export async function handlePlayback(playback, tabId: number): Promise<Cue[]> {
   return cues;
 }
 
-export function handleProfile(data: object, tabId: number): Profile {
+export function handleProfile(data: any, tabId: number): Profile {
   const profiles: Profile[] = (data?.["profiles"] as [RawProfile]).map(a => mapProfile(a));
-  let selected: Profile;
-  for (let profile: Profile of profiles) {
+  let selected: Profile | null = null;
+  for (let profile of profiles) {
     if (profile.isSelected) {
       selected = profile;
       break;
     }
   }
+  if (!selected) throw new Error("No profile selected");
   profileMap.set(tabId, selected);
   return selected;
 }
@@ -117,7 +118,7 @@ export async function grabPlayback(tabId: number) {
       // don't ask me how i found this
       // just know it took a while
       "x-cr-tab-id": sessionStorage.getItem("cx-tab-id")
-    }
+    } as Record<string, string>
   });
   if (!response.ok) {
     return Promise.reject("failed to grab playback");

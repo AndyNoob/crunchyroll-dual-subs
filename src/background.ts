@@ -52,14 +52,14 @@ browser.webRequest.onBeforeRequest.addListener((details) => {
   ["blocking"]
 );
 
-browser.runtime.onMessage.addListener(async (msg, sender) => {
+browser.runtime.onMessage.addListener(async (msg: any, sender: any) => {
   const isValid = sender.tab && sender.tab.id && sender.tab.id >= 0;
   if (!isValid) return Promise.reject();
   if (msg?.type === "GET_CUES") {
     let altCues = getAltCues(sender.tab!.id!);
     if (!altCues || altCues.length === 0) {
       console.log("[dual-sub] playback is undefined upon request, grabbing...");
-      const headers = getHeaders(sender.tab!.id);
+      const headers = getHeaders(sender.tab!.id!);
       if (!headers) {
         console.log("[dual-sub] headers not set");
         return Promise.reject("auth data not found.");
@@ -77,7 +77,7 @@ browser.runtime.onMessage.addListener(async (msg, sender) => {
   }
 });
 
-export const getHeaders: (number) => Header[] | undefined = (tabId) => {
+export const getHeaders: (tabId: number) => Header[] | undefined = (tabId) => {
   return headersMap.get(tabId);
 };
 const headersMap = new Map<number, Header[]>();

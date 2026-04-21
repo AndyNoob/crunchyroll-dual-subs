@@ -7,7 +7,7 @@ let overlayText: HTMLDivElement;
 let lastRendered = "";
 let currentCues: Cue[];
 
-function sleep(ms) {
+function sleep(ms: number) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
@@ -31,9 +31,9 @@ async function tryHackToRefreshToken() {
 }
 
 async function init() {
-  let url;
+  let url: string;
   try {
-    url = await browser.runtime.sendMessage({type: "GET_URL"});
+    url = await browser.runtime.sendMessage({type: "GET_URL"}) as string;
   } catch (e) {
     console.error(e);
     return Promise.reject("could not get url of top");
@@ -45,16 +45,18 @@ async function init() {
     return Promise.resolve("not a watch page");
   }
   console.log(`[dual-sub] not skipping ${location.href}`);
-  videoEl = document.querySelector("video");
+  let vid = document.querySelector("video");
   let counter = 4;
-  while (!videoEl && counter-- > 0) {
+  while (!vid && counter-- > 0) {
     await sleep(1000);
-    videoEl = document.querySelector("video");
+    vid = document.querySelector("video");
   }
-  if (!videoEl) {
+  if (!vid) {
     console.warn(`[dual-sub] skipping ${location.href} because video player is not found`);
     return Promise.reject("failed and skipping init, could not find video player");
   }
+
+  videoEl = vid as HTMLVideoElement;
 
   console.log(`[dual-sub] init on frame ${browser.runtime.getFrameId(window)}`)
 
@@ -90,7 +92,7 @@ async function init() {
   requestAnimationFrame(renderLoop);
   console.log("[dual-sub] subtitle animation started");
 
-  browser.runtime.onMessage.addListener((msg) => {
+  browser.runtime.onMessage.addListener((msg: any) => {
     if (msg?.type !== "REFRESH_CUES") return;
     currentCues = msg.cues;
     console.log(`[dual-sub] refreshed cues (${currentCues.length} loaded)`);
@@ -149,7 +151,7 @@ function renderLoop() {
   requestAnimationFrame(renderLoop);
 }
 
-function getActiveCue(cues: Cue[], time): Cue | null {
+function getActiveCue(cues: Cue[], time: number): Cue | null {
   // TODO use binary search
   for (const cue of cues) {
     if (time >= cue.start && time <= cue.end) return cue;
