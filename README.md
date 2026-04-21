@@ -1,4 +1,5 @@
 # Crunchyroll Dual Sub
+![](https://hackatime.hackclub.com/api/v1/badge/U07A64GBPV1/AndyNoob/crunchyroll-dual-subs)<br>
 Firefox extension created to fix the annoying issue of not being able to use `English` and `English [CC]` subtitles at the same time[^1]. The extension is in early development but is guaranteed to work on shows such as One Piece where there are both types of subtitles. This extension supports [Croptix](https://github.com/stratumadev/croptix) (Vilos player).
 
 ## How it works
