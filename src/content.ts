@@ -5,13 +5,29 @@ let overlayRoot: HTMLDivElement;
 let overlayText: HTMLDivElement;
 
 let lastRendered = "";
-
-let altCues: Cue[];
+let currentCues: Cue[];
 
 function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+async function tryHackToRefreshToken() {
+  // this seems to trigger a play head request that contains auth headers, in case
+  // the background script is asleep at this point
+  const wasPaused = videoEl.paused;
+  if (wasPaused) {
+    await videoEl.play();
+  } else {
+    await videoEl.pause();
+  }
+  await sleep(10);
+  if (wasPaused) {
+    await videoEl.pause();
+  } else {
+    await videoEl.play();
+  }
 }
 
 async function init() {
@@ -47,32 +63,21 @@ async function init() {
   console.log("[dual-sub] grabbing cues...");
 
   try {
-    altCues = await browser.runtime.sendMessage({type: "GET_CUES"});
+    currentCues = await browser.runtime.sendMessage({type: "GET_CUES"});
   } catch {}
 
-  if (!altCues || !altCues.length) {
-    let lastError;
-
-    // this seems to trigger a request that contains auth headers, in case
-    // the background script is asleep at this point
-    const wasPaused = videoEl.paused;
-    if (wasPaused) {
-      await videoEl.play();
-    } else {
-      await videoEl.pause();
-    }
-    await sleep(10);
-    if (wasPaused) {
-      await videoEl.pause();
-    } else {
-      await videoEl.play();
-    }
-
+  if (!currentCues || !currentCues.length) {
+    // at this point, the background.ts was probably put to
+    // sleep by the browser. however, since we sent a msg over
+    // it is now awake but missing the authorization headers and such
+    // to grab the playback. by running this hack, we force crunchy
+    // to send a request that contains the headers we need.
+    await tryHackToRefreshToken();
     await sleep(3000);
-    altCues = await browser.runtime.sendMessage({type: "GET_CUES"}).catch((r) => lastError = r) as Cue[];
+    currentCues = (await browser.runtime.sendMessage({type: "GET_CUES"}).catch(r => console.warn(r))) as Cue[];
 
-    if (!altCues || !altCues.length) {
-      console.warn("[dual-subs] failed to grab cues", lastError);
+    if (!currentCues || !currentCues.length) {
+      console.warn("[dual-subs] failed to grab cues");
       if (confirm("[Crunchyroll Dual Sub] Please reload watch page, could not retrieve subtitle data.")) {
         await browser.runtime.sendMessage({type: "REFRESH_TAB"});
       }
@@ -80,15 +85,15 @@ async function init() {
     }
   }
 
-  console.log(`[dual-sub] grabbed ${altCues.length} cues.`);
+  console.log(`[dual-sub] grabbed ${currentCues.length} cues.`);
   console.log("[dual-sub] starting renderloop...");
   requestAnimationFrame(renderLoop);
   console.log("[dual-sub] subtitle animation started");
 
   browser.runtime.onMessage.addListener((msg) => {
     if (msg?.type !== "REFRESH_CUES") return;
-    altCues = msg.cues;
-    console.log(`[dual-sub] refreshed cues (${altCues.length} loaded)`);
+    currentCues = msg.cues;
+    console.log(`[dual-sub] refreshed cues (${currentCues.length} loaded)`);
   });
   console.log("[dual-sub] added tab update listener");
 
@@ -130,7 +135,7 @@ function renderLoop() {
 
   const time = videoEl.currentTime;
 
-  const secondaryCue = getActiveCue(altCues, time);
+  const secondaryCue = getActiveCue(currentCues, time);
   const nextText = secondaryCue?.text || "";
 
   if (nextText !== lastRendered) {
