@@ -97,8 +97,8 @@ jobs:
         id: release
         with:
           addon-id: 'cr-dual-sub@andynoob'
-          addon-path: "**/cr-dual-subs-${{ needs.do-setup.outputs.version }}.zip"
-          source-path: "**/cr-dual-subs-src-${{ needs.do-setup.outputs.version }}.zip"
+          addon-path: "crunchyroll-dual-subs/crunchyroll-dual-subs/cr-dual-subs-${{ needs.do-setup.outputs.version }}.zip"
+          source-path: "crunchyroll-dual-subs/crunchyroll-dual-subs/cr-dual-subs-src-${{ needs.do-setup.outputs.version }}.zip"
           auth-api-issuer: ${{ secrets.AMO_ISSUER }}
           auth-api-secret: ${{ secrets.AMO_SECRET }}
           approval-note: |
@@ -124,7 +124,7 @@ jobs:
         name: Release it on Github
         id: release
         with:
-          artifacts: "**/cr-sub-subs-${{ needs.do-setup.outputs.version }}.zip"
+          artifacts: "crunchyroll-dual-subs/crunchyroll-dual-subs/cr-sub-subs-${{ needs.do-setup.outputs.version }}.zip"
           body: ${{ needs.do-setup.outputs.notes }}
           commit: ${{ env.BRANCH_NAME }}
           tag: "v${{ needs.do-setup.outputs.version }}"
