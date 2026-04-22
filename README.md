@@ -16,6 +16,6 @@ Furthermore, the extension is not able to detect when/if you change your preferr
 3. Find archive in `dist-zip/` or built files in `dist/`
 
 ## Credits
-While not completely vibe-coded, this project was made with the help of GPT-5.2/5.3.
+While not completely vibe-coded, this project was made with the help of GPT-5.2/5.3. This project uses [frazy-parser](https://github.com/ApayRus/frazy-parser) by [ApayRus](https://github.com/ApayRus) to parse subtitle files. 
 
 [^1]: See Reddit posts: [post1](https://www.reddit.com/r/Crunchyroll/comments/1qpmdz0/english_subtitles_vs_english_cc_not_translating/), [post2](https://www.reddit.com/r/Crunchyroll/comments/1ny0knq/can_you_combine_english_and_english_cc_subtitles/), [post3](https://www.reddit.com/r/Crunchyroll/comments/1r4gjba/so_uhwhy_do_the_closed_captions_suck/), [post4](https://www.reddit.com/r/Crunchyroll/comments/1elybu9/english_cc_subtitles_dont_have_translations_for/)
