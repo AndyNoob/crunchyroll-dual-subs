@@ -93,7 +93,7 @@ jobs:
         name: Download the built stuff
 
       - name: Try list file structure
-        run: tree -d
+        run: tree
 
       - uses: browser-actions/release-firefox-addon@latest
         name: Release it to firefox
@@ -122,7 +122,7 @@ jobs:
         name: Download the built stuff
 
       - name: Try list file structure
-        run: tree -d
+        run: tree
 
       - uses: ncipollo/release-action@v1
         name: Release it on Github
