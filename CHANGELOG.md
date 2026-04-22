@@ -1,3 +1,17 @@
+# 0.3.0
+- Try to fix path to artifacts (why download-artifacts behavior be so mysterious man)
+- Revert epik github actions fail
+- Fix output name in correspondence to the last commit (insert face palm) and add some github step summary stuff
+- Update changelog for 0.3.0
+- Fix matching delimiter in deploy.yml
+- Use a different last success commit action in deploy.yml
+- Bump version and update deploy.yml
+- Fix various type issues
+- Try to get chrome manifest generation working
+- Refactoring and code cleanup in content.ts
+- Migrate to webextension-polyfill
+- Add hackatime badge
+
 # 0.2.0
 1. Ensure overlays aren't added twice 
 2. Make sure playback data requests are sent with proper headers 
