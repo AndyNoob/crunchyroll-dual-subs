@@ -92,13 +92,16 @@ jobs:
       - uses: actions/download-artifact@v8
         name: Download the built stuff
 
+      - name: Try list file structure
+        run: tree -d
+
       - uses: browser-actions/release-firefox-addon@latest
         name: Release it to firefox
         id: release
         with:
           addon-id: 'cr-dual-sub@andynoob'
-          addon-path: "crunchyroll-dual-subs/crunchyroll-dual-subs/cr-dual-subs-${{ needs.do-setup.outputs.version }}.zip"
-          source-path: "crunchyroll-dual-subs/crunchyroll-dual-subs/cr-dual-subs-src-${{ needs.do-setup.outputs.version }}.zip"
+          addon-path: "crunchyroll-dual-subs/cr-dual-subs-${{ needs.do-setup.outputs.version }}.zip"
+          source-path: "crunchyroll-dual-subs/cr-dual-subs-src-${{ needs.do-setup.outputs.version }}.zip"
           auth-api-issuer: ${{ secrets.AMO_ISSUER }}
           auth-api-secret: ${{ secrets.AMO_SECRET }}
           approval-note: |
@@ -117,14 +120,15 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         name: Download the built stuff
-        with:
-          path: .
+
+      - name: Try list file structure
+        run: tree -d
 
       - uses: ncipollo/release-action@v1
         name: Release it on Github
         id: release
         with:
-          artifacts: "crunchyroll-dual-subs/crunchyroll-dual-subs/cr-sub-subs-${{ needs.do-setup.outputs.version }}.zip"
+          artifacts: "crunchyroll-dual-subs/cr-sub-subs-${{ needs.do-setup.outputs.version }}.zip"
           body: ${{ needs.do-setup.outputs.notes }}
           commit: ${{ env.BRANCH_NAME }}
           tag: "v${{ needs.do-setup.outputs.version }}"
