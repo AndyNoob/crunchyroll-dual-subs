@@ -69,11 +69,17 @@ jobs:
           {
             echo "markdown<<EOF"
             echo "# ${{ steps.version.outputs.version }}"
-            git log ${{ steps.last_success.outputs.commit_hash }}..HEAD \
+            git log ${{ steps.last_success.outputs.commit-sha }}..HEAD \
               --pretty=format:'- %s'
             echo
             echo "EOF"
           } >> $GITHUB_OUTPUT
+
+      - name: Throw stuff in the summary
+        run: |
+          echo "# Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "> Last commit hash: ${{ steps.last_success.outputs.commit-sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "#${{ steps.notes.outputs.markdown }}" >> $GITHUB_STEP_SUMMARY
 
       # apply the github-action bot email and username
       - uses: qoomon/actions--setup-git@v1
