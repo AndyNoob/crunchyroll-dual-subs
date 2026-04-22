@@ -104,6 +104,7 @@ jobs:
           source-path: "./cr-dual-subs-src-${{ needs.do-setup.outputs.version }}.zip/cr-dual-subs-src.zip"
           auth-api-issuer: ${{ secrets.AMO_ISSUER }}
           auth-api-secret: ${{ secrets.AMO_SECRET }}
+          license: MIT
           approval-note: |
             The steps to build project is in README.md.
           release-note: ${{ needs.do-setup.outputs.notes }}
