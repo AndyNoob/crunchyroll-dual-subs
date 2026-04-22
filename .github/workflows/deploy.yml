@@ -111,8 +111,8 @@ jobs:
         name: Release it to firefox
         with:
           addon-id: 'cr-dual-sub@andynoob'
-          addon-path: 'cr-dual-subs.zip'
-          source-path: 'cr-dual-subs-src.zip'
+          addon-path: "cr-dual-subs-${{ steps.version.outputs.version }}.zip"
+          source-path: "cr-dual-subs-src-${{ steps.version.outputs.version }}.zip"
           auth-api-issuer: ${{ secrets.AMO_ISSUER }}
           auth-api-secret: ${{ secrets.AMO_SECRET }}
           approval-note: |
@@ -132,7 +132,7 @@ jobs:
       - uses: ncipollo/release-action@v1
         name: Release it on Github
         with:
-          artifacts: 'cr-sub-subs.zip'
+          artifacts: "cr-sub-subs-${{ steps.version.outputs.version }}.zip"
           body: ${{ needs.do-setup.outputs.notes }}
           commit: ${{ env.BRANCH_NAME }}
           tag: "v${{ needs.do-setup.outputs.version }}"
