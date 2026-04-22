@@ -56,11 +56,11 @@ jobs:
 
       - name: Get last successful deploy commit
         id: last_success
-        uses: PatrikValkovic/last-successful-commit-action@v3.1
+        uses: nickderobertis/last-successful-commit-action@v1
         with:
-          workflow_id: deploy.yml
           branch: ${{ env.BRANCH_NAME }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          workflow-id: 'deploy.yml'
 
       # courtesy of GPT-5.3 (or .2?)
       - name: Generate release notes
