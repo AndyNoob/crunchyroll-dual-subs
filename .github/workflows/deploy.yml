@@ -161,10 +161,10 @@ jobs:
       - name: Prepend the CHANGELOG.md file
         # courtesy of https://stackoverflow.com/a/27950358
         run: |
-          printf '%s\n\n%s\n' "${{ steps.notes.outputs.markdown }}" "$(cat CHANGELOG.md)" > CHANGELOG.md
+          printf '%s\n\n%s\n' "${{ needs.do-setup.outputs.notes }}" "$(cat CHANGELOG.md)" > CHANGELOG.md
 
       - name: PUSH IT TO PROD
         run: |
           git add CHANGELOG.md
-          git commit -m "Update changelog for ${{ steps.version.outputs.version }}"
+          git commit -m "Update changelog for ${{ needs.do-setup.outputs.version }}"
           git push
