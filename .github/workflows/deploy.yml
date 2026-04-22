@@ -77,9 +77,9 @@ jobs:
 
       - name: Throw stuff in the summary
         run: |
-          echo "# Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## The stuff we grabbed" >> $GITHUB_STEP_SUMMARY
           echo "> Last commit hash: ${{ steps.last_success.outputs.commit-sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "#${{ steps.notes.outputs.markdown }}" >> $GITHUB_STEP_SUMMARY
+          echo "##${{ steps.notes.outputs.markdown }}" >> $GITHUB_STEP_SUMMARY
 
       # apply the github-action bot email and username
       - uses: qoomon/actions--setup-git@v1
@@ -110,8 +110,8 @@ jobs:
         id: release
         with:
           addon-id: 'cr-dual-sub@andynoob'
-          addon-path: "crunchyroll-dual-subs/cr-dual-subs-${{ needs.do-setup.outputs.version }}.zip"
-          source-path: "crunchyroll-dual-subs/cr-dual-subs-src-${{ needs.do-setup.outputs.version }}.zip"
+          addon-path: "**/cr-dual-subs-${{ needs.do-setup.outputs.version }}.zip"
+          source-path: "**/cr-dual-subs-src-${{ needs.do-setup.outputs.version }}.zip"
           auth-api-issuer: ${{ secrets.AMO_ISSUER }}
           auth-api-secret: ${{ secrets.AMO_SECRET }}
           approval-note: |
@@ -137,7 +137,7 @@ jobs:
         name: Release it on Github
         id: release
         with:
-          artifacts: "crunchyroll-dual-subs/cr-sub-subs-${{ needs.do-setup.outputs.version }}.zip"
+          artifacts: "**/cr-sub-subs-${{ needs.do-setup.outputs.version }}.zip"
           body: ${{ needs.do-setup.outputs.notes }}
           commit: ${{ env.BRANCH_NAME }}
           tag: "v${{ needs.do-setup.outputs.version }}"
