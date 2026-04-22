@@ -107,15 +107,21 @@ jobs:
 
       - uses: browser-actions/release-firefox-addon@latest
         name: Release it to firefox
+        id: release
         with:
           addon-id: 'cr-dual-sub@andynoob'
-          addon-path: "cr-dual-subs-${{ steps.version.outputs.version }}.zip"
-          source-path: "cr-dual-subs-src-${{ steps.version.outputs.version }}.zip"
+          addon-path: "crunchyroll-dual-subs/cr-dual-subs-${{ needs.do-setup.outputs.version }}.zip"
+          source-path: "crunchyroll-dual-subs/cr-dual-subs-src-${{ needs.do-setup.outputs.version }}.zip"
           auth-api-issuer: ${{ secrets.AMO_ISSUER }}
           auth-api-secret: ${{ secrets.AMO_SECRET }}
           approval-note: |
             The steps to build project is in README.md.
           release-note: ${{ needs.do-setup.outputs.notes }}
+
+      - name: Add stuff to summary
+        run: |
+          echo "## Firefox" >> $GITHUB_STEP_SUMMARY
+          echo "Url is ${{ steps.release.outputs.version-edit-url }}" >> $GITHUB_STEP_SUMMARY
 
   deploy-github:
     name: Release it on Github
@@ -129,9 +135,16 @@ jobs:
 
       - uses: ncipollo/release-action@v1
         name: Release it on Github
+        id: release
         with:
-          artifacts: "cr-sub-subs-${{ steps.version.outputs.version }}.zip"
+          artifacts: "crunchyroll-dual-subs/cr-sub-subs-${{ needs.do-setup.outputs.version }}.zip"
           body: ${{ needs.do-setup.outputs.notes }}
           commit: ${{ env.BRANCH_NAME }}
           tag: "v${{ needs.do-setup.outputs.version }}"
           allowUpdates: true
+          artifactErrorsFailBuild: true
+
+      - name: Add stuff to summary
+        run: |
+          echo "## Github" >> $GITHUB_STEP_SUMMARY
+          echo "Url is ${{ steps.release.outputs.html_url }}" >> $GITHUB_STEP_SUMMARY
