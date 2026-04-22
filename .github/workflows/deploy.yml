@@ -104,8 +104,6 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         name: Download the built stuff
-        with:
-          path: .
 
       - uses: browser-actions/release-firefox-addon@latest
         name: Release it to firefox
