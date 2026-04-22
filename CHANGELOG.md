@@ -1,3 +1,5 @@
+
+
 # 0.2.0
 1. Ensure overlays aren't added twice 
 2. Make sure playback data requests are sent with proper headers 
