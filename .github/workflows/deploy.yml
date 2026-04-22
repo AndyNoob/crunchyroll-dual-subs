@@ -67,7 +67,7 @@ jobs:
         id: notes
         run: |
           {
-            echo -n "markdown<<EOF"
+            echo "markdown<<EOF"
             echo "# ${{ steps.version.outputs.version }}"
             git log ${{ steps.last_success.outputs.commit_hash }}..HEAD \
               --pretty=format:'- %s'
