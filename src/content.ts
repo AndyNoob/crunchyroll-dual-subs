@@ -87,6 +87,8 @@ async function init() {
     }
   }
 
+  console.log(currentCues);
+
   console.log(`[dual-sub] grabbed ${currentCues.length} cues.`);
   console.log("[dual-sub] starting renderloop...");
   requestAnimationFrame(renderLoop);
@@ -126,8 +128,6 @@ function ensureOverlay() {
   container.appendChild(overlayRoot);
 }
 
-let lastTime = 0;
-
 function renderLoop() {
   if (!videoEl || !overlayText) {
     console.error("[dual-sub] overlay or video doesn't exist while rendering");
@@ -146,17 +146,40 @@ function renderLoop() {
     lastRendered = nextText;
   }
 
-  lastTime = time;
-
   requestAnimationFrame(renderLoop);
 }
 
+function compare(cue: Cue, time: number): 0 | -1 | 1 {
+  if (cue.start > time || cue.end < time)
+    return cue.start > time ? 1 : -1;
+  else return 0;
+}
+
 function getActiveCue(cues: Cue[], time: number): Cue | null {
-  // TODO use binary search
-  for (const cue of cues) {
-    if (time >= cue.start && time <= cue.end) return cue;
+  if (compare(cues[0]!, time) == 0)
+    return cues[0] ?? null;
+  if (compare(cues[cues.length - 1]!, time) == 0)
+    return cues[cues.length - 1] ?? null;
+
+  let index = cues.length / 2;
+  let prev = 0;
+  let cue: Cue | undefined;
+  let comp: number;
+  while ((cue = cues[Math.floor(index)]) && (comp = compare(cue, time)) != 0) {
+    let diff = Math.abs((index - prev) / 2);
+    const nextIndex = comp > 0 ? index - diff : index + diff;
+    if (Math.floor(nextIndex) === Math.floor(index)) break;
+    prev = index;
+    index = nextIndex;
   }
-  return null;
+  if (!cue || compare(cue, time) != 0) {
+    return null;
+  }
+  return cue;
+  // for (const cue of cues) {
+  //   if (time >= cue.start && time <= cue.end) return cue;
+  // }
+  // return null;
 }
 
 init().then().catch(r => {
