@@ -56,9 +56,9 @@ browser.runtime.onMessage.addListener(async (msg: any, sender: any) => {
   const isValid = sender.tab && sender.tab.id && sender.tab.id >= 0;
   if (!isValid) return Promise.reject();
   if (msg?.type === "GET_CUES") {
-    let altCues = getAltCues(sender.tab!.id!);
+    let altCues = getAltCues(sender.tab!.id!, sender.tab!.url!);
     if (!altCues || altCues.length === 0) {
-      console.log("[dual-sub] playback is undefined upon request, grabbing...");
+      console.log("[dual-sub] playback is undefined/wrong upon request, grabbing...");
       const headers = getHeaders(sender.tab!.id!);
       if (!headers) {
         console.log("[dual-sub] headers not set");
@@ -77,8 +77,19 @@ browser.runtime.onMessage.addListener(async (msg: any, sender: any) => {
   }
 });
 
-export const getHeaders: (tabId: number) => Header[] | undefined = (tabId) => {
-  return headersMap.get(tabId);
+export const getHeaders: (tabId: number) => Promise<Header[] | undefined> = async (tabId) => {
+  let header = headersMap.get(tabId);
+  if (!header) {
+    console.log(`[dual-sub] headers not found for tab ${tabId}, messaging for content script to try hack.`);
+    try {
+      await browser.runtime.sendMessage({type: "TRY_HACK"});
+    } catch {
+      return Promise.reject("hack failed");
+    }
+    console.log(`[dual-sub] hack on tab ${tabId} is complete.`);
+    header = headersMap.get(tabId);
+  }
+  return header;
 };
 const headersMap = new Map<number, Header[]>();
 

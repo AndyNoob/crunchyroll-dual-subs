@@ -38,14 +38,18 @@ function normalizeFrazyCues(parsed: any[]): Cue[] {
 export function getSubOpt(tabId: number): SubOptions | undefined {
   return subOptMap.get(tabId);
 }
+
 export function getProfile(tabId: number): Profile | undefined {
   return profileMap.get(tabId);
 }
-export function getAltCues(tabId: number): Cue[] | undefined {
-  return cueMap.get(tabId);
+
+export function getAltCues(tabId: number, url: string): Cue[] | undefined | null {
+  return urlMap.get(tabId) === url ? cueMap.get(tabId) : null;
 }
+
 const subOptMap = new Map<number, SubOptions>();
 const cueMap = new Map<number, Cue[]>();
+const urlMap = new Map<number, string>();
 const profileMap = new Map<number, Profile>();
 
 export async function handlePlayback(playback: any, tabId: number): Promise<Cue[]> {
@@ -59,6 +63,7 @@ export async function handlePlayback(playback: any, tabId: number): Promise<Cue[
   }
   const cues = await loadAltSubtitles(() => console.log("[dual-sub] alt cues loaded"), tabId);
   cueMap.set(tabId, cues);
+  urlMap.set(tabId, playback["url"]);
   browser.tabs.sendMessage(tabId, {
     type: "REFRESH_CUES",
     cues: cues
@@ -82,7 +87,7 @@ export function handleProfile(data: any, tabId: number): Profile {
 }
 
 export async function grabProfile(tabId: number): Promise<Profile> {
-  const headers = getHeaders(tabId);
+  const headers = await getHeaders(tabId);
   if (!headers) return Promise.reject("no auth");
   const response = await fetch("https://www.crunchyroll.com/accounts/v1/me/multiprofile", {
     headers: {
@@ -95,7 +100,7 @@ export async function grabProfile(tabId: number): Promise<Profile> {
 }
 
 export async function grabPlayback(tabId: number) {
-  const headers = getHeaders(tabId);
+  const headers = await getHeaders(tabId);
   if (!headers) {
     console.log("[dual-sub] headers not set")
     return Promise.reject("no auth");
@@ -110,17 +115,22 @@ export async function grabPlayback(tabId: number) {
   const deviceType = "web";
   console.log("[dual-sub] fetching...");
   // courtesy of https://github.com/Crunchyroll-Plus/crunchyroll-docs/blob/release/Services/Play/GET/getPlayStream.md
-  const response = await fetch(`https://www.crunchyroll.com/playback/v3/${contentId}/${deviceType}/${device}/play`, {
-    headers: {
-      "Authorization": findHeaderValue(headers, "Authorization"),
-      "Cookies": findHeaderValue(headers, "Cookie"),
-      "Referer": url,
-      // don't ask me how i found this
-      // just know it took a while
-      "x-cr-tab-id": sessionStorage.getItem("cx-tab-id")
-    } as Record<string, string>
-  });
-  if (!response.ok) {
+  let response = null;
+  try {
+    response = await fetch(`https://www.crunchyroll.com/playback/v3/${contentId}/${deviceType}/${device}/play`, {
+      headers: {
+        "Authorization": findHeaderValue(headers, "Authorization"),
+        "Cookies": findHeaderValue(headers, "Cookie"),
+        "Referer": url,
+        // don't ask me how i found this
+        // just know it took a while
+        "x-cr-tab-id": sessionStorage.getItem("cx-tab-id")
+      } as Record<string, string>
+    });
+  } catch (e) {
+    console.error("[dual-sub] fetch failed", e);
+  }
+  if (!response || !response.ok) {
     return Promise.reject("failed to grab playback");
   }
   return await handlePlayback(await response.json(), tabId);

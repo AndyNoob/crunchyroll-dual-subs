@@ -20,14 +20,19 @@ async function tryHackToRefreshToken() {
   if (wasPaused) {
     await videoEl.play();
   } else {
-    await videoEl.pause();
+    videoEl.pause();
   }
   await sleep(10);
   if (wasPaused) {
-    await videoEl.pause();
+    videoEl.pause();
   } else {
     await videoEl.play();
   }
+  await sleep(3000);
+}
+
+async function grabCues() {
+  return (await browser.runtime.sendMessage({type: "GET_CUES"}).catch(r => console.warn(r))) as Cue[];
 }
 
 async function init() {
@@ -64,9 +69,7 @@ async function init() {
 
   console.log("[dual-sub] grabbing cues...");
 
-  try {
-    currentCues = await browser.runtime.sendMessage({type: "GET_CUES"});
-  } catch {}
+  currentCues = await grabCues();
 
   if (!currentCues || !currentCues.length) {
     // at this point, the background.ts was probably put to
@@ -75,8 +78,7 @@ async function init() {
     // to grab the playback. by running this hack, we force crunchy
     // to send a request that contains the headers we need.
     await tryHackToRefreshToken();
-    await sleep(3000);
-    currentCues = (await browser.runtime.sendMessage({type: "GET_CUES"}).catch(r => console.warn(r))) as Cue[];
+    currentCues = await grabCues();
 
     if (!currentCues || !currentCues.length) {
       console.warn("[dual-subs] failed to grab cues");
@@ -94,10 +96,16 @@ async function init() {
   requestAnimationFrame(renderLoop);
   console.log("[dual-sub] subtitle animation started");
 
-  browser.runtime.onMessage.addListener((msg: any) => {
-    if (msg?.type !== "REFRESH_CUES") return;
-    currentCues = msg.cues;
-    console.log(`[dual-sub] refreshed cues (${currentCues.length} loaded)`);
+  browser.runtime.onMessage.addListener(async (msg: any) => {
+    if (msg?.type === "REFRESH_CUES") {
+      currentCues = msg.cues;
+      console.log(`[dual-sub] refreshed cues (${currentCues.length} loaded)`);
+      return true;
+    }
+    if (msg?.type === "TRY_HACK") {
+      await tryHackToRefreshToken();
+      return true;
+    }
   });
   console.log("[dual-sub] added tab update listener");
 
@@ -176,10 +184,6 @@ function getActiveCue(cues: Cue[], time: number): Cue | null {
     return null;
   }
   return cue;
-  // for (const cue of cues) {
-  //   if (time >= cue.start && time <= cue.end) return cue;
-  // }
-  // return null;
 }
 
 init().then().catch(r => {
