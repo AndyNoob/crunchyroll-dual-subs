@@ -38,7 +38,7 @@ export default defineConfig({
             {
               css: ["static/overlay.css"],
               js: ["src/content.js"],
-              matches: ["*://www.crunchyroll.com/watch/*"],
+              matches: ["*://*.crunchyroll.com/*"],
               run_at: "document_idle"
             }
           ],
