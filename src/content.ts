@@ -7,41 +7,21 @@ let overlayText: HTMLDivElement;
 let lastRendered = "";
 let currentCues: Cue[];
 
-function sleep(ms: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-async function tryHackToRefreshToken() {
-  // this seems to trigger a play head request that contains auth headers, in case
-  // the background script is asleep at this point
-  const wasPaused = videoEl.paused;
-  if (wasPaused) {
-    await videoEl.play();
-  } else {
-    videoEl.pause();
-  }
-  await sleep(10);
-  if (wasPaused) {
-    videoEl.pause();
-  } else {
-    await videoEl.play();
-  }
-  await sleep(3000);
-}
+init().then().catch(r => {
+  console.error(`[dual-sub] failed to init extension on ${location.href}`);
+  console.error(r);
+});
 
 async function grabCues() {
   return (await browser.runtime.sendMessage({type: "GET_CUES"}).catch(r => console.warn(r))) as Cue[];
 }
 
 async function init() {
-  let url: string;
+  let url: string | null = null;
   try {
     url = await browser.runtime.sendMessage({type: "GET_URL"}) as string;
   } catch (e) {
     console.error(e);
-    return Promise.reject("could not get url of top");
   }
   if (!url) return Promise.reject("could not get url of top");
   if (location.href !== url) console.log(`[dual-sub] loading ${location.href} inside ${url}`);
@@ -58,7 +38,7 @@ async function init() {
   }
   if (!vid) {
     console.warn(`[dual-sub] skipping ${location.href} because video player is not found`);
-    return Promise.reject("failed and skipping init, could not find video player");
+    return Promise.reject(`failed and skipping init on ${location.href}, could not find video player`);
   }
 
   videoEl = vid as HTMLVideoElement;
@@ -90,11 +70,10 @@ async function init() {
   }
 
   console.log(currentCues);
-
   console.log(`[dual-sub] grabbed ${currentCues.length} cues.`);
-  console.log("[dual-sub] starting renderloop...");
+  console.log("[dual-sub] starting subtitle render loop...");
   requestAnimationFrame(renderLoop);
-  console.log("[dual-sub] subtitle animation started");
+  console.log("[dual-sub] subtitle render loop started");
 
   browser.runtime.onMessage.addListener(async (msg: any) => {
     if (msg?.type === "REFRESH_CUES") {
@@ -107,10 +86,9 @@ async function init() {
       return true;
     }
   });
-  console.log("[dual-sub] added tab update listener");
-
+  console.log("[dual-sub] added background message listener");
   console.log("[dual-sub] successfully init.");
-  return Promise.resolve()
+  return Promise.resolve();
 }
 
 function ensureOverlay() {
@@ -139,7 +117,6 @@ function ensureOverlay() {
 function renderLoop() {
   if (!videoEl || !overlayText) {
     console.error("[dual-sub] overlay or video doesn't exist while rendering");
-    // requestAnimationFrame(renderLoop);
     return;
   }
 
@@ -155,12 +132,6 @@ function renderLoop() {
   }
 
   requestAnimationFrame(renderLoop);
-}
-
-function compare(cue: Cue, time: number): 0 | -1 | 1 {
-  if (cue.start > time || cue.end < time)
-    return cue.start > time ? 1 : -1;
-  else return 0;
 }
 
 function getActiveCue(cues: Cue[], time: number): Cue | null {
@@ -186,10 +157,35 @@ function getActiveCue(cues: Cue[], time: number): Cue | null {
   return cue;
 }
 
-init().then().catch(r => {
-  console.error(`[dual-sub] failed to init extension on ${location.href}`);
-  console.error(r);
-});
+function compare(cue: Cue, time: number): 0 | -1 | 1 {
+  if (cue.start > time || cue.end < time)
+    return cue.start > time ? 1 : -1;
+  else return 0;
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function tryHackToRefreshToken() {
+  // this seems to trigger a play head request that contains auth headers, in case
+  // the background script is asleep at this point
+  const wasPaused = videoEl.paused;
+  if (wasPaused) {
+    await videoEl.play();
+  } else {
+    videoEl.pause();
+  }
+  await sleep(10);
+  if (wasPaused) {
+    videoEl.pause();
+  } else {
+    await videoEl.play();
+  }
+  await sleep(3000);
+}
 
 export interface Cue {
   id: number,
