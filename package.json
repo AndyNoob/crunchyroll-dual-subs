@@ -1,6 +1,6 @@
 {
   "name": "cr-dual-subs",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "displayName": "Crunchyroll Dual Subs",
   "description": "Display English and English [CC] subtitles at the same time.",
   "type": "module",

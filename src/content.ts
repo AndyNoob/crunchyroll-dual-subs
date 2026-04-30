@@ -121,7 +121,7 @@ async function renderLoop() {
     lastRendered = nextText;
   }
 
-  subtitleControl.innerText = "HI NICE TO MEET YOU"
+  // subtitleControl.innerText = "HI NICE TO MEET YOU"
 
   requestAnimationFrame(renderLoop);
 }
