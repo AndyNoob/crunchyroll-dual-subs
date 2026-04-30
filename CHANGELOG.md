@@ -1,3 +1,7 @@
+# 0.4.1
+- Remove a visible debug message
+- Update changelog for 0.4.0
+
 # 0.4.0
 - Bump 0.4.0
 - Fix host permissions
