@@ -41,6 +41,7 @@ const urlMap = new Map<number, string>();
 const profileMap = new Map<number, Profile>();
 
 export function notifyCueRefresh(tabId: number, cues: Cue[], attemptsLeft = 3) {
+  if (attemptsLeft <= 0) return;
   browser.tabs.sendMessage(tabId, {
     type: "REFRESH_CUES",
     cues: cues
@@ -49,8 +50,7 @@ export function notifyCueRefresh(tabId: number, cues: Cue[], attemptsLeft = 3) {
     setTimeout(() => {
       notifyCueRefresh(tabId, cues, --attemptsLeft);
     }, 5000);
-  })
-    .then(() => console.log(`[dual-sub] sent refresh cue to tab ${tabId}`));
+  }).then(() => console.log(`[dual-sub] sent refresh cue to tab ${tabId}`));
 }
 
 export interface Subtitle {
