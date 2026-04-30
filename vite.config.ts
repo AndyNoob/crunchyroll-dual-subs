@@ -34,6 +34,7 @@ export default defineConfig({
             "tabs",
             "activeTab"
           ],
+          host_permissions: ["*://*.crunchyroll.com/*"],
           content_scripts: [
             {
               css: ["static/overlay.css"],
