@@ -1,6 +1,6 @@
-import {fetchAndParseSubtitle, getProfile, getSubOpt} from "./handler";
-import type {Subtitle} from "./handler";
+import {fetchAndParseSubtitle} from "./handler";
 import type {Cue} from "../content";
+import {getProfile, getSubOpt, type Subtitle} from "./manager";
 
 export async function loadAltSubtitles(callback: CallableFunction, tabId: number): Promise<Cue[]> {
   console.log("[dual-sub] begin load alt subs");
