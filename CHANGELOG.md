@@ -1,3 +1,19 @@
+# 0.4.0
+- Bump 0.4.0
+- Fix host permissions
+- Fix content script url matching
+- Change manifest to be fully in vite.config.ts
+- Remove attaching of content to all frames in favor of one single content script that is always loaded
+- Fix notify refresh not actually stopping when attemptsLeft is zero
+- Fix lifecycle issues & start work on subtitle selection
+- Refactoring and log message cleanup in content.ts
+- A lot of refactoring and work on making the user not get rate limited :- Bump 0.3.1
+- Add more content & background communications to ensure that subtitle is loaded ALWAYS
+- Use binary search in getActiveCue
+- Update README to include frazy-parser credit
+- Fix the changelog (deploy.yml)
+- Update changelog for
+
 
 
 # 0.2.0
