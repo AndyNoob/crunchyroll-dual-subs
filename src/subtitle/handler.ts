@@ -43,7 +43,7 @@ function normalizeFrazyCues(parsed: any[]): Cue[] {
   }));
 }
 
-export async function handleAndNotifyPlayback(playback: any, tabId: number): Promise<Cue[]> {
+export async function handlePlayback(playback: any, tabId: number, notify: boolean): Promise<Cue[]> {
   const ccs: Subtitle = playback["captions"];
   const subs: Subtitle = playback["subtitles"];
   setSubOpt(tabId, {url: playback["url"], ccs, subs});
@@ -54,7 +54,7 @@ export async function handleAndNotifyPlayback(playback: any, tabId: number): Pro
   }
   const cues = await loadAltSubtitles(() => console.log(`[dual-sub] alt cues loaded for tab ${tabId}`), tabId);
   setAltCues(tabId, cues, (await browser.tabs.get(tabId)).url!);
-  notifyCueRefresh(tabId, cues);
+  if (notify) notifyCueRefresh(tabId, cues);
   return cues;
 }
 
@@ -129,7 +129,7 @@ export async function grabAndHandlePlayback(tabId: number) {
   if (!response || !response.ok) {
     return Promise.reject("failed to grab playback");
   }
-  return await handleAndNotifyPlayback(await response.json(), tabId);
+  return await handlePlayback(await response.json(), tabId, false);
 }
 
 function findHeaderValue(headers: Header[], name: string): string {

@@ -7,6 +7,9 @@ let subtitleControl: HTMLDivElement;
 
 let lastRendered = "";
 let currentCues: Cue[];
+let lastInit: string | null = null;
+
+addMsgListener();
 
 init().then().catch(r => {
   console.error(`[dual-sub] failed to init extension on ${location.href}`);
@@ -22,6 +25,10 @@ function addMsgListener() {
     if (msg?.type === "REFRESH_CUES") {
       currentCues = msg.cues;
       console.log(`[dual-sub] refreshed cues (${currentCues.length} loaded)`);
+      init().then().catch(r => {
+        console.error(`[dual-sub] failed to (re)init extension on ${location.href}`);
+        console.error(r);
+      });
       return true;
     }
     if (msg?.type === "TRY_HACK") {
@@ -35,68 +42,102 @@ function addMsgListener() {
 }
 
 async function init() {
-  let url: string | null = null;
-  try {
-    url = await browser.runtime.sendMessage({type: "GET_URL"}) as string;
-  } catch (e) {
-    console.error(e);
+  if (lastInit === location.href) {
+    console.log("[dual-sub] skipping double init");
+    return Promise.resolve();
   }
-  if (!url) return Promise.reject("could not get url of top");
-  if (location.href !== url) console.log(`[dual-sub] loading ${location.href} inside ${url}`);
-  if (!url.includes("/watch/")) {
-    console.log(`[dual-sub] skipping ${location.href} because the top url is not a watch page`);
-    return Promise.resolve("not a watch page");
+  lastInit = location.href;
+  if (await shouldSkip()) {
+    return Promise.reject("[dual-sub] skipping, not a watch page (probably)");
   }
   console.log(`[dual-sub] not skipping ${location.href}`);
-  let vid = document.querySelector("video");
+  let vid = getVideo();
   let counter = 4;
   while (!vid && counter-- > 0) {
     await sleep(1000);
-    vid = document.querySelector("video");
+    vid = getVideo();
   }
   if (!vid) {
     console.warn(`[dual-sub] skipping ${location.href} because video player is not found`);
     return Promise.reject(`failed and skipping init on ${location.href}, could not find video player`);
   }
 
-  addMsgListener();
-  console.log("[dual-sub] added background message listener");
-
   videoEl = vid as HTMLVideoElement;
 
-  console.log(`[dual-sub] init on frame ${browser.runtime.getFrameId(window)}`)
+  console.log(`[dual-sub] init begin`)
 
   ensurePageInjections();
+  if (!currentCues || currentCues.length === 0) {
+    console.log("[dual-sub] grabbing cues...");
 
-  console.log("[dual-sub] grabbing cues...");
-
-  currentCues = await grabCues();
-
-  if (!currentCues || !currentCues.length) {
-    // at this point, the background.ts was probably put to
-    // sleep by the browser. however, since we sent a msg over
-    // it is now awake but missing the authorization headers and such
-    // to grab the playback. by running this hack, we force crunchy
-    // to send a request that contains the headers we need.
-    await tryHackToRefreshToken();
     currentCues = await grabCues();
 
     if (!currentCues || !currentCues.length) {
-      console.warn("[dual-subs] failed to grab cues");
-      if (confirm("[Crunchyroll Dual Sub] Please reload watch page, could not retrieve subtitle data.")) {
-        await browser.runtime.sendMessage({type: "REFRESH_TAB"});
-      }
-      return Promise.reject("failed to grab cues");
-    }
-  }
+      // at this point, the background.ts was probably put to
+      // sleep by the browser. however, since we sent a msg over
+      // it is now awake but missing the authorization headers and such
+      // to grab the playback. by running this hack, we force crunchy
+      // to send a request that contains the headers we need.
+      await tryHackToRefreshToken();
+      currentCues = await grabCues();
 
-  console.log(currentCues);
-  console.log(`[dual-sub] grabbed ${currentCues.length} cues.`);
+      if (!currentCues || !currentCues.length) {
+        console.warn("[dual-subs] failed to grab cues");
+        if (confirm("[Crunchyroll Dual Sub] Please reload watch page, could not retrieve subtitle data.")) {
+          await browser.runtime.sendMessage({type: "REFRESH_TAB"});
+        }
+        return Promise.reject("failed to grab cues");
+      }
+    }
+
+    console.log(currentCues);
+    console.log(`[dual-sub] grabbed ${currentCues.length} cues.`);
+  }
   console.log("[dual-sub] starting subtitle render loop...");
   requestAnimationFrame(renderLoop);
   console.log("[dual-sub] subtitle render loop started");
   console.log("[dual-sub] successfully init.");
   return Promise.resolve();
+}
+
+async function renderLoop() {
+  if (await shouldSkip()) {
+    console.log("[dual-sub] stopping render loop");
+    return;
+  }
+  if (!videoEl || !overlayText) {
+    console.error("[dual-sub] overlay or video doesn't exist while rendering");
+    return;
+  }
+
+  const time = videoEl.currentTime;
+
+  const secondaryCue = getActiveCue(currentCues, time);
+  const nextText = secondaryCue?.text || "";
+
+  if (nextText !== lastRendered) {
+    overlayText.textContent = nextText;
+    overlayText.style.display = nextText.length > 0 ? "block" : "none";
+    lastRendered = nextText;
+  }
+
+  subtitleControl.innerText = "HI NICE TO MEET YOU"
+
+  requestAnimationFrame(renderLoop);
+}
+
+async function shouldSkip() {
+  let url: string = location.href;
+  if (!url || !url.includes("/watch/")) {
+    lastInit = null;
+    console.log(`[dual-sub] skipping ${location.href} because the top url is not a watch page`);
+    return true;
+  }
+  return false;
+}
+
+function getVideo() {
+  return document.querySelector("video") || document.querySelector("iframe")?.contentDocument?.querySelector("video");
 }
 
 function ensurePageInjections() {
@@ -125,28 +166,6 @@ function ensurePageInjections() {
   subtitleControl = document.querySelector("#cr-dual-subs-sub-control") ?? document.createElement("div");
   subtitleControl.id = "cr-dual-subs-sub-control";
   episodeActions?.appendChild(subtitleControl);
-}
-
-function renderLoop() {
-  if (!videoEl || !overlayText) {
-    console.error("[dual-sub] overlay or video doesn't exist while rendering");
-    return;
-  }
-
-  const time = videoEl.currentTime;
-
-  const secondaryCue = getActiveCue(currentCues, time);
-  const nextText = secondaryCue?.text || "";
-
-  if (nextText !== lastRendered) {
-    overlayText.textContent = nextText;
-    overlayText.style.display = nextText.length > 0 ? "block" : "none";
-    lastRendered = nextText;
-  }
-
-  subtitleControl.innerText = "HI NICE TO MEET YOU"
-
-  requestAnimationFrame(renderLoop);
 }
 
 function getActiveCue(cues: Cue[], time: number): Cue | null {

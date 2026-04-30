@@ -1,4 +1,4 @@
-import {grabAndHandlePlayback, handleAndNotifyPlayback, handleProfile} from "./subtitle/handler";
+import {grabAndHandlePlayback, handlePlayback, handleProfile} from "./subtitle/handler";
 import browser from "webextension-polyfill";
 import {getAltCues, getOrLoadHeaders, notifyCueRefresh, setHeaders} from "./subtitle/manager";
 
@@ -72,7 +72,7 @@ function receiveProfileOrPlayback(details: { tabId: number; url: string | string
 
     try {
       if (isProfile) handleProfile(parsed, details.tabId);
-      else await handleAndNotifyPlayback(parsed, details.tabId);
+      else await handlePlayback(parsed, details.tabId, true);
       console.log(`[dual-sub] processed ${isProfile ? "profiles" : "playback"} data on tab ${details.tabId}`);
     } catch (err) {
       console.error("[dual-sub] processing failed:", err);
@@ -87,9 +87,6 @@ async function receiveContentMsg(msg: any, sender: any) {
   if (!isValid) return Promise.reject();
   if (msg?.type === "GET_CUES") {
     return await resolveCues(tabId, url);
-  }
-  if (msg?.type === "GET_URL") {
-    return url;
   }
   if (msg?.type === "REFRESH_TAB") {
     return browser.tabs.reload(tabId);
