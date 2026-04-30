@@ -3,6 +3,7 @@ import browser from "webextension-polyfill";
 let videoEl: HTMLVideoElement;
 let overlayRoot: HTMLDivElement;
 let overlayText: HTMLDivElement;
+let subtitleControl: HTMLDivElement;
 
 let lastRendered = "";
 let currentCues: Cue[];
@@ -14,6 +15,23 @@ init().then().catch(r => {
 
 async function grabCues() {
   return (await browser.runtime.sendMessage({type: "GET_CUES"}).catch(r => console.warn(r))) as Cue[];
+}
+
+function addMsgListener() {
+  browser.runtime.onMessage.addListener(async (msg: any) => {
+    if (msg?.type === "REFRESH_CUES") {
+      currentCues = msg.cues;
+      console.log(`[dual-sub] refreshed cues (${currentCues.length} loaded)`);
+      return true;
+    }
+    if (msg?.type === "TRY_HACK") {
+      await tryHackToRefreshToken();
+      return true;
+    }
+    if (msg?.type === "TAB_ID") {
+      return sessionStorage.getItem("cx-tab-id");
+    }
+  });
 }
 
 async function init() {
@@ -41,11 +59,14 @@ async function init() {
     return Promise.reject(`failed and skipping init on ${location.href}, could not find video player`);
   }
 
+  addMsgListener();
+  console.log("[dual-sub] added background message listener");
+
   videoEl = vid as HTMLVideoElement;
 
   console.log(`[dual-sub] init on frame ${browser.runtime.getFrameId(window)}`)
 
-  ensureOverlay();
+  ensurePageInjections();
 
   console.log("[dual-sub] grabbing cues...");
 
@@ -74,24 +95,11 @@ async function init() {
   console.log("[dual-sub] starting subtitle render loop...");
   requestAnimationFrame(renderLoop);
   console.log("[dual-sub] subtitle render loop started");
-
-  browser.runtime.onMessage.addListener(async (msg: any) => {
-    if (msg?.type === "REFRESH_CUES") {
-      currentCues = msg.cues;
-      console.log(`[dual-sub] refreshed cues (${currentCues.length} loaded)`);
-      return true;
-    }
-    if (msg?.type === "TRY_HACK") {
-      await tryHackToRefreshToken();
-      return true;
-    }
-  });
-  console.log("[dual-sub] added background message listener");
   console.log("[dual-sub] successfully init.");
   return Promise.resolve();
 }
 
-function ensureOverlay() {
+function ensurePageInjections() {
   console.log("[dual-sub] ensuring overlay")
   if (overlayRoot) return;
 
@@ -112,6 +120,11 @@ function ensureOverlay() {
 
   overlayRoot.appendChild(overlayText);
   container.appendChild(overlayRoot);
+
+  const episodeActions = document.querySelector(".episode-actions");
+  subtitleControl = document.querySelector("#cr-dual-subs-sub-control") ?? document.createElement("div");
+  subtitleControl.id = "cr-dual-subs-sub-control";
+  episodeActions?.appendChild(subtitleControl);
 }
 
 function renderLoop() {
@@ -130,6 +143,8 @@ function renderLoop() {
     overlayText.style.display = nextText.length > 0 ? "block" : "none";
     lastRendered = nextText;
   }
+
+  subtitleControl.innerText = "HI NICE TO MEET YOU"
 
   requestAnimationFrame(renderLoop);
 }
@@ -184,7 +199,7 @@ async function tryHackToRefreshToken() {
   } else {
     await videoEl.play();
   }
-  await sleep(3000);
+  await sleep(5000);
 }
 
 export interface Cue {

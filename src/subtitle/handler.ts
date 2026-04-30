@@ -52,8 +52,8 @@ export async function handleAndNotifyPlayback(playback: any, tabId: number): Pro
     console.log("[dual-sub] profile isn't loaded on handle playback.");
     await grabAndHandleProfile(tabId);
   }
-  const cues = await loadAltSubtitles(() => console.log("[dual-sub] alt cues loaded"), tabId);
-  setAltCues(tabId, cues, playback["url"]);
+  const cues = await loadAltSubtitles(() => console.log(`[dual-sub] alt cues loaded for tab ${tabId}`), tabId);
+  setAltCues(tabId, cues, (await browser.tabs.get(tabId)).url!);
   notifyCueRefresh(tabId, cues);
   return cues;
 }
@@ -90,7 +90,7 @@ export async function grabAndHandleProfile(tabId: number): Promise<Profile> {
       "Cookies": findHeaderValue(headers, "Cookie")
     }
   });
-  waitUntil = performance.now() + 10000;
+  waitUntil = performance.now() + 5000;
   if (!response.ok) return Promise.reject("failed to grab profile");
   return handleProfile(await response.json(), tabId);
 }
@@ -119,15 +119,13 @@ export async function grabAndHandlePlayback(tabId: number) {
         "Authorization": findHeaderValue(headers, "Authorization"),
         "Cookies": findHeaderValue(headers, "Cookie"),
         "Referer": url,
-        // don't ask me how i found this
-        // just know it took a while
-        "x-cr-tab-id": sessionStorage.getItem("cx-tab-id")
+        "x-cr-tab-id": await browser.tabs.sendMessage(tabId, {type: "TAB_ID"})
       } as Record<string, string>
     });
   } catch (e) {
     console.error("[dual-sub] fetch failed", e);
   }
-  waitUntil = performance.now() + 10000;
+  waitUntil = performance.now() + 5000;
   if (!response || !response.ok) {
     return Promise.reject("failed to grab playback");
   }

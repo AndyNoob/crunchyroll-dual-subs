@@ -99,6 +99,6 @@ async function receiveContentMsg(msg: any, sender: any) {
 async function receiveAuthHeaders(details: any) {
   if (details.tabId < 0) return;
   if (details.requestHeaders === undefined) return;
-  setHeaders(details.tabId, details.requestHeaders);
-  console.log(`[dual-sub] headers set for tab ${details.tabId} based off of ${details.url}`);
+  if (setHeaders(details.tabId, details.requestHeaders))
+    console.log(`[dual-sub] headers set for tab ${details.tabId} based off of ${details.url}`);
 }

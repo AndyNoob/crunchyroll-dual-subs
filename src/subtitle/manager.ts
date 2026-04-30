@@ -40,11 +40,16 @@ const cueMap = new Map<number, Cue[]>();
 const urlMap = new Map<number, string>();
 const profileMap = new Map<number, Profile>();
 
-export function notifyCueRefresh(tabId: number, cues: Cue[]) {
+export function notifyCueRefresh(tabId: number, cues: Cue[], attemptsLeft = 3) {
   browser.tabs.sendMessage(tabId, {
     type: "REFRESH_CUES",
     cues: cues
-  }).catch(e => console.warn("[dual-sub] failed to notify cue refresh", e))
+  }).catch(e => {
+    console.warn("[dual-sub] failed to notify cue refresh", e);
+    setTimeout(() => {
+      notifyCueRefresh(tabId, cues, --attemptsLeft);
+    }, 5000);
+  })
     .then(() => console.log(`[dual-sub] sent refresh cue to tab ${tabId}`));
 }
 
@@ -98,7 +103,13 @@ export async function getOrLoadHeaders(tabId: number) {
 }
 
 export function setHeaders(tabId: number, headers: Header[]) {
-  headersMap.set(tabId, headers);
+  for (let header of headers) {
+    if (header.name.toLowerCase().includes("authorization")) {
+      headersMap.set(tabId, headers);
+      return true;
+    }
+  }
+  return false;
 }
 
 const headersMap = new Map<number, Header[]>();
