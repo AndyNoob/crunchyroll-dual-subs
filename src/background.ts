@@ -6,6 +6,7 @@ import {
 import browser from "webextension-polyfill";
 import {
   getAltCues,
+  getAudio,
   getOrLoadHeaders,
   getSubChoices,
   notifyCueRefresh, resolvePreference,
@@ -29,34 +30,34 @@ browser.webRequest.onSendHeaders.addListener(
 );
 browser.tabs.onUpdated.addListener(
   async (tabId, _, tab) => {
-    notifyCueRefresh(tabId, await resolveCues(tabId, tab.url!));
+    notifyCueRefresh(tabId, await resolveCues(tabId, tab.url!, null));
   },
   {urls: ["*://www.crunchyroll.com/watch/*"], properties: ["url"]}
 );
 
-async function resolveCues(tabId: number, url: string) {
-  let altCues = getAltCues(tabId, url);
-  if (!altCues || altCues.length === 0) {
-    console.log("[dual-sub] playback is undefined/wrong upon request, grabbing...");
+async function resolveCues(tabId: number, url: string, audio: string | null) {
+  let altCues = getAltCues(tabId, url, audio);
+  if (altCues === null || altCues === undefined) {
+    console.log("[resolveCues] alt subs are undefined/wrong upon request, grabbing...");
     const headers = getOrLoadHeaders(tabId);
     if (!headers) {
-      console.log("[dual-sub] headers not set");
+      console.log("[resolveCues] headers not set");
       return Promise.reject("auth data not found.");
     }
-    await grabAndHandleSubChoices(tabId);
     const preference = await resolvePreference(tabId);
     altCues = await loadCues(tabId, preference, false);
-    console.log(`[dual-sub] grabbed ${altCues?.length} cues upon request`);
+    console.log(`[resolveCues] grabbed ${altCues?.length} cues upon request`);
   }
   return altCues;
 }
 
 function receiveProfileOrPlayback(details: { tabId: number; url: string | string[]; requestId: string; }) {
   if (details.tabId < 0) return;
+  if (details.url.includes("?dual_sub=676767")) return;
   const isProfile = details.url.includes("/me/multiprofile");
   if (!(details.url.includes(".com/playback/v3") || isProfile)) return;
 
-  console.log(`[dual-sub] received ${isProfile ? "profile" : "playback"} request with id ${details.requestId}`);
+  console.log(`[receiveProfileOrPlayback] received ${isProfile ? "profile" : "playback"} request with id ${details.requestId}`);
 
   const filter = browser.webRequest.filterResponseData(details.requestId);
   const decoder = new TextDecoder("utf-8");
@@ -70,12 +71,12 @@ function receiveProfileOrPlayback(details: { tabId: number; url: string | string
   }
 
   filter.onstop = async () => {
-    console.log(`[dual-sub] finishing request id ${details.requestId}`);
+    console.log(`[receiveProfileOrPlayback] finishing request id ${details.requestId}`);
     let parsed: any;
     try {
       parsed = JSON.parse(data);
     } catch {
-      console.warn(`[dual-sub] request id ${details.requestId} is extraneous`);
+      console.warn(`[receiveProfileOrPlayback] request id ${details.requestId} is extraneous`);
       console.log(data);
       filter.disconnect();
       return;
@@ -86,9 +87,9 @@ function receiveProfileOrPlayback(details: { tabId: number; url: string | string
     try {
       if (isProfile) handleProfile(parsed, details.tabId);
       else await handleSubChoice(parsed, details.tabId);
-      console.log(`[dual-sub] processed ${isProfile ? "profiles" : "playback"} data on tab ${details.tabId}`);
+      console.log(`[receiveProfileOrPlayback] processed ${isProfile ? "profiles" : "playback"} data on tab ${details.tabId}`);
     } catch (err) {
-      console.error("[dual-sub] processing failed:", err);
+      console.error("[receiveProfileOrPlayback] processing failed:", err);
     }
   }
 }
@@ -99,7 +100,7 @@ async function receiveContentMsg(msg: any, sender: any) {
   const url: string = sender.tab!.url!;
   if (!isValid) return Promise.reject();
   if (msg?.type === "GET_CUES") {
-    return await resolveCues(tabId, url);
+    return await resolveCues(tabId, url, getAudio(tabId) ?? null);
   }
   if (msg?.type === "GET_CHOICES") {
     let subChoices = getSubChoices(tabId);
@@ -120,6 +121,6 @@ async function receiveContentMsg(msg: any, sender: any) {
 async function receiveAuthHeaders(details: any) {
   if (details.tabId < 0) return;
   if (details.requestHeaders === undefined) return;
-  if (setHeaders(details.tabId, details.requestHeaders))
-    console.log(`[dual-sub] headers set for tab ${details.tabId} based off of ${details.url}`);
+  setHeaders(details.tabId, details.requestHeaders);
+    // console.log(`[dual-sub] headers set for tab ${details.tabId} based off of ${details.url}`);
 }

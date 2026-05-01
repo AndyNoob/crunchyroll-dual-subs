@@ -11,12 +11,25 @@ export function getProfile(tabId: number): Profile | undefined {
   return profileMap.get(tabId);
 }
 
-export function getAltCues(tabId: number, url: string): Cue[] | undefined | null {
-  return urlMap.get(tabId)?.includes(normalizeUrl(url)) ? cueMap.get(tabId) : null;
+export function getAltCues(tabId: number, url: string, audio: string | null): Cue[] | undefined | null {
+  if (!cueMap.has(tabId)) return undefined;
+  if (audioMap.get(tabId) !== audio) return null;
+  const inMap = urlMap.get(tabId)!;
+  const search = normalizeUrl(url);
+  if (inMap.includes(search) || search.includes(inMap)) {
+    return cueMap.get(tabId);
+  } else {
+    console.log(`[getAltCues] expected ${inMap} but found ${search}`);
+    return null;
+  }
 }
 
 export function setProfile(tabId: number, profile: Profile) {
   profileMap.set(tabId, profile);
+}
+
+export function getAudio(tabId: number) {
+  return audioMap.get(tabId);
 }
 
 export function normalizeUrl(url: string) {
@@ -32,6 +45,11 @@ export function setAltCues(tabId: number, cues: Cue[], url: string) {
   urlMap.set(tabId, value);
 }
 
+export function setAudio(tabId: number, audio: string) {
+  console.log(`[setAudio] new audio is ${audio}`)
+  audioMap.set(tabId, audio);
+}
+
 export function setSubChoices(tabId: number, opt: SubChoices) {
   subChoicesMap.set(tabId, opt);
 }
@@ -39,6 +57,7 @@ export function setSubChoices(tabId: number, opt: SubChoices) {
 const subChoicesMap = new Map<number, SubChoices>();
 const cueMap = new Map<number, Cue[]>();
 const urlMap = new Map<number, string>();
+const audioMap = new Map<number, string>();
 const profileMap = new Map<number, Profile>();
 
 export async function resolvePreference(tabId: number): Promise<Preference> {
@@ -48,7 +67,7 @@ export async function resolvePreference(tabId: number): Promise<Preference> {
   if (pref && "doCc" in pref && "subLanguage" in pref) return pref as Preference;
   rawPrefs[profile.profileId] = profile as Preference;
   await browser.storage.sync.set({"cr-dual-sub-prefs": rawPrefs});
-  console.log(`[dual-sub] set preference!`, rawPrefs);
+  console.log(`[resolvePreference] set preference!`, rawPrefs);
   return profile;
 }
 
@@ -58,7 +77,7 @@ export async function setPreference(tabId: number, pref: Preference) {
   rawPrefs[profile.profileId] = pref;
   await browser.storage.sync.set({"cr-dual-sub-prefs": rawPrefs});
   await loadCues(tabId, pref);
-  console.log(`[dual-sub] set preference!`, rawPrefs);
+  console.log(`[setPreference] set preference!`, rawPrefs);
 }
 
 export function notifyCueRefresh(tabId: number, cues: Cue[], attemptsLeft = 3) {
@@ -67,11 +86,11 @@ export function notifyCueRefresh(tabId: number, cues: Cue[], attemptsLeft = 3) {
     type: "REFRESH_CUES",
     cues: cues
   }).catch(e => {
-    console.warn("[dual-sub] failed to notify cue refresh", e);
+    console.warn("[notifyCueRefresh] failed to notify cue refresh", e);
     setTimeout(() => {
       notifyCueRefresh(tabId, cues, --attemptsLeft);
     }, 5000);
-  }).then(() => console.log(`[dual-sub] sent refresh cue to tab ${tabId}`));
+  }).then(() => console.log(`[notifyCueRefresh] sent refresh cue to tab ${tabId}`));
 }
 
 export interface RawProfile {
@@ -114,13 +133,13 @@ export interface Subtitle {
 export async function getOrLoadHeaders(tabId: number) {
   let header = headersMap.get(tabId);
   if (!header) {
-    console.log(`[dual-sub] headers not found for tab ${tabId}, messaging for content script to try hack.`);
+    console.log(`[getOrLoadHeaders] headers not found for tab ${tabId}, messaging for content script to try hack.`);
     try {
       await browser.runtime.sendMessage({type: "TRY_HACK"});
     } catch {
       return Promise.reject("hack failed");
     }
-    console.log(`[dual-sub] hack on tab ${tabId} is complete.`);
+    console.log(`[getOrLoadHeaders] hack on tab ${tabId} is complete.`);
     header = headersMap.get(tabId);
   }
   return header;

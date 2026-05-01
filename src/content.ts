@@ -54,9 +54,18 @@ function addMsgListener() {
   });
 }
 
+async function updateDropdownOptions() {
+  console.log("[dual-sub] updating sub choices...");
+  const subChoices = await grabChoices();
+  const pref = await grabPreference();
+  updateSubtitleDropdownOptions(subChoices, pref);
+  console.log("[dual-sub] updated sub choices", subChoices, pref);
+}
+
 async function init() {
   if (lastInit === location.href) {
     console.log("[dual-sub] skipping double init");
+    await updateDropdownOptions();
     return;
   }
   lastInit = location.href;
@@ -81,8 +90,8 @@ async function init() {
 
   ensurePageInjections();
 
+  await sleep(3000);
   console.log("[dual-sub] grabbing cues...");
-
   await updateCues();
 
   if (currentCues === null || currentCues === undefined) {
@@ -96,11 +105,7 @@ async function init() {
   console.log(currentCues);
   console.log(`[dual-sub] grabbed ${currentCues.length} cues.`);
 
-  console.log("[dual-sub] updating sub choices...");
-  const subChoices = await grabChoices();
-  const pref = await grabPreference();
-  updateSubtitleDropdownOptions(subChoices, pref);
-  console.log("[dual-sub] updated sub choices", subChoices, pref);
+  await updateDropdownOptions();
 
   console.log("[dual-sub] starting subtitle render loop...");
   requestAnimationFrame(renderLoop);
