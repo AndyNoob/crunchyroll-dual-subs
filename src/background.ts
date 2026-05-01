@@ -1,6 +1,17 @@
-import {grabAndHandlePlayback, handlePlayback, handleProfile} from "./subtitle/handler";
+import {
+  grabAndHandleSubChoices,
+  handleSubChoice,
+  handleProfile
+} from "./subtitle/handler";
 import browser from "webextension-polyfill";
-import {getAltCues, getOrLoadHeaders, notifyCueRefresh, setHeaders} from "./subtitle/manager";
+import {
+  getAltCues,
+  getOrLoadHeaders,
+  getSubChoices,
+  notifyCueRefresh, resolvePreference,
+  setHeaders, setPreference
+} from "./subtitle/manager";
+import {loadCues} from "./subtitle/loader";
 
 console.log("[dual-sub] background loaded");
 
@@ -32,10 +43,12 @@ async function resolveCues(tabId: number, url: string) {
       console.log("[dual-sub] headers not set");
       return Promise.reject("auth data not found.");
     }
-    altCues = await grabAndHandlePlayback(tabId);
+    await grabAndHandleSubChoices(tabId);
+    const preference = await resolvePreference(tabId);
+    altCues = await loadCues(tabId, preference, false);
     console.log(`[dual-sub] grabbed ${altCues?.length} cues upon request`);
   }
-  return Promise.resolve(altCues);
+  return altCues;
 }
 
 function receiveProfileOrPlayback(details: { tabId: number; url: string | string[]; requestId: string; }) {
@@ -72,7 +85,7 @@ function receiveProfileOrPlayback(details: { tabId: number; url: string | string
 
     try {
       if (isProfile) handleProfile(parsed, details.tabId);
-      else await handlePlayback(parsed, details.tabId, true);
+      else await handleSubChoice(parsed, details.tabId);
       console.log(`[dual-sub] processed ${isProfile ? "profiles" : "playback"} data on tab ${details.tabId}`);
     } catch (err) {
       console.error("[dual-sub] processing failed:", err);
@@ -87,6 +100,17 @@ async function receiveContentMsg(msg: any, sender: any) {
   if (!isValid) return Promise.reject();
   if (msg?.type === "GET_CUES") {
     return await resolveCues(tabId, url);
+  }
+  if (msg?.type === "GET_CHOICES") {
+    let subChoices = getSubChoices(tabId);
+    if (!subChoices) subChoices = await grabAndHandleSubChoices(tabId);
+    return subChoices;
+  }
+  if (msg?.type === "GET_PREFERENCE") {
+    return await resolvePreference(tabId);
+  }
+  if (msg?.type === "SET_PREFERENCE") {
+    return await setPreference(tabId, msg.pref!);
   }
   if (msg?.type === "REFRESH_TAB") {
     return browser.tabs.reload(tabId);

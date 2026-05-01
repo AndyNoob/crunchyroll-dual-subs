@@ -1,0 +1,68 @@
+/* thanks GPT-5.2 */
+
+#cr-dual-subs-sub-control {
+  position: relative;
+  min-width: 180px;
+  font-size: 14px;
+  color: #f8f8f8;
+  z-index: 999999;
+}
+
+#cr-dual-subs-sub-trigger {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #141519;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+
+  user-select: none;
+}
+
+#cr-dual-subs-sub-trigger:hover {
+  background: #1f2026;
+  border-color: rgba(244, 117, 33, 0.6);
+}
+
+#cr-dual-subs-sub-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 220px;
+
+  background: #141519;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  overflow: hidden;
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+#cr-dual-subs-sub-control.open #cr-dual-subs-sub-menu {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.cr-dual-subs-sub-option {
+  padding: 9px 12px;
+  cursor: pointer;
+  color: #f8f8f8;
+}
+
+.cr-dual-subs-sub-option:hover {
+  background: rgba(244, 117, 33, 0.16);
+}
+
+.cr-dual-subs-sub-option.active {
+  background: rgba(244, 117, 33, 0.28);
+}

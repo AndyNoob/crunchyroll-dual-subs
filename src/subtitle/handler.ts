@@ -1,61 +1,21 @@
-import {parseSubs} from "frazy-parser";
-import type {Cue} from "../content";
-import {loadAltSubtitles} from "./loader";
 import browser from "webextension-polyfill";
 import {
-  getProfile,
+  getOrLoadHeaders,
   mapProfile,
-  notifyCueRefresh,
-  setAltCues, setProfile, setSubOpt,
+  setProfile,
+  setSubChoices,
   type Profile,
   type RawProfile,
-  type Subtitle, getOrLoadHeaders,
+  type Subtitle, normalizeUrl, type SubChoices, getSubChoices, getProfile,
 } from "./manager";
 
-export async function fetchAndParseSubtitle(url: string): Promise<Cue[]> {
-  console.log(`[dual-sub] fetching sub from ${url}`);
-  const res = await fetch(url);
-  if (!res.ok) {
-    console.error(`[dual-sub] failed to fetch subtitle: ${res.status}`);
-    return Promise.reject("failed to fetch");
-  }
-  const raw = await res.text();
-  const parsed = parseSubs(raw);
-  return normalizeFrazyCues(parsed);
-}
+export let alreadyLoadingProfile: boolean = false;
 
-function cleanSubtitleText(text: string): string {
-  const withoutTags = text.replace(/<[^>]*>/g, "");
-  return withoutTags
-    .replace(/\r/g, "")
-    .trim();
-}
-
-function normalizeFrazyCues(parsed: any[]): Cue[] {
-  return parsed.map((cue: any) => ({
-    id: cue.id,
-    start: cue.start,
-    end: cue.end,
-    text: (cue.body || [])
-      .map((part: any) => cleanSubtitleText(part.text || ""))
-      .join("\n")
-      .trim()
-  }));
-}
-
-export async function handlePlayback(playback: any, tabId: number, notify: boolean): Promise<Cue[]> {
+export async function handleSubChoice(playback: any, tabId: number): Promise<SubChoices> {
   const ccs: Subtitle = playback["captions"];
   const subs: Subtitle = playback["subtitles"];
-  setSubOpt(tabId, {url: playback["url"], ccs, subs});
-  const profile = getProfile(tabId);
-  if (!profile) {
-    console.log("[dual-sub] profile isn't loaded on handle playback.");
-    await grabAndHandleProfile(tabId);
-  }
-  const cues = await loadAltSubtitles(() => console.log(`[dual-sub] alt cues loaded for tab ${tabId}`), tabId);
-  setAltCues(tabId, cues, (await browser.tabs.get(tabId)).url!);
-  if (notify) notifyCueRefresh(tabId, cues);
-  return cues;
+  setSubChoices(tabId, {url: normalizeUrl((await browser.tabs.get(tabId)).url!), ccs, subs});
+  return getSubChoices(tabId)!;
 }
 
 export function handleProfile(data: any, tabId: number): Profile {
@@ -80,7 +40,11 @@ function sleep(ms: number) {
   });
 }
 
-export async function grabAndHandleProfile(tabId: number): Promise<Profile> {
+export async function grabAndHandleProfile(tabId: number, refresh: boolean = false): Promise<Profile> {
+  if (!refresh) {
+    const profile = getProfile(tabId);
+    if (profile) return profile;
+  }
   const headers = await getOrLoadHeaders(tabId);
   if (!headers) return Promise.reject("no auth");
   if (waitUntil - performance.now() > 0) await sleep(waitUntil - performance.now());
@@ -95,7 +59,11 @@ export async function grabAndHandleProfile(tabId: number): Promise<Profile> {
   return handleProfile(await response.json(), tabId);
 }
 
-export async function grabAndHandlePlayback(tabId: number) {
+export async function grabAndHandleSubChoices(tabId: number, refresh: boolean = false) {
+  if (!refresh) {
+    const subChoices = getSubChoices(tabId);
+    if (subChoices) return subChoices;
+  }
   const headers = await getOrLoadHeaders(tabId);
   if (!headers) {
     console.log("[dual-sub] headers not set")
@@ -127,9 +95,9 @@ export async function grabAndHandlePlayback(tabId: number) {
   }
   waitUntil = performance.now() + 5000;
   if (!response || !response.ok) {
-    return Promise.reject("failed to grab playback");
+    return Promise.reject("failed to grab sub choice");
   }
-  return await handlePlayback(await response.json(), tabId, false);
+  return await handleSubChoice(await response.json(), tabId);
 }
 
 function findHeaderValue(headers: Header[], name: string): string {
