@@ -1,9 +1,10 @@
 import browser from "webextension-polyfill";
+import {ensureSubtitleOverlay, overlayText} from "./ui/overlay";
+import {ensureSubtitleControlShell, updateSubtitleDropdownOptions} from "./ui/dropdown";
+import type {SubChoices} from "./subtitle/manager";
+import type {Preference} from "./subtitle/loader";
 
 let videoEl: HTMLVideoElement;
-let overlayRoot: HTMLDivElement;
-let overlayText: HTMLDivElement;
-let subtitleControl: HTMLDivElement;
 
 let lastRendered = "";
 let currentCues: Cue[];
@@ -16,8 +17,20 @@ init().then().catch(r => {
   console.error(r);
 });
 
+export async function updateCues() {
+  currentCues = await grabCues();
+}
+
 async function grabCues() {
   return (await browser.runtime.sendMessage({type: "GET_CUES"}).catch(r => console.warn(r))) as Cue[];
+}
+
+async function grabChoices() {
+  return (await browser.runtime.sendMessage({type: "GET_CHOICES"}).catch(r => console.warn(r))) as SubChoices;
+}
+
+async function grabPreference(): Promise<Preference> {
+  return (await browser.runtime.sendMessage({type: "GET_PREFERENCE"})) as Preference
 }
 
 function addMsgListener() {
@@ -44,7 +57,7 @@ function addMsgListener() {
 async function init() {
   if (lastInit === location.href) {
     console.log("[dual-sub] skipping double init");
-    return Promise.resolve();
+    return;
   }
   lastInit = location.href;
   if (await shouldSkip()) {
@@ -67,37 +80,33 @@ async function init() {
   console.log(`[dual-sub] init begin`)
 
   ensurePageInjections();
-  if (!currentCues || currentCues.length === 0) {
-    console.log("[dual-sub] grabbing cues...");
 
-    currentCues = await grabCues();
+  console.log("[dual-sub] grabbing cues...");
 
-    if (!currentCues || !currentCues.length) {
-      // at this point, the background.ts was probably put to
-      // sleep by the browser. however, since we sent a msg over
-      // it is now awake but missing the authorization headers and such
-      // to grab the playback. by running this hack, we force crunchy
-      // to send a request that contains the headers we need.
-      await tryHackToRefreshToken();
-      currentCues = await grabCues();
+  await updateCues();
 
-      if (!currentCues || !currentCues.length) {
-        console.warn("[dual-subs] failed to grab cues");
-        if (confirm("[Crunchyroll Dual Sub] Please reload watch page, could not retrieve subtitle data.")) {
-          await browser.runtime.sendMessage({type: "REFRESH_TAB"});
-        }
-        return Promise.reject("failed to grab cues");
-      }
+  if (currentCues === null || currentCues === undefined) {
+    console.warn("[dual-subs] failed to grab cues");
+    if (confirm("[Crunchyroll Dual Sub] Please reload watch page, could not retrieve subtitle data.")) {
+      await browser.runtime.sendMessage({type: "REFRESH_TAB"});
     }
-
-    console.log(currentCues);
-    console.log(`[dual-sub] grabbed ${currentCues.length} cues.`);
+    return Promise.reject("failed to grab cues");
   }
+
+  console.log(currentCues);
+  console.log(`[dual-sub] grabbed ${currentCues.length} cues.`);
+
+  console.log("[dual-sub] updating sub choices...");
+  const subChoices = await grabChoices();
+  const pref = await grabPreference();
+  updateSubtitleDropdownOptions(subChoices, pref);
+  console.log("[dual-sub] updated sub choices", subChoices, pref);
+
   console.log("[dual-sub] starting subtitle render loop...");
   requestAnimationFrame(renderLoop);
   console.log("[dual-sub] subtitle render loop started");
   console.log("[dual-sub] successfully init.");
-  return Promise.resolve();
+  return;
 }
 
 async function renderLoop() {
@@ -115,7 +124,7 @@ async function renderLoop() {
   const secondaryCue = getActiveCue(currentCues, time);
   const nextText = secondaryCue?.text || "";
 
-  if (nextText !== lastRendered) {
+  if (!nextText || nextText !== lastRendered) {
     overlayText.textContent = nextText;
     overlayText.style.display = nextText.length > 0 ? "block" : "none";
     lastRendered = nextText;
@@ -141,31 +150,10 @@ function getVideo() {
 }
 
 function ensurePageInjections() {
-  console.log("[dual-sub] ensuring overlay")
-  if (overlayRoot) return;
-
-  const video = videoEl;
-  const container = video?.parentElement;
-  if (!video || !container) return;
-
-  const computed = getComputedStyle(container);
-  if (computed.position === "static") {
-    container.style.position = "relative";
-  }
-
-  overlayRoot = document.querySelector("#cr-dual-subs-root") ?? document.createElement("div");
-  overlayRoot.id = "cr-dual-subs-root";
-
-  overlayText = document.querySelector("#cr-dual-subs-secondary") ?? document.createElement("div");
-  overlayText.id = "cr-dual-subs-secondary";
-
-  overlayRoot.appendChild(overlayText);
-  container.appendChild(overlayRoot);
-
-  const episodeActions = document.querySelector(".episode-actions");
-  subtitleControl = document.querySelector("#cr-dual-subs-sub-control") ?? document.createElement("div");
-  subtitleControl.id = "cr-dual-subs-sub-control";
-  episodeActions?.appendChild(subtitleControl);
+  ensureSubtitleOverlay(videoEl);
+  console.log("[dual-sub] injected overlay");
+  ensureSubtitleControlShell();
+  console.log("[dual-sub] injected subtitle control");
 }
 
 function getActiveCue(cues: Cue[], time: number): Cue | null {

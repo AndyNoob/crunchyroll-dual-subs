@@ -37,7 +37,7 @@ export default defineConfig({
           host_permissions: ["*://*.crunchyroll.com/*"],
           content_scripts: [
             {
-              css: ["static/overlay.css"],
+              css: ["static/overlay.css", "static/dropdown.css"],
               js: ["src/content.js"],
               matches: ["*://*.crunchyroll.com/*"],
               run_at: "document_idle"
