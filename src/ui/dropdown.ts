@@ -3,6 +3,8 @@ import type {Preference} from "../subtitle/loader";
 import browser from "webextension-polyfill";
 import {updateCues} from "../content";
 
+// I love when GPT-5.2 does 90% of the work :muscles:
+
 let subtitleControl: HTMLDivElement | null = null;
 let subtitleTrigger: HTMLDivElement | null = null;
 let subtitleMenu: HTMLDivElement | null = null;
@@ -72,41 +74,43 @@ export function updateSubtitleDropdownOptions(subOptions: SubChoices, pref: Pref
 
   let hasSelected = false;
 
-  // normal subs
-  for (const [key, sub] of Object.entries(subOptions.subs)) {
+  const all = [
+    ...Object.entries(subOptions.subs).map(([key, v]) => ({
+      key,
+      language: v.language,
+      format: v.format,
+      url: v.url,
+      type: "sub" as const
+    })),
+    ...Object.entries(subOptions.ccs).map(([key, v]) => ({
+      key,
+      language: v.language,
+      format: v.format,
+      url: v.url,
+      type: "cc" as const
+    }))
+  ].sort((a, b) => {
+    const lang = a.language.localeCompare(b.language);
+    if (lang !== 0) return lang;
+    return a.type === "sub" ? -1 : 1; // sub before cc
+  });
+
+  for (const sub of all) {
     const option = document.createElement("div");
     option.className = "cr-dual-subs-sub-option";
-    option.textContent = sub.language;
-    option.dataset.key = key;
-    option.dataset.type = "sub";
+    option.textContent = sub.type === "cc" ? `${sub.language} [CC]` : sub.language;
+    option.dataset.key = sub.key;
+    option.dataset.type = sub.type;
 
-    if (!hasSelected && key === pref.subLanguage && !pref.doCc) {
+    if (!hasSelected && sub.key === pref.subLanguage && pref.doCc === (sub.type === "cc")) {
       option.classList.add("active");
-      subtitleLabelNode.textContent = `${sub.language} `;
+      subtitleLabelNode.textContent = `${option.textContent} `;
       hasSelected = true;
     }
 
     subtitleMenu.appendChild(option);
   }
 
-  // cc subs
-  for (const [key, cc] of Object.entries(subOptions.ccs)) {
-    const option = document.createElement("div");
-    option.className = "cr-dual-subs-sub-option";
-    option.textContent = `${cc.language} [CC]`;
-    option.dataset.key = key;
-    option.dataset.type = "cc";
-
-    if (!hasSelected && key === pref.subLanguage && pref.doCc) {
-      option.classList.add("active");
-      subtitleLabelNode.textContent = `${cc.language} [CC] `;
-      hasSelected = true;
-    }
-
-    subtitleMenu.appendChild(option);
-  }
-
-  // fallback if pref not found
   if (!hasSelected) {
     const first = subtitleMenu.querySelector(".cr-dual-subs-sub-option") as HTMLElement | null;
     if (first) {
