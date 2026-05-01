@@ -30,7 +30,7 @@ export function ensureSubtitleControlShell() {
   subtitleMenu.id = "cr-dual-subs-sub-menu";
 
   if (!subtitleTrigger.hasChildNodes()) {
-    subtitleLabelNode = document.createTextNode("Second subtitles ");
+    subtitleLabelNode = document.createTextNode("Subtitles loading... ");
     subtitleTrigger.appendChild(subtitleLabelNode);
 
     const arrow = document.createElement("span");

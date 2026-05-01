@@ -53,6 +53,10 @@
   pointer-events: auto;
 }
 
+#cr-dual-subs-sub-control.open #cr-dual-subs-sub-trigger span {
+  transform: rotate(180deg);
+}
+
 .cr-dual-subs-sub-option {
   padding: 9px 12px;
   cursor: pointer;
