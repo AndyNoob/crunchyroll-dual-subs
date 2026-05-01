@@ -6,14 +6,14 @@ import {
   setSubChoices,
   type Profile,
   type RawProfile,
-  type Subtitle, normalizeUrl, type SubChoices, getSubChoices, getProfile,
+  type Subtitle, normalizeUrl, type SubChoices, getSubChoices, getProfile, setAudio,
 } from "./manager";
-
-export let alreadyLoadingProfile: boolean = false;
 
 export async function handleSubChoice(playback: any, tabId: number): Promise<SubChoices> {
   const ccs: Subtitle = playback["captions"];
   const subs: Subtitle = playback["subtitles"];
+  console.log(`[handleSubChoice] audio locale for tab ${tabId} is ${playback["audioLocale"]}`);
+  setAudio(tabId, playback["audioLocale"]);
   setSubChoices(tabId, {url: normalizeUrl((await browser.tabs.get(tabId)).url!), ccs, subs});
   return getSubChoices(tabId)!;
 }
@@ -48,7 +48,7 @@ export async function grabAndHandleProfile(tabId: number, refresh: boolean = fal
   const headers = await getOrLoadHeaders(tabId);
   if (!headers) return Promise.reject("no auth");
   if (waitUntil - performance.now() > 0) await sleep(waitUntil - performance.now());
-  const response = await fetch("https://www.crunchyroll.com/accounts/v1/me/multiprofile", {
+  const response = await fetch("https://www.crunchyroll.com/accounts/v1/me/multiprofile?dual_sub=676767", {
     headers: {
       "Authorization": findHeaderValue(headers, "Authorization"),
       "Cookies": findHeaderValue(headers, "Cookie")
@@ -66,23 +66,23 @@ export async function grabAndHandleSubChoices(tabId: number, refresh: boolean = 
   }
   const headers = await getOrLoadHeaders(tabId);
   if (!headers) {
-    console.log("[dual-sub] headers not set")
+    console.log("[grabAndHandleSubChoices] headers not set")
     return Promise.reject("no auth");
   }
   const url = (await browser.tabs.get(tabId)).url;
   if (!url) {
-    console.log("[dual-sub] url not found, aborting");
+    console.log("[grabAndHandleSubChoices] url not found, aborting");
     return Promise.reject(`could not find url of tab ${tabId}`);
   }
   const contentId = url.match(/crunchyroll\.com\/watch\/(.+)\//)![1];
   const device = "firefox"; // phone,tablet,android_tv,firefox,chrome
   const deviceType = "web";
-  console.log("[dual-sub] fetching...");
+  console.log("[grabAndHandleSubChoices] fetching...");
   // courtesy of https://github.com/Crunchyroll-Plus/crunchyroll-docs/blob/release/Services/Play/GET/getPlayStream.md
   let response = null;
   if (waitUntil - performance.now() > 0) await sleep(waitUntil - performance.now());
   try {
-    response = await fetch(`https://www.crunchyroll.com/playback/v3/${contentId}/${deviceType}/${device}/play`, {
+    response = await fetch(`https://www.crunchyroll.com/playback/v3/${contentId}/${deviceType}/${device}/play?dual_sub=676767`, {
       headers: {
         "Authorization": findHeaderValue(headers, "Authorization"),
         "Cookies": findHeaderValue(headers, "Cookie"),
@@ -91,7 +91,7 @@ export async function grabAndHandleSubChoices(tabId: number, refresh: boolean = 
       } as Record<string, string>
     });
   } catch (e) {
-    console.error("[dual-sub] fetch failed", e);
+    console.error("[grabAndHandleSubChoices] fetch failed", e);
   }
   waitUntil = performance.now() + 5000;
   if (!response || !response.ok) {
