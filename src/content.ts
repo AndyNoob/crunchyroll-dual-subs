@@ -125,8 +125,8 @@ async function renderLoop() {
   const nextText = secondaryCue?.text || "";
 
   if (!nextText || nextText !== lastRendered) {
-    overlayText.textContent = nextText;
-    overlayText.style.display = nextText.length > 0 ? "block" : "none";
+    overlayText.textContent = nextText || "";
+    overlayText.style.display = nextText && nextText.length > 0 ? "block" : "none";
     lastRendered = nextText;
   }
 
@@ -157,6 +157,7 @@ function ensurePageInjections() {
 }
 
 function getActiveCue(cues: Cue[], time: number): Cue | null {
+  if (cues.length === 0) return null;
   if (compare(cues[0]!, time) == 0)
     return cues[0] ?? null;
   if (compare(cues[cues.length - 1]!, time) == 0)
