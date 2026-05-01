@@ -5,10 +5,10 @@ Firefox extension created to fix the annoying issue of not being able to use `En
 ## How it works
 When the Crunchyroll watch page is loaded, the extension intercepts and reads your profile for your preferred/selected subtitle language and type. The extension then retrieves the episode's subtitle data in the same manner. Finally, the extension determines the alternate subtitle and loads it. 
 
+Additionally, the extension now adds a drop down menu for you to select your desired secondary subtitle. The choice is saved for your selected profile to the sync-ed storage (if it is enabled). 
+
 ## Caveats
 While the extension is able to process most types of subtitle formats (Crunchyroll doesn't use a unified type of subtitle file), the rendering system is very limited. As such, it is recommended that you **choose the none-CC version** as your preferred/selected subtitle. That way, the extension's renderer won't struggle displaying the more complicated typesettings. 
-
-Furthermore, the extension is not able to detect when/if you change your preferred/selected subtitle. Simply reload the page if you do so. 
 
 ## How to build
 1. `npm install`
