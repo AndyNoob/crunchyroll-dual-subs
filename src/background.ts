@@ -3,7 +3,7 @@ import {
   handleSubChoice,
   handleProfile
 } from "./subtitle/handler";
-import browser from "webextension-polyfill";
+import browser, {type WebRequest} from "webextension-polyfill";
 import {
   getAltCues,
   getAudio,
@@ -15,6 +15,8 @@ import {
 import {loadCues} from "./subtitle/loader";
 
 console.log("[dual-sub] background loaded");
+
+let shouldRefresh: boolean = false;
 
 browser.webRequest.onBeforeRequest.addListener(
   receiveProfileOrPlayback,
@@ -30,11 +32,17 @@ browser.webRequest.onSendHeaders.addListener(
 );
 browser.tabs.onUpdated.addListener(
   async (tabId, _, tab) => {
-    notifyCueRefresh(tabId, await resolveCues(tabId, tab.url!, null));
+    console.log(`new tab url for tab ${tabId} is ${tab.url}`);
+    shouldRefresh = true;
   },
   {urls: ["*://www.crunchyroll.com/watch/*"], properties: ["url"]}
 );
 
+/**
+ * @param tabId id of the tab requesting cue resolution
+ * @param url url of the tab requesting cue resolution
+ * @param audio audio locale of the tab requesting cue resolution
+ */
 async function resolveCues(tabId: number, url: string, audio: string | null) {
   let altCues = getAltCues(tabId, url, audio);
   if (altCues === null || altCues === undefined) {
@@ -51,7 +59,7 @@ async function resolveCues(tabId: number, url: string, audio: string | null) {
   return altCues;
 }
 
-function receiveProfileOrPlayback(details: { tabId: number; url: string | string[]; requestId: string; }) {
+function receiveProfileOrPlayback(details: WebRequest.OnBeforeRequestDetailsType) {
   if (details.tabId < 0) return;
   if (details.url.includes("?dual_sub=676767")) return;
   const isProfile = details.url.includes("/me/multiprofile");
@@ -86,7 +94,14 @@ function receiveProfileOrPlayback(details: { tabId: number; url: string | string
 
     try {
       if (isProfile) handleProfile(parsed, details.tabId);
-      else await handleSubChoice(parsed, details.tabId);
+      else {
+        await handleSubChoice(parsed, details.tabId);
+        if (shouldRefresh) {
+          shouldRefresh = false;
+          console.log("[receiveProfileOrPlayback] refresh triggered")
+          notifyCueRefresh(details.tabId, await resolveCues(details.tabId, details.documentUrl!, getAudio(details.tabId) || null))
+        }
+      }
       console.log(`[receiveProfileOrPlayback] processed ${isProfile ? "profiles" : "playback"} data on tab ${details.tabId}`);
     } catch (err) {
       console.error("[receiveProfileOrPlayback] processing failed:", err);

@@ -48,7 +48,10 @@ function normalizeFrazyCues(parsed: any[]): Cue[] {
 
 async function loadAltSubtitles(callback: CallableFunction, tabId: number, preference: Preference): Promise<Cue[]> {
   console.log("[loadAltSubtitles] begin load alt subs");
-  const subOptions = getSubChoices(tabId)!;
+  const subOptions = getSubChoices(tabId);
+  if (!subOptions) {
+    throw new Error("[loadAltSubtitles] sub choice not found");
+  }
   const altSub: Subtitle = preference.doCc ? subOptions.ccs : subOptions.subs;
   const sub = altSub[preference.subLanguage];
   if (!sub || !sub.url) {

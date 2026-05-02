@@ -1,6 +1,7 @@
-export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
-  if (overlayRoot) return;
+export let overlayRoot: HTMLDivElement;
+export let overlayText: HTMLDivElement;
 
+export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
   const video = videoEl;
   const container = video?.parentElement;
   if (!video || !container) return;
@@ -19,6 +20,3 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
   overlayRoot.appendChild(overlayText);
   container.appendChild(overlayRoot);
 }
-
-export let overlayRoot: HTMLDivElement;
-export let overlayText: HTMLDivElement;
