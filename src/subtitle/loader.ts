@@ -15,14 +15,20 @@ export async function loadCues(tabId: number, preference: Preference | null, not
   return cues;
 }
 
-export async function fetchAndParseSubtitle(url: string): Promise<Cue[]> {
+export async function fetchAndParseSubtitle(tabId: number, url: string): Promise<Cue[]> {
   console.log(`[fetchAndParseSubtitle] fetching sub from ${url}`);
-  const res = await fetch(url);
-  if (!res.ok) {
-    console.error(`[fetchAndParseSubtitle] failed to fetch subtitle: ${res.status}`);
-    return Promise.reject("failed to fetch");
+  // const res = await fetch(url);
+  // if (!res.ok) {
+  //   console.error(`[fetchAndParseSubtitle] failed to fetch subtitle: ${res.status}`);
+  //   return Promise.reject("failed to fetch");
+  // }
+  // console.log("[fetchAndParseSubtitle] done fetching.");
+  // const raw = await res.text();
+  const raw = (await browser.tabs.sendMessage(tabId, {type: "FETCH_SUBTITLE", url})) as string;
+  if (raw.length === 0) {
+    console.log("[fetchAndParseSubtitle] subtitle request returned empty.");
+    return [];
   }
-  const raw = await res.text();
   const parsed = parseSubs(raw);
   return normalizeFrazyCues(parsed);
 }
@@ -58,7 +64,7 @@ async function loadAltSubtitles(callback: CallableFunction, tabId: number, prefe
     console.warn("[loadAltSubtitles] alternate subtitle is none");
     return [];
   }
-  const cues = await fetchAndParseSubtitle(sub.url);
+  const cues = await fetchAndParseSubtitle(tabId, sub.url);
   console.log(preference)
   console.log(`[loadAltSubtitles] loaded ${cues.length} alternate cues from ${sub.language} ${preference.doCc ? "[CC]" : ""}`);
   callback();

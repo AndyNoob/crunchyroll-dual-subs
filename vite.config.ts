@@ -16,52 +16,54 @@ export default defineConfig({
   plugins: [
     webExtension({
       browser: browserType,
-      manifest: () => {
-        return {
-          manifest_version: 3,
-          name: pkg.displayName,
-          version: pkg.version,
-          description: pkg.description,
-          icons: {
-            "32": "icon-32.png",
-            "64": "icon-64.png"
-          },
-          permissions: [
-            "storage",
-            "webRequest",
-            "webRequestFilterResponse",
-            "webRequestBlocking",
-            "tabs",
-            "activeTab"
-          ],
-          host_permissions: ["*://*.crunchyroll.com/*"],
-          content_scripts: [
-            {
-              css: ["static/overlay.css", "static/dropdown.css"],
-              js: ["src/content.js"],
-              matches: ["*://*.crunchyroll.com/*"],
-              run_at: "document_idle"
-            }
-          ],
-          browser_specific_settings: {
-            gecko: {
-              id: "cr-dual-sub@andynoob",
-              data_collection_permissions: {
-                required: ["none"]
-              }
-            }
-          },
-          background: (browserType === "firefox" ? {
-            scripts: ["src/background.js"]
-          } : {
-            service_worker: "src/background.js",
-            type: "module"
-          })
-        }
-      }
+      manifest: makeManifest
     }),
     zipPack({
-      outFileName: `${pkg.name}.zip`
+      outFileName: `${pkg.name}-${browserType}.zip`
     })
   ]
 });
+
+function makeManifest() {
+  return {
+    manifest_version: 3,
+    name: pkg.displayName,
+    version: pkg.version,
+    description: pkg.description,
+    icons: {
+      "32": "icon-32.png",
+      "64": "icon-64.png"
+    },
+    permissions: [
+      "storage",
+      "webRequest",
+      "webRequestFilterResponse",
+      "webRequestBlocking",
+      "tabs",
+      "activeTab"
+    ],
+    host_permissions: ["*://*.crunchyroll.com/*"],
+    content_scripts: [
+      {
+        css: ["static/overlay.css", "static/dropdown.css"],
+        js: ["src/content.js"],
+        matches: ["*://*.crunchyroll.com/*"],
+        run_at: "document_idle"
+      }
+    ],
+    browser_specific_settings: {
+      gecko: {
+        id: "cr-dual-sub@andynoob",
+        data_collection_permissions: {
+          required: ["none"]
+        }
+      }
+    },
+    background: (browserType === "firefox" ? {
+      scripts: ["src/background.js"]
+    } : {
+      service_worker: "src/background.js",
+      type: "module"
+    })
+  }
+}
