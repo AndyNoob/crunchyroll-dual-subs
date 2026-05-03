@@ -1,6 +1,6 @@
 import {
   grabAndHandleSubChoices,
-  handleSubChoice,
+  handleSubChoiceAndAudio,
   handleProfile
 } from "./subtitle/handler";
 import browser, {type WebRequest} from "webextension-polyfill";
@@ -95,10 +95,10 @@ function receiveProfileOrPlayback(details: WebRequest.OnBeforeRequestDetailsType
     try {
       if (isProfile) handleProfile(parsed, details.tabId);
       else {
-        await handleSubChoice(parsed, details.tabId);
+        await handleSubChoiceAndAudio(parsed, details.tabId);
         if (shouldRefresh) {
           shouldRefresh = false;
-          console.log("[receiveProfileOrPlayback] refresh triggered")
+          console.log("[receiveProfileOrPlayback] refresh triggered.");
           notifyCueRefresh(details.tabId, await resolveCues(details.tabId, details.documentUrl!, getAudio(details.tabId) || null))
         }
       }
@@ -114,22 +114,19 @@ async function receiveContentMsg(msg: any, sender: any) {
   const tabId: number = sender.tab!.id!;
   const url: string = sender.tab!.url!;
   if (!isValid) return Promise.reject();
-  if (msg?.type === "GET_CUES") {
-    return await resolveCues(tabId, url, getAudio(tabId) ?? null);
-  }
-  if (msg?.type === "GET_CHOICES") {
-    let subChoices = getSubChoices(tabId);
-    if (!subChoices) subChoices = await grabAndHandleSubChoices(tabId);
-    return subChoices;
-  }
-  if (msg?.type === "GET_PREFERENCE") {
-    return await resolvePreference(tabId);
-  }
-  if (msg?.type === "SET_PREFERENCE") {
-    return await setPreference(tabId, msg.pref!);
-  }
-  if (msg?.type === "REFRESH_TAB") {
-    return browser.tabs.reload(tabId);
+  switch (msg?.type) {
+    case "GET_CUES":
+      return await resolveCues(tabId, url, getAudio(tabId) ?? null);
+    case "GET_CHOICES":
+      let subChoices = getSubChoices(tabId);
+      if (!subChoices) subChoices = await grabAndHandleSubChoices(tabId);
+      return subChoices;
+    case "GET_PREFERENCE":
+      return await resolvePreference(tabId);
+    case "SET_PREFERENCE":
+      return await setPreference(tabId, msg.pref!);
+    case "REFRESH_TAB":
+      return browser.tabs.reload(tabId);
   }
 }
 

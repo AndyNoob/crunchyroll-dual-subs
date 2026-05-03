@@ -9,13 +9,14 @@ import {
   type Subtitle, normalizeUrl, type SubChoices, getSubChoices, getProfile, setAudio,
 } from "./manager";
 
-export async function handleSubChoice(playback: any, tabId: number): Promise<SubChoices> {
+export async function handleSubChoiceAndAudio(playback: any, tabId: number): Promise<SubChoices> {
   const ccs: Subtitle = playback["captions"];
   const subs: Subtitle = playback["subtitles"];
   console.log(`[handleSubChoice] audio locale for tab ${tabId} is ${playback["audioLocale"]}`);
   setAudio(tabId, playback["audioLocale"]);
-  setSubChoices(tabId, {url: normalizeUrl((await browser.tabs.get(tabId)).url!), ccs, subs});
-  return getSubChoices(tabId)!;
+  const choices: SubChoices = {url: normalizeUrl((await browser.tabs.get(tabId)).url!), ccs, subs};
+  setSubChoices(tabId, choices);
+  return choices;
 }
 
 export function handleProfile(data: any, tabId: number): Profile {
@@ -97,7 +98,7 @@ export async function grabAndHandleSubChoices(tabId: number, refresh: boolean = 
   if (!response || !response.ok) {
     return Promise.reject("failed to grab sub choice");
   }
-  return await handleSubChoice(await response.json(), tabId);
+  return await handleSubChoiceAndAudio(await response.json(), tabId);
 }
 
 function findHeaderValue(headers: Header[], name: string): string {
