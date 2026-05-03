@@ -16,6 +16,7 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
 
   overlayText = document.querySelector("#cr-dual-subs-secondary") ?? document.createElement("div");
   overlayText.id = "cr-dual-subs-secondary";
+  overlayText.innerText = "Secondary subtitles loading...";
 
   overlayRoot.appendChild(overlayText);
   container.appendChild(overlayRoot);
