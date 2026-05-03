@@ -35,21 +35,23 @@ async function grabPreference(): Promise<Preference> {
 
 function addMsgListener() {
   browser.runtime.onMessage.addListener(async (msg: any) => {
-    if (msg?.type === "REFRESH_CUES") {
-      currentCues = msg.cues;
-      console.log(`[dual-sub] refreshed cues (${currentCues.length} loaded)`);
-      init().then().catch(r => {
-        console.error(`[dual-sub] failed to (re)init extension on ${location.href}`);
-        console.error(r);
-      });
-      return true;
-    }
-    if (msg?.type === "TRY_HACK") {
-      await tryHackToRefreshToken();
-      return true;
-    }
-    if (msg?.type === "TAB_ID") {
-      return sessionStorage.getItem("cx-tab-id");
+    switch (msg?.type) {
+      case "REFRESH_CUES":
+        currentCues = msg.cues;
+        console.log(`[dual-sub] refreshed cues (${currentCues.length} loaded)`);
+        init().then().catch(r => {
+          console.error(`[dual-sub] failed to (re)init extension on ${location.href}`);
+          console.error(r);
+        });
+        return true;
+      case "TRY_HACK":
+        await tryHackToRefreshToken();
+        return true;
+      case "TAB_ID":
+        return sessionStorage.getItem("cx-tab-id");
+      case "FETCH_SUBTITLE":
+        console.log("[dual-sub] fetching subtitle in content script");
+        return await (await fetch(msg.url)).text();
     }
   });
 }
