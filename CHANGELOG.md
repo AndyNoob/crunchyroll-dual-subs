@@ -1,3 +1,15 @@
+# 0.5.0
+- Bump to 0.5.0
+- Add dropdown-showcase.psd & add subtitle is loading message in overlay.ts
+- Refactor code in background.ts and handler.ts
+- Fix tab update not properly refreshing cues
+- Slight aesthetic improvement
+- Add explanation for dropdown menu in README
+- Fix switching between audio locales
+- Fix text overlay always showing & fix options order
+- Add basic secondary subtitle selection
+- Update changelog for 0.4.1
+
 # 0.4.1
 - Remove a visible debug message
 - Update changelog for 0.4.0
