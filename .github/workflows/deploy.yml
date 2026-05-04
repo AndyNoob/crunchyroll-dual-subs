@@ -36,11 +36,17 @@ jobs:
         run: echo "version=$(npm pkg get version --workspaces=false | jq -r .)" >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v7
-        name: Upload the extension archive
+        name: Upload the chrome extension archive
         with:
-          path: 'dist-zip/cr-dual-subs.zip'
-          # apparently you can't have duplicated names
-          name: "cr-dual-subs-${{ steps.version.outputs.version }}.zip"
+          path: 'dist-zip/cr-dual-subs-chrome.zip'
+          name: "cr-dual-subs-chrome-${{ steps.version.outputs.version }}.zip"
+          if-no-files-found: 'error'
+
+      - uses: actions/upload-artifact@v7
+        name: Upload the firefox extension archive
+        with:
+          path: 'dist-zip/cr-dual-subs-firefox.zip'
+          name: "cr-dual-subs-firefox-${{ steps.version.outputs.version }}.zip"
           if-no-files-found: 'error'
 
       - name: Git archive dat thing
@@ -50,7 +56,6 @@ jobs:
         name: Upload the src archive
         with:
           path: 'cr-dual-subs-src.zip'
-          # apparently you can't have duplicated names
           name: "cr-dual-subs-src-${{ steps.version.outputs.version }}.zip"
           if-no-files-found: 'error'
 
@@ -84,70 +89,11 @@ jobs:
       notes: ${{ steps.notes.outputs.markdown }}
       version: ${{ steps.version.outputs.version }}
 
-  deploy-firefox:
-    name: Deploy addon to firefox
-    runs-on: ubuntu-latest
-    needs: do-setup
-    steps:
-      - uses: actions/download-artifact@v8
-        name: Download the built stuff
-
-      - name: Try list file structure
-        run: tree
-
-      - uses: browser-actions/release-firefox-addon@latest
-        name: Release it to firefox
-        id: release
-        with:
-          addon-id: 'cr-dual-sub@andynoob'
-          addon-path: "./cr-dual-subs-${{ needs.do-setup.outputs.version }}.zip/cr-dual-subs.zip"
-          source-path: "./cr-dual-subs-src-${{ needs.do-setup.outputs.version }}.zip/cr-dual-subs-src.zip"
-          auth-api-issuer: ${{ secrets.AMO_ISSUER }}
-          auth-api-secret: ${{ secrets.AMO_SECRET }}
-          license: MIT
-          approval-note: |
-            The steps to build project is in README.md.
-          release-note: ${{ needs.do-setup.outputs.notes }}
-
-      - name: Add stuff to summary
-        run: |
-          echo "## Firefox" >> $GITHUB_STEP_SUMMARY
-          echo "Url is ${{ steps.release.outputs.version-edit-url }}" >> $GITHUB_STEP_SUMMARY
-
-  deploy-github:
-    name: Release it on Github
-    runs-on: ubuntu-latest
-    needs: do-setup
-    steps:
-      - uses: actions/download-artifact@v8
-        name: Download the built stuff
-
-      - name: Try list file structure
-        run: tree
-
-      - uses: ncipollo/release-action@v1
-        name: Release it on Github
-        id: release
-        with:
-          artifacts: "./cr-dual-subs-${{ needs.do-setup.outputs.version }}.zip/cr-dual-subs.zip"
-          body: ${{ needs.do-setup.outputs.notes }}
-          commit: ${{ env.BRANCH_NAME }}
-          tag: "v${{ needs.do-setup.outputs.version }}"
-          allowUpdates: true
-          artifactErrorsFailBuild: true
-
-      - name: Add stuff to summary
-        run: |
-          echo "## Github" >> $GITHUB_STEP_SUMMARY
-          echo "Url is ${{ steps.release.outputs.html_url }}" >> $GITHUB_STEP_SUMMARY
-
   push-changelog:
     name: Update CHANGELOG.md
     runs-on: ubuntu-latest
     needs:
       - do-setup
-      - deploy-firefox
-      - deploy-github
     steps:
       - uses: actions/checkout@v6
         name: Check it out!
@@ -168,3 +114,67 @@ jobs:
           git add CHANGELOG.md
           git commit -m "Update changelog for ${{ needs.do-setup.outputs.version }}"
           git push
+
+  deploy-firefox:
+    name: Deploy addon to firefox
+    runs-on: ubuntu-latest
+    needs:
+      - do-setup
+      - push-changelog
+    steps:
+      - uses: actions/download-artifact@v8
+        name: Download the built stuff
+
+      - name: Try list file structure
+        run: tree
+
+      - uses: browser-actions/release-firefox-addon@latest
+        name: Release it to firefox
+        id: release
+        with:
+          addon-id: 'cr-dual-sub@andynoob'
+          addon-path: "./cr-dual-subs-firefox-${{ needs.do-setup.outputs.version }}.zip/cr-dual-subs-firefox.zip"
+          source-path: "./cr-dual-subs-src-${{ needs.do-setup.outputs.version }}.zip/cr-dual-subs-src.zip"
+          auth-api-issuer: ${{ secrets.AMO_ISSUER }}
+          auth-api-secret: ${{ secrets.AMO_SECRET }}
+          license: MIT
+          approval-note: |
+            The steps to build project is in README.md.
+          release-note: ${{ needs.do-setup.outputs.notes }}
+
+      - name: Add stuff to summary
+        run: |
+          echo "## Firefox" >> $GITHUB_STEP_SUMMARY
+          echo "Url is ${{ steps.release.outputs.version-edit-url }}" >> $GITHUB_STEP_SUMMARY
+
+  deploy-github:
+    name: Release it on GitHub
+    runs-on: ubuntu-latest
+    needs:
+      - do-setup
+      - push-changelog
+    steps:
+      - uses: actions/download-artifact@v8
+        name: Download the built stuff
+
+      - name: Try list file structure
+        run: tree
+
+      - uses: ncipollo/release-action@v1
+        name: Release it on Github
+        id: release
+        with:
+          artifacts: |
+            ./cr-dual-subs-chrome-${{ needs.do-setup.outputs.version }}.zip/cr-dual-subs-chrome.zip
+            ./cr-dual-subs-firefox-${{ needs.do-setup.outputs.version }}.zip/cr-dual-subs-firefox.zip
+          body: ${{ needs.do-setup.outputs.notes }}
+          commit: ${{ env.BRANCH_NAME }}
+          tag: "v${{ needs.do-setup.outputs.version }}"
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+
+      - name: Add stuff to summary
+        run: |
+          echo "## Github" >> $GITHUB_STEP_SUMMARY
+          echo "Url is ${{ steps.release.outputs.html_url }}" >> $GITHUB_STEP_SUMMARY
+
