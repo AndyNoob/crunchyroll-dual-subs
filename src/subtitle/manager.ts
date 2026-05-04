@@ -146,13 +146,19 @@ export async function getOrLoadHeaders(tabId: number) {
 }
 
 export function setHeaders(tabId: number, headers: Header[]) {
+  let authFound = false, cookiesFound = false;
   for (let header of headers) {
-    if (header.name.toLowerCase().includes("authorization")) {
-      headersMap.set(tabId, headers);
-      return true;
+    const name = header.name.toLowerCase();
+    if (name.includes("authorization")) {
+      authFound = true;
+    }
+    if (name.includes("cookie")) {
+      cookiesFound = true;
     }
   }
-  return false;
+  if (!(authFound && cookiesFound)) return false;
+  headersMap.set(tabId, headers);
+  return true;
 }
 
 const headersMap = new Map<number, Header[]>();

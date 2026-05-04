@@ -1,7 +1,7 @@
 import type {Cue} from "../content";
 import {getSubChoices, notifyCueRefresh, setAltCues, type Subtitle} from "./manager";
 import {parseSubs} from "frazy-parser";
-import {grabAndHandleProfile} from "./handler";
+import {grabAndHandleProfile, grabAndHandleSubChoices} from "./handler";
 import browser from "webextension-polyfill";
 
 export async function loadCues(tabId: number, preference: Preference | null, notify: boolean = false) {
@@ -54,11 +54,12 @@ function normalizeFrazyCues(parsed: any[]): Cue[] {
 
 async function loadAltSubtitles(callback: CallableFunction, tabId: number, preference: Preference): Promise<Cue[]> {
   console.log("[loadAltSubtitles] begin load alt subs");
-  const subOptions = getSubChoices(tabId);
-  if (!subOptions) {
-    throw new Error("[loadAltSubtitles] sub choice not found");
+  const subChoices = getSubChoices(tabId) || await grabAndHandleSubChoices(tabId);
+  if (!subChoices) {
+    console.error("[loadAltSubtitles] sub choices not found");
+    return Promise.reject("[loadAltSubtitles] sub choices not found");
   }
-  const altSub: Subtitle = preference.doCc ? subOptions.ccs : subOptions.subs;
+  const altSub: Subtitle = preference.doCc ? subChoices.ccs : subChoices.subs;
   const sub = altSub[preference.subLanguage];
   if (!sub || !sub.url) {
     console.warn("[loadAltSubtitles] alternate subtitle is none");

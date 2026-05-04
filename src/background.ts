@@ -28,15 +28,15 @@ browser.runtime.onMessage.addListener(receiveContentMsg);
 browser.webRequest.onSendHeaders.addListener(
   receiveAuthHeaders,
   {urls: ["*://www.crunchyroll.com/*"]},
-  ["requestHeaders"]
+  ["requestHeaders", "extraHeaders"]
 );
-browser.tabs.onUpdated.addListener(
-  async (tabId, _, tab) => {
-    console.log(`new tab url for tab ${tabId} is ${tab.url}`);
-    shouldRefresh = true;
-  },
-  {urls: ["*://www.crunchyroll.com/watch/*"], properties: ["url"]}
-);
+browser.tabs.onUpdated.addListener(async (tabId, changeInfo, _) => {
+  if (!changeInfo.url) return; // key line
+  const url = changeInfo.url;
+  if (!url.includes("crunchyroll.com/watch/")) return;
+  console.log(`[dual-sub] new tab url for tab ${tabId} is ${url}`);
+  shouldRefresh = true;
+}); // no filter because chrome compat
 
 /**
  * @param tabId id of the tab requesting cue resolution
@@ -130,9 +130,18 @@ async function receiveContentMsg(msg: any, sender: any) {
   }
 }
 
-async function receiveAuthHeaders(details: any) {
+async function receiveAuthHeaders(details: WebRequest.OnSendHeadersDetailsType) {
   if (details.tabId < 0) return;
   if (details.requestHeaders === undefined) return;
-  setHeaders(details.tabId, details.requestHeaders);
-    // console.log(`[dual-sub] headers set for tab ${details.tabId} based off of ${details.url}`);
+  if (setHeaders(details.tabId, details.requestHeaders))
+    console.debug(`[receiveAuthHeaders] headers set for tab ${details.tabId} based off of ${lastSegment(details.url)}`);
+}
+
+function lastSegment(urlStr: string) {
+  try {
+    const parts = new URL(urlStr).pathname.split("/").filter(Boolean);
+    return parts.length ? parts[parts.length - 1] : "/";
+  } catch {
+    return urlStr;
+  }
 }

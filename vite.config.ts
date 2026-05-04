@@ -2,6 +2,7 @@ import {defineConfig} from 'vite';
 import webExtension from "vite-plugin-web-extension";
 import zipPack from "vite-plugin-zip-pack";
 import pkg from "./package.json";
+import AdmZip from "adm-zip";
 
 const browserType = process.env["BROWSER"] ?? "firefox";
 console.log(`compiling for ${browserType}`);
@@ -19,7 +20,14 @@ export default defineConfig({
       manifest: makeManifest
     }),
     zipPack({
-      outFileName: `${pkg.name}-${browserType}.zip`
+      outFileName: `${pkg.name}-${browserType}.zip`,
+      done: () => {
+        if (browserType === "chrome") {
+          const zip = new AdmZip('./dist-zip/cr-dual-subs-chrome.zip');
+          zip.extractAllTo('./dist-zip/cr-dual-subs-crhome-unzipped', true);
+          console.log('chrome extraction complete!');
+        }
+      }
     })
   ]
 });
