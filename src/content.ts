@@ -54,6 +54,7 @@ function addMsgListener() {
         return await (await fetch(msg.url)).text();
     }
   });
+  console.log("[dual-sub] added msg listener");
 }
 
 async function updateDropdownOptions() {
