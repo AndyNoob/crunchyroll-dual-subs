@@ -12,12 +12,14 @@
   "license": "MIT",
   "homepage": "https://github.com/AndyNoob/crunchyroll-dual-subs",
   "dependencies": {
+    "@types/adm-zip": "^0.5.8",
     "frazy-parser": "^2.10.2",
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
     "@types/webextension-polyfill": "^0.12.5",
+    "adm-zip": "^0.5.17",
     "typescript": "^6.0.3",
     "vite": "^8.0.8",
     "vite-plugin-web-extension": "^4.5.1",
