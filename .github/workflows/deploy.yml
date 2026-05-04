@@ -28,8 +28,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build it
-        run: npm run build
+      - name: Build it (Firefox)
+        run: BROWSER=firefox npm run build
+
+      - name: Build it (Chrome)
+        run: BROWSER=chrome npm run build
 
       - name: Grab project version
         id: version
