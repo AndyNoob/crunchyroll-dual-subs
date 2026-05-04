@@ -1,3 +1,14 @@
+# 0.6.0
+- Actually build the extension for both browsers in deploy.yml
+- Update deploy.yml to account for new archive naming scheme
+- Simplify permissions for Firefox/Chrome
+- Update icons and add screenshots
+- Bump 0.6.0
+- Fix compatibility for Firefox & Chrome
+- Fix Chrome compatibility (firefox is probably broken)!
+- Fix Crunchyroll CDN randomly 403-forbidding extension requests (bruh)
+- Update changelog for 0.5.0
+
 # 0.5.0
 - Bump to 0.5.0
 - Add dropdown-showcase.psd & add subtitle is loading message in overlay.ts
