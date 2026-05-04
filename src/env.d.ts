@@ -1,0 +1,1 @@
+declare const __BROWSER_TYPE__: "chrome" | "firefox";

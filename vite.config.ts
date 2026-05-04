@@ -14,6 +14,9 @@ export default defineConfig({
     emptyOutDir: true,
     minify: false
   },
+  define: {
+    __BROWSER_TYPE__: JSON.stringify(browserType)
+  },
   plugins: [
     webExtension({
       browser: browserType,

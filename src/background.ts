@@ -17,25 +17,29 @@ import {loadCues} from "./subtitle/loader";
 console.log("[dual-sub] background loaded");
 
 let shouldRefresh: boolean = false;
-
-browser.webRequest.onBeforeRequest.addListener(
-  receiveProfileOrPlayback,
-  {urls: ["*://www.crunchyroll.com/*"]},
-  ["blocking"]
-);
-
+if (__BROWSER_TYPE__ !== "chrome") {
+  browser.webRequest.onBeforeRequest.addListener(
+    receiveProfileOrPlayback,
+    {urls: ["*://www.crunchyroll.com/*"]},
+    ["blocking"]
+  );
+}
 browser.runtime.onMessage.addListener(receiveContentMsg);
 browser.webRequest.onSendHeaders.addListener(
   receiveAuthHeaders,
   {urls: ["*://www.crunchyroll.com/*"]},
-  ["requestHeaders", "extraHeaders"]
+  getRequestHeaderSpec()
 );
 browser.tabs.onUpdated.addListener(async (tabId, changeInfo, _) => {
   if (!changeInfo.url) return; // key line
   const url = changeInfo.url;
   if (!url.includes("crunchyroll.com/watch/")) return;
-  console.log(`[dual-sub] new tab url for tab ${tabId} is ${url}`);
-  shouldRefresh = true;
+  console.log(`[dual-sub] new tab url for tab ${tabId} is ${shortenUrl(url)}`);
+  if (__BROWSER_TYPE__ === "chrome") {
+    notifyCueRefresh(tabId, await resolveCues(tabId, url, null));
+  } else {
+    shouldRefresh = true;
+  }
 }); // no filter because chrome compat
 
 /**
@@ -134,14 +138,24 @@ async function receiveAuthHeaders(details: WebRequest.OnSendHeadersDetailsType) 
   if (details.tabId < 0) return;
   if (details.requestHeaders === undefined) return;
   if (setHeaders(details.tabId, details.requestHeaders))
-    console.debug(`[receiveAuthHeaders] headers set for tab ${details.tabId} based off of ${lastSegment(details.url)}`);
+    console.debug(`[receiveAuthHeaders] headers set for tab ${details.tabId} based off of ${shortenUrl(details.url)}`);
 }
 
-function lastSegment(urlStr: string) {
+function shortenUrl(urlStr: string) {
   try {
     const parts = new URL(urlStr).pathname.split("/").filter(Boolean);
-    return parts.length ? parts[parts.length - 1] : "/";
+    return parts.length ? `/${ parts[parts.length - 1]}` : "/";
   } catch {
     return urlStr;
   }
+}
+
+function getRequestHeaderSpec(): WebRequest.OnSendHeadersOptions[] {
+  const spec: WebRequest.OnSendHeadersOptions[] = ["requestHeaders"];
+
+  if (__BROWSER_TYPE__ === "chrome") {
+    spec.push("extraHeaders");
+  }
+
+  return spec;
 }
