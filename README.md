@@ -3,7 +3,7 @@
 Web extension created to fix the annoying issue of not being able to use `English` and `English [CC]` subtitles at the same time[^1]. The extension is still in development but is guaranteed to work on shows such as One Piece where there are both types of subtitles. This extension supports [Croptix](https://github.com/stratumadev/croptix) and [Improve Crunchyroll](https://github.com/ThomasTavernier/Improve-Crunchyroll).
 
 ## How it works
-When the Crunchyroll watch page is loaded, the extension intercepts and reads your profile for your preferred/selected subtitle language and type (if you don't have one set via the dropdown). The extension then retrieves the episode's subtitle data in the same manner. The alternate subtitle will then be loaded by the extension.
+When the Crunchyroll watch page is loaded, the extension intercepts and reads your profile for your preferred/selected subtitle language and type (if you don't have one set via the dropdown). The extension retrieves the episode's subtitle data in the same manner. The alternate subtitle will then be loaded by the extension.
 
 Additionally, the extension now adds a drop-down menu for you to select your desired secondary subtitle. The choice is saved for your selected profile to the sync-ed storage (if it is enabled). 
 
