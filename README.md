@@ -10,7 +10,10 @@ When the Crunchyroll watch page is loaded, the extension intercepts and reads yo
 Additionally, the extension now adds a drop-down menu for you to select your desired secondary subtitle. The choice is saved for your selected profile to the sync-ed storage (if it is enabled). 
 
 ## Caveats
-While the extension is able to process most types of subtitle formats (Crunchyroll doesn't use a unified type of subtitle file), the rendering system is very limited. As such, it is recommended that you **choose the none-CC version** as your preferred/selected subtitle in the player. That way, the extension's renderer won't struggle displaying the more complicated typesettings (and trust me, it's not pretty). 
+While the extension is able to process most types of subtitle formats (Crunchyroll doesn't use a unified type of subtitle file), the rendering system is very limited. As such, it is recommended that you **choose the none-CC version** as your preferred/selected subtitle in the player. That way, the extension's renderer won't struggle displaying the more complicated typesettings (and trust me, it's not pretty).
+
+## Privacy notice
+Everything stays on your computer/browser. The extension does not communicate with any external servers other than Crunchyroll's services.
 
 ## Credits
 While not completely vibe-coded, this project was made with the help of GPT-5.3/5.5. This project uses [frazy-parser](https://github.com/ApayRus/frazy-parser) by [ApayRus](https://github.com/ApayRus) to parse subtitle files.
