@@ -43,7 +43,8 @@ function makeManifest() {
     description: pkg.description,
     icons: {
       "32": "icon-32.png",
-      "64": "icon-64.png"
+      "64": "icon-64.png",
+      "128": "icon-128.png"
     },
     permissions: browserType === "chrome" ? [
       "storage",
