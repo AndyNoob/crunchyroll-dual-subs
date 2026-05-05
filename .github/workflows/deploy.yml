@@ -163,15 +163,15 @@ jobs:
       - name: Try list file structure
         run: tree
 
-      - uses: browser-actions/release-chrome-extension@latest
+      - uses: mnao305/chrome-extension-upload@v6.0.0
         name: Release it to chrome
         id: release
         with:
           extension-id: "mahcmkjllaabldhminilhldfiickigmi"
-          extension-path: "./cr-dual-subs-chrome-${{ needs.do-setup.outputs.version }}.zip/cr-dual-subs-chrome.zip"
-          oauth-client-secret: ${{ secrets.CHROME_OAUTH_CLIENT_ID }}
-          oauth-refresh-token: ${{ secrets.CHROME_OAUTH_REFRESH_TOKEN }}
-          oauth-client-id: ${{ secrets.CHROME_OAUTH_CLIENT_SECRET }}
+          file-path: "./cr-dual-subs-chrome-${{ needs.do-setup.outputs.version }}.zip/cr-dual-subs-chrome.zip"
+          client-secret: ${{ secrets.CHROME_OAUTH_CLIENT_ID }}
+          refresh-token: ${{ secrets.CHROME_OAUTH_REFRESH_TOKEN }}
+          client-id: ${{ secrets.CHROME_OAUTH_CLIENT_SECRET }}
 
       - name: Add stuff to summary
         run: |
