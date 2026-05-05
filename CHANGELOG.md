@@ -1,3 +1,11 @@
+# 0.6.2
+- Bump 0.6.2
+- Turns out you DON'T need the tabs permission
+- Update changelog for 0.6.1
+- Add chrome upload to deploy.yml & bump 0.6.1
+- Branding update (icons and also README)
+- Update changelog for 0.6.0
+
 # 0.6.1
 - Add chrome upload to deploy.yml & bump 0.6.1
 - Branding update (icons and also README)
