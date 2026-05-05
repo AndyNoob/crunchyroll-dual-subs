@@ -49,13 +49,11 @@ function makeManifest() {
     permissions: browserType === "chrome" ? [
       "storage",
       "webRequest",
-      "tabs",
     ] : [
       "storage",
       "webRequest",
       "webRequestFilterResponse",
       "webRequestBlocking",
-      "tabs",
     ],
     host_permissions: ["*://*.crunchyroll.com/*"],
     content_scripts: [
