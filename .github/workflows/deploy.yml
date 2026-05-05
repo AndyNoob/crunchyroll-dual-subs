@@ -150,6 +150,34 @@ jobs:
           echo "## Firefox" >> $GITHUB_STEP_SUMMARY
           echo "Url is ${{ steps.release.outputs.version-edit-url }}" >> $GITHUB_STEP_SUMMARY
 
+  deploy-chrome:
+    name: Deploy addon to chrome
+    runs-on: ubuntu-latest
+    needs:
+      - do-setup
+      - push-changelog
+    steps:
+      - uses: actions/download-artifact@v8
+        name: Download the built stuff
+
+      - name: Try list file structure
+        run: tree
+
+      - uses: browser-actions/release-chrome-extension@latest
+        name: Release it to chrome
+        id: release
+        with:
+          extension-id: "mahcmkjllaabldhminilhldfiickigmi"
+          extension-path: "./cr-dual-subs-chrome-${{ needs.do-setup.outputs.version }}.zip/cr-dual-subs-chrome.zip"
+          oauth-client-secret: ${{ secrets.CHROME_OAUTH_CLIENT_ID }}
+          oauth-refresh-token: ${{ secrets.CHROME_OAUTH_REFRESH_TOKEN }}
+          oauth-client-id: ${{ secrets.CHROME_OAUTH_CLIENT_SECRET }}
+
+      - name: Add stuff to summary
+        run: |
+          echo "## Chrome" >> $GITHUB_STEP_SUMMARY
+          echo "> No url haha" >> $GITHUB_STEP_SUMMARY
+
   deploy-github:
     name: Release it on GitHub
     runs-on: ubuntu-latest
