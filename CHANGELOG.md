@@ -1,3 +1,8 @@
+# 0.6.1
+- Add chrome upload to deploy.yml & bump 0.6.1
+- Branding update (icons and also README)
+- Update changelog for 0.6.0
+
 # 0.6.0
 - Actually build the extension for both browsers in deploy.yml
 - Update deploy.yml to account for new archive naming scheme
