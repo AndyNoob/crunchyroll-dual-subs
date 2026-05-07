@@ -3,8 +3,8 @@ import browser from "webextension-polyfill";
 import {grabAndHandleProfile, type Header} from "./handler";
 import {loadCues, type Preference} from "./loader";
 
-export function getSubChoices(tabId: number): SubChoices | undefined {
-  return subChoicesMap.get(tabId);
+export function getEpisodeManifest(tabId: number): EpisodeManifest | undefined {
+  return manifestMap.get(tabId);
 }
 
 export function getProfile(tabId: number): Profile | undefined {
@@ -50,15 +50,20 @@ export function setAudio(tabId: number, audio: string) {
   audioMap.set(tabId, audio);
 }
 
-export function setSubChoices(tabId: number, opt: SubChoices) {
-  subChoicesMap.set(tabId, opt);
+export function setEpisodeManifest(tabId: number, opt: EpisodeManifest) {
+  manifestMap.set(tabId, opt);
 }
 
-const subChoicesMap = new Map<number, SubChoices>();
+const manifestMap = new Map<number, EpisodeManifest>();
 const cueMap = new Map<number, Cue[]>();
 const urlMap = new Map<number, string>();
 const audioMap = new Map<number, string>();
 const profileMap = new Map<number, Profile>();
+
+(globalThis as any)["dualSubs"] = {
+  cueMap,
+  profileMap
+};
 
 export async function resolvePreference(tabId: number): Promise<Preference> {
   const rawPrefs = ((await browser.storage.sync.get("cr-dual-sub-prefs"))?.["cr-dual-sub-prefs"] ?? {}) as any;
@@ -116,7 +121,7 @@ export interface Profile {
   profileId: string;
 }
 
-export interface SubChoices {
+export interface EpisodeManifest {
   url: string,
   ccs: Subtitle,
   subs: Subtitle

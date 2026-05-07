@@ -1,7 +1,7 @@
 import browser from "webextension-polyfill";
 import {ensureSubtitleOverlay, overlayText} from "./ui/overlay";
 import {ensureSubtitleControlShell, updateSubtitleDropdownOptions} from "./ui/dropdown";
-import type {SubChoices} from "./subtitle/manager";
+import type {EpisodeManifest} from "./subtitle/manager";
 import type {Preference} from "./subtitle/loader";
 
 let videoEl: HTMLVideoElement;
@@ -25,8 +25,8 @@ async function grabCues() {
   return (await browser.runtime.sendMessage({type: "GET_CUES"}).catch(r => console.warn(r))) as Cue[];
 }
 
-async function grabChoices() {
-  return (await browser.runtime.sendMessage({type: "GET_CHOICES"}).catch(r => console.warn(r))) as SubChoices;
+async function grabManifest() {
+  return (await browser.runtime.sendMessage({type: "GET_CHOICES"}).catch(r => console.warn(r))) as EpisodeManifest;
 }
 
 async function grabPreference(): Promise<Preference> {
@@ -59,10 +59,10 @@ function addMsgListener() {
 
 async function updateDropdownOptions() {
   console.log("[dual-sub] updating sub choices...");
-  const subChoices = await grabChoices();
+  const manifest = await grabManifest();
   const pref = await grabPreference();
-  updateSubtitleDropdownOptions(subChoices, pref);
-  console.log("[dual-sub] updated sub choices", subChoices, pref);
+  updateSubtitleDropdownOptions(manifest, pref);
+  console.log("[dual-sub] updated sub choices", manifest, pref);
 }
 
 async function init() {

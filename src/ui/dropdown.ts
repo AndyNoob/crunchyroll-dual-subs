@@ -1,4 +1,4 @@
-import type {SubChoices} from "../subtitle/manager";
+import type {EpisodeManifest} from "../subtitle/manager";
 import type {Preference} from "../subtitle/loader";
 import browser from "webextension-polyfill";
 import {updateCues} from "../content";
@@ -66,7 +66,7 @@ function ensureSubtitleListeners() {
   }
 }
 
-export function updateSubtitleDropdownOptions(subOptions: SubChoices, pref: Preference) {
+export function updateSubtitleDropdownOptions(manifest: EpisodeManifest, pref: Preference) {
   if (!subtitleControl || !subtitleMenu || !subtitleLabelNode) ensureSubtitleControlShell();
   if (!subtitleMenu || !subtitleLabelNode) return;
 
@@ -75,14 +75,14 @@ export function updateSubtitleDropdownOptions(subOptions: SubChoices, pref: Pref
   let hasSelected = false;
 
   const all = [
-    ...Object.entries(subOptions.subs).map(([key, v]) => ({
+    ...Object.entries(manifest.subs).map(([key, v]) => ({
       key,
       language: v.language,
       format: v.format,
       url: v.url,
       type: "sub" as const
     })),
-    ...Object.entries(subOptions.ccs).map(([key, v]) => ({
+    ...Object.entries(manifest.ccs).map(([key, v]) => ({
       key,
       language: v.language,
       format: v.format,

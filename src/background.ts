@@ -1,6 +1,6 @@
 import {
-  grabAndHandleSubChoices,
-  handleSubChoiceAndAudio,
+  grabAndHandleManifest,
+  handleManifestAndAudio,
   handleProfile
 } from "./subtitle/handler";
 import browser, {type WebRequest} from "webextension-polyfill";
@@ -8,7 +8,7 @@ import {
   getAltCues,
   getAudio,
   getOrLoadHeaders,
-  getSubChoices,
+  getEpisodeManifest,
   notifyCueRefresh, resolvePreference,
   setHeaders, setPreference
 } from "./subtitle/manager";
@@ -99,7 +99,7 @@ function receiveProfileOrPlayback(details: WebRequest.OnBeforeRequestDetailsType
     try {
       if (isProfile) handleProfile(parsed, details.tabId);
       else {
-        await handleSubChoiceAndAudio(parsed, details.tabId);
+        await handleManifestAndAudio(parsed, details.tabId);
         if (shouldRefresh) {
           shouldRefresh = false;
           console.log("[receiveProfileOrPlayback] refresh triggered.");
@@ -122,9 +122,9 @@ async function receiveContentMsg(msg: any, sender: any) {
     case "GET_CUES":
       return await resolveCues(tabId, url, getAudio(tabId) ?? null);
     case "GET_CHOICES":
-      let subChoices = getSubChoices(tabId);
-      if (!subChoices) subChoices = await grabAndHandleSubChoices(tabId);
-      return subChoices;
+      let manifest = getEpisodeManifest(tabId);
+      if (!manifest) manifest = await grabAndHandleManifest(tabId);
+      return manifest;
     case "GET_PREFERENCE":
       return await resolvePreference(tabId);
     case "SET_PREFERENCE":
