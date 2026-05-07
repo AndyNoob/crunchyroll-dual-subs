@@ -3,20 +3,20 @@ import {
   getOrLoadHeaders,
   mapProfile,
   setProfile,
-  setSubChoices,
+  setEpisodeManifest,
   type Profile,
   type RawProfile,
-  type Subtitle, normalizeUrl, type SubChoices, getSubChoices, getProfile, setAudio,
+  type Subtitle, normalizeUrl, type EpisodeManifest, getEpisodeManifest, getProfile, setAudio,
 } from "./manager";
 
-export async function handleSubChoiceAndAudio(playback: any, tabId: number): Promise<SubChoices> {
+export async function handleManifestAndAudio(playback: any, tabId: number): Promise<EpisodeManifest> {
   const ccs: Subtitle = playback["captions"];
   const subs: Subtitle = playback["subtitles"];
-  console.log(`[handleSubChoice] audio locale for tab ${tabId} is ${playback["audioLocale"]}`);
+  console.log(`[handleManifestAndAudio] audio locale for tab ${tabId} is ${playback["audioLocale"]}`);
   setAudio(tabId, playback["audioLocale"]);
-  const choices: SubChoices = {url: normalizeUrl((await browser.tabs.get(tabId)).url!), ccs, subs};
-  setSubChoices(tabId, choices);
-  return choices;
+  const manifest: EpisodeManifest = {url: normalizeUrl((await browser.tabs.get(tabId)).url!), ccs, subs};
+  setEpisodeManifest(tabId, manifest);
+  return manifest;
 }
 
 export function handleProfile(data: any, tabId: number): Profile {
@@ -60,25 +60,25 @@ export async function grabAndHandleProfile(tabId: number, refresh: boolean = fal
   return handleProfile(await response.json(), tabId);
 }
 
-export async function grabAndHandleSubChoices(tabId: number, refresh: boolean = false) {
+export async function grabAndHandleManifest(tabId: number, refresh: boolean = false) {
   if (!refresh) {
-    const subChoices = getSubChoices(tabId);
-    if (subChoices) return subChoices;
+    const manifest = getEpisodeManifest(tabId);
+    if (manifest) return manifest;
   }
   const headers = await getOrLoadHeaders(tabId);
   if (!headers) {
-    console.log("[grabAndHandleSubChoices] headers not set")
+    console.log("[grabAndHandleManifest] headers not set")
     return Promise.reject("no auth");
   }
   const url = (await browser.tabs.get(tabId)).url;
   if (!url) {
-    console.log("[grabAndHandleSubChoices] url not found, aborting");
+    console.log("[grabAndHandleManifest] url not found, aborting");
     return Promise.reject(`could not find url of tab ${tabId}`);
   }
   const contentId = url.match(/crunchyroll\.com\/watch\/(.+)\//)![1];
   const device = "firefox"; // phone,tablet,android_tv,firefox,chrome
   const deviceType = "web";
-  console.log("[grabAndHandleSubChoices] fetching...");
+  console.log("[grabAndHandleManifest] fetching...");
   // courtesy of https://github.com/Crunchyroll-Plus/crunchyroll-docs/blob/release/Services/Play/GET/getPlayStream.md
   let response = null;
   if (waitUntil - performance.now() > 0) await sleep(waitUntil - performance.now());
@@ -92,13 +92,13 @@ export async function grabAndHandleSubChoices(tabId: number, refresh: boolean = 
       } as Record<string, string>
     });
   } catch (e) {
-    console.error("[grabAndHandleSubChoices] fetch failed", e);
+    console.error("[grabAndHandleManifest] fetch failed", e);
   }
   waitUntil = performance.now() + 5000;
   if (!response || !response.ok) {
     return Promise.reject("failed to grab sub choice");
   }
-  return await handleSubChoiceAndAudio(await response.json(), tabId);
+  return await handleManifestAndAudio(await response.json(), tabId);
 }
 
 function findHeaderValue(headers: Header[], name: string): string {
