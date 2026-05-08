@@ -3,12 +3,14 @@ import {getEpisodeManifest, notifyCueRefresh, setAltCues, type Subtitle} from ".
 import {parseSubs} from "frazy-parser";
 import {grabAndHandleProfile, grabAndHandleManifest} from "./handler";
 import browser from "webextension-polyfill";
+import {shortenUrl} from "../background";
 
 export async function loadCues(tabId: number, preference: Preference | null, notify: boolean = false) {
   if (!preference) {
     console.log("[loadCues] profile isn't loaded on load alt sub.");
     preference = await grabAndHandleProfile(tabId);
   }
+  console.log("[loadCues] begin loading cues");
   const cues = await loadAltSubtitles(() => console.log(`[loadCues] alt cues loaded for tab ${tabId}`), tabId, preference);
   setAltCues(tabId, cues, (await browser.tabs.get(tabId)).url!);
   if (notify) notifyCueRefresh(tabId, cues);
@@ -54,10 +56,15 @@ function normalizeFrazyCues(parsed: any[]): Cue[] {
 
 async function loadAltSubtitles(callback: CallableFunction, tabId: number, preference: Preference): Promise<Cue[]> {
   console.log("[loadAltSubtitles] begin load alt subs");
-  const manifest = getEpisodeManifest(tabId) || await grabAndHandleManifest(tabId);
+  let manifest = getEpisodeManifest(tabId) || await grabAndHandleManifest(tabId);
   if (!manifest) {
     console.error("[loadAltSubtitles] sub choices not found");
     return Promise.reject("[loadAltSubtitles] sub choices not found");
+  }
+  const url = (await browser.tabs.get(tabId)).url;
+  if (manifest.url !== url) {
+    console.log(`[loadAltSubtitles] updating from old manifest ${shortenUrl(manifest.url)} to ${shortenUrl(url!)}`);
+    manifest = await grabAndHandleManifest(tabId, true);
   }
   const altSub: Subtitle = preference.doCc ? manifest.ccs : manifest.subs;
   const sub = altSub[preference.subLanguage];

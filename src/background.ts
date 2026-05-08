@@ -57,6 +57,7 @@ async function resolveCues(tabId: number, url: string, audio: string | null) {
       return Promise.reject("auth data not found.");
     }
     const preference = await resolvePreference(tabId);
+    console.log("[resolveCues] preference is", preference);
     altCues = await loadCues(tabId, preference, false);
     console.log(`[resolveCues] grabbed ${altCues?.length} cues upon request`);
   }
@@ -141,7 +142,7 @@ async function receiveAuthHeaders(details: WebRequest.OnSendHeadersDetailsType) 
     console.debug(`[receiveAuthHeaders] headers set for tab ${details.tabId} based off of ${shortenUrl(details.url)}`);
 }
 
-function shortenUrl(urlStr: string) {
+export function shortenUrl(urlStr: string) {
   try {
     const parts = new URL(urlStr).pathname.split("/").filter(Boolean);
     return parts.length ? `/${ parts[parts.length - 1]}` : "/";
