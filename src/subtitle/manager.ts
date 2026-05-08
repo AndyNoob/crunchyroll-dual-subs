@@ -154,7 +154,7 @@ export function setHeaders(tabId: number, headers: Header[]) {
   let authFound = false, cookiesFound = false;
   for (let header of headers) {
     const name = header.name.toLowerCase();
-    if (name.includes("authorization")) {
+    if (name.includes("authorization") && !header.value?.toLowerCase().startsWith("basic")) {
       authFound = true;
     }
     if (name.includes("cookie")) {
