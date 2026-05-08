@@ -94,8 +94,25 @@ export async function grabAndHandleManifest(tabId: number, refresh: boolean = fa
   } catch (e) {
     console.error("[grabAndHandleManifest] fetch failed", e);
   }
+  if (response && response.status === 420) {
+    console.log("[grabAndHandleManifest] got 420, trying to re-fetch after 3s...");
+    await sleep(3000);
+    try {
+      response = await fetch(`https://www.crunchyroll.com/playback/v3/${contentId}/${deviceType}/${device}/play?dual_sub=676767`, {
+        headers: {
+          "Authorization": findHeaderValue(headers, "Authorization"),
+          "Cookies": findHeaderValue(headers, "Cookie"),
+          "Referer": url,
+          "x-cr-tab-id": await browser.tabs.sendMessage(tabId, {type: "TAB_ID"})
+        } as Record<string, string>
+      });
+    } catch (e) {
+      console.error("[grabAndHandleManifest] re-fetch failed", e);
+    }
+  }
   waitUntil = performance.now() + 5000;
   if (!response || !response.ok) {
+    console.log(`[grabAndHandleManifest] fetch failed with status ${response?.status}`);
     return Promise.reject("failed to grab sub choice");
   }
   return await handleManifestAndAudio(await response.json(), tabId);
