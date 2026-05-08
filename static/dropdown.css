@@ -70,3 +70,41 @@
 .cr-dual-subs-sub-option.active {
   background: rgba(244, 117, 33, 0.28);
 }
+
+#cr-dual-subs-control-casing {
+  display: flex;
+}
+
+#cr-dual-subs-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 37px;
+  height: 37px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: rgba(255,255,255,.01);
+  color: #fff;
+
+  cursor: pointer;
+
+  transition: background 0.15s ease;
+}
+
+#cr-dual-subs-refresh:hover {
+  background: rgba(255,255,255,.14);
+}
+
+#cr-dual-subs-refresh svg {
+  width: 18px;
+  height: 18px;
+
+  transition: transform 0.35s ease;
+}
+
+#cr-dual-subs-refresh.spinning svg {
+  transform: rotate(360deg);
+}

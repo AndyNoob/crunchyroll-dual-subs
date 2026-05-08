@@ -9,10 +9,18 @@ let subtitleControl: HTMLDivElement | null = null;
 let subtitleTrigger: HTMLDivElement | null = null;
 let subtitleMenu: HTMLDivElement | null = null;
 let subtitleLabelNode: Text | null = null;
+let casing: HTMLDivElement | null = null;
+let refreshButton: HTMLButtonElement | null = null;
+
+// casing -> [refresh button, [[trigger -> label], menu]]
 
 export function ensureSubtitleControlShell() {
   const episodeActions = document.querySelector(".episode-actions");
   if (!episodeActions) return;
+
+  casing = document.querySelector("#cr-dual-subs-control-casing") ??
+    document.createElement("div");
+  casing.id = "cr-dual-subs-control-casing";
 
   subtitleControl =
     document.querySelector("#cr-dual-subs-sub-control") ??
@@ -29,6 +37,14 @@ export function ensureSubtitleControlShell() {
     document.createElement("div");
   subtitleMenu.id = "cr-dual-subs-sub-menu";
 
+  refreshButton =
+    casing.querySelector("#cr-dual-subs-refresh") ??
+    document.createElement("button");
+  refreshButton.id = "cr-dual-subs-refresh";
+
+  if (!refreshButton.hasChildNodes())
+    refreshButton.innerHTML = refreshSvg;
+
   if (!subtitleTrigger.hasChildNodes()) {
     subtitleLabelNode = document.createTextNode("Subtitles loading... ");
     subtitleTrigger.appendChild(subtitleLabelNode);
@@ -43,11 +59,35 @@ export function ensureSubtitleControlShell() {
   ensureSubtitleListeners();
 
   subtitleControl.append(subtitleTrigger, subtitleMenu);
-  episodeActions.appendChild(subtitleControl);
+  casing.append(refreshButton, subtitleControl);
+  episodeActions.appendChild(casing);
 }
 
 function ensureSubtitleListeners() {
-  if (!subtitleTrigger || !subtitleMenu || !subtitleControl) return;
+  if (!subtitleTrigger || !subtitleMenu || !subtitleControl || !refreshButton) return;
+
+  if (!refreshButton.dataset.listenerAttached) {
+    refreshButton.addEventListener("click", async () => {
+      if (!refreshButton) return;
+      console.log("[dual-subs] refresh button clicked, refreshing...");
+      if (!refreshButton) return;
+
+      refreshButton.classList.remove("spinning");
+      void refreshButton.offsetWidth; // force update class list
+      refreshButton.classList.add("spinning");
+      refreshButton.style.opacity = "0.4";
+
+      try {
+        await updateCues();
+      } finally {
+        setTimeout(() => {
+          refreshButton!.style.opacity = "1";
+          refreshButton!.classList.remove("spinning");
+        }, 350);
+      }
+    });
+    refreshButton.dataset.listenerAttached = "true";
+  }
 
   if (!subtitleTrigger.dataset.listenerAttached) {
     subtitleTrigger.addEventListener("click", () => {
@@ -134,9 +174,11 @@ async function handleSubtitleOptionClick(option: HTMLElement) {
   const key = option.dataset.key;
   const isCc = option.dataset.type === "cc";
 
-  const pref: Preference = {doCc: isCc, subLanguage: key! }
+  const pref: Preference = {doCc: isCc, subLanguage: key!}
   await browser.runtime.sendMessage({type: "SET_PREFERENCE", pref})
   console.log("[dual-sub] new pref set", pref);
   await updateCues();
   console.log("[dual-sub] updated cues");
 }
+
+const refreshSvg = `<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#e3e3e3"><path d="M480-192q-120 0-204-84t-84-204q0-120 84-204t204-84q65 0 120.5 27t95.5 72v-99h72v240H528v-72h131q-29-44-76-70t-103-26q-90 0-153 63t-63 153q0 90 63 153t153 63q84 0 144-55.5T693-456h74q-9 112-91 188t-196 76Z"/></svg>`
