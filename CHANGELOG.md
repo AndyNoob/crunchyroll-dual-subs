@@ -1,28 +1,10 @@
 # 0.7.0
-- Bump 0.7.0
 - Don't send outdated cookies when requesting manifests
 - Make refresh button rotate continuously
 - Add a cue refresh button next to dropdown
 - Add a re-fetch mechanism when grabbing manifests
-- Update changelog for 0.6.3
-- Bump 0.6.3
-- Fix cue refresh sometimes sending the old one
-- Refactor interface SubChoices to EpisodeManifest
-- Move adm zip types to dev dependencies
-- Add privacy section in README.md
-- Update how-it-works section in README.md
-- Grammatical error in README.md
-- Try a different chrome extension upload
-- Update changelog for 0.6.2
-- Bump 0.6.2
-- Turns out you DON'T need the tabs permission
-- Update changelog for 0.6.1
-- Add chrome upload to deploy.yml & bump 0.6.1
-- Branding update (icons and also README)
-- Update changelog for 0.6.0
 
 # 0.6.3
-- Bump 0.6.3
 - Fix cue refresh sometimes sending the old one
 - Refactor interface SubChoices to EpisodeManifest
 - Move adm zip types to dev dependencies
@@ -30,40 +12,24 @@
 - Update how-it-works section in README.md
 - Grammatical error in README.md
 - Try a different chrome extension upload
-- Update changelog for 0.6.2
-- Bump 0.6.2
-- Turns out you DON'T need the tabs permission
-- Update changelog for 0.6.1
-- Add chrome upload to deploy.yml & bump 0.6.1
-- Branding update (icons and also README)
-- Update changelog for 0.6.0
 
 # 0.6.2
-- Bump 0.6.2
 - Turns out you DON'T need the tabs permission
-- Update changelog for 0.6.1
-- Add chrome upload to deploy.yml & bump 0.6.1
-- Branding update (icons and also README)
-- Update changelog for 0.6.0
 
 # 0.6.1
 - Add chrome upload to deploy.yml & bump 0.6.1
 - Branding update (icons and also README)
-- Update changelog for 0.6.0
 
 # 0.6.0
 - Actually build the extension for both browsers in deploy.yml
 - Update deploy.yml to account for new archive naming scheme
 - Simplify permissions for Firefox/Chrome
 - Update icons and add screenshots
-- Bump 0.6.0
 - Fix compatibility for Firefox & Chrome
 - Fix Chrome compatibility (firefox is probably broken)!
 - Fix Crunchyroll CDN randomly 403-forbidding extension requests (bruh)
-- Update changelog for 0.5.0
 
 # 0.5.0
-- Bump to 0.5.0
 - Add dropdown-showcase.psd & add subtitle is loading message in overlay.ts
 - Refactor code in background.ts and handler.ts
 - Fix tab update not properly refreshing cues
@@ -72,14 +38,11 @@
 - Fix switching between audio locales
 - Fix text overlay always showing & fix options order
 - Add basic secondary subtitle selection
-- Update changelog for 0.4.1
 
 # 0.4.1
 - Remove a visible debug message
-- Update changelog for 0.4.0
 
 # 0.4.0
-- Bump 0.4.0
 - Fix host permissions
 - Fix content script url matching
 - Change manifest to be fully in vite.config.ts
@@ -92,9 +55,6 @@
 - Use binary search in getActiveCue
 - Update README to include frazy-parser credit
 - Fix the changelog (deploy.yml)
-- Update changelog for
-
-
 
 # 0.2.0
 1. Ensure overlays aren't added twice 

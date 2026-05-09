@@ -78,6 +78,10 @@ jobs:
             echo "markdown<<EOF"
             echo "# ${{ steps.version.outputs.version }}"
             git log ${{ steps.last_success.outputs.commit-sha }}..HEAD \
+              --perl-regexp \
+              --author='^(?!github-actions\[bot\]).*$' \
+              --invert-grep \
+              --grep='^Bump ' \
               --pretty=format:'- %s'
             echo
             echo "EOF"
