@@ -169,9 +169,9 @@ jobs:
         with:
           extension-id: "mahcmkjllaabldhminilhldfiickigmi"
           file-path: "./cr-dual-subs-chrome-${{ needs.do-setup.outputs.version }}.zip/cr-dual-subs-chrome.zip"
-          client-secret: ${{ secrets.CHROME_OAUTH_CLIENT_ID }}
+          client-secret: ${{ secrets.CHROME_OAUTH_CLIENT_SECRET }}
           refresh-token: ${{ secrets.CHROME_OAUTH_REFRESH_TOKEN }}
-          client-id: ${{ secrets.CHROME_OAUTH_CLIENT_SECRET }}
+          client-id: ${{ secrets.CHROME_OAUTH_CLIENT_ID }}
 
       - name: Add stuff to summary
         run: |
