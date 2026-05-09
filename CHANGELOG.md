@@ -1,3 +1,26 @@
+# 0.7.0
+- Bump 0.7.0
+- Don't send outdated cookies when requesting manifests
+- Make refresh button rotate continuously
+- Add a cue refresh button next to dropdown
+- Add a re-fetch mechanism when grabbing manifests
+- Update changelog for 0.6.3
+- Bump 0.6.3
+- Fix cue refresh sometimes sending the old one
+- Refactor interface SubChoices to EpisodeManifest
+- Move adm zip types to dev dependencies
+- Add privacy section in README.md
+- Update how-it-works section in README.md
+- Grammatical error in README.md
+- Try a different chrome extension upload
+- Update changelog for 0.6.2
+- Bump 0.6.2
+- Turns out you DON'T need the tabs permission
+- Update changelog for 0.6.1
+- Add chrome upload to deploy.yml & bump 0.6.1
+- Branding update (icons and also README)
+- Update changelog for 0.6.0
+
 # 0.6.3
 - Bump 0.6.3
 - Fix cue refresh sometimes sending the old one
