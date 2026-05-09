@@ -52,7 +52,7 @@ export async function grabAndHandleProfile(tabId: number, refresh: boolean = fal
   const response = await fetch("https://www.crunchyroll.com/accounts/v1/me/multiprofile?dual_sub=676767", {
     headers: {
       "Authorization": findHeaderValue(headers, "Authorization"),
-      "Cookies": findHeaderValue(headers, "Cookie")
+      // "Cookies": findHeaderValue(headers, "Cookie")
     }
   });
   waitUntil = performance.now() + 5000;
@@ -101,8 +101,8 @@ export async function grabAndHandleManifest(tabId: number, refresh: boolean = fa
       response = await fetch(`https://www.crunchyroll.com/playback/v3/${contentId}/${deviceType}/${device}/play?dual_sub=676767`, {
         headers: {
           "Authorization": findHeaderValue(headers, "Authorization"),
-          "Cookies": findHeaderValue(headers, "Cookie"),
-          "Referer": url,
+          // "Cookies": findHeaderValue(headers, "Cookie"),
+          // "Referer": url,
           "x-cr-tab-id": await browser.tabs.sendMessage(tabId, {type: "TAB_ID"})
         } as Record<string, string>
       });
