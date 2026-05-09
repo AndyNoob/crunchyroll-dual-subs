@@ -103,8 +103,21 @@
   height: 18px;
 
   transition: transform 0.35s ease;
+  animation: cr-dual-subs-spin 0.8s linear infinite forwards;
+  animation-play-state: paused;
 }
 
 #cr-dual-subs-refresh.spinning svg {
-  transform: rotate(360deg);
+  cursor: default;
+  animation-play-state: running;
+}
+
+@keyframes cr-dual-subs-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
