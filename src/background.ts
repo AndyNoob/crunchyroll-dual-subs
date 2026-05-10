@@ -3,7 +3,7 @@ import {
   handleManifestAndAudio,
   handleProfile
 } from "./subtitle/handler";
-import browser, {type WebRequest} from "webextension-polyfill";
+import browser, {type Runtime, type WebRequest} from "webextension-polyfill";
 import {
   getAltCues,
   getAudio,
@@ -41,6 +41,7 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, _) => {
     shouldRefresh = true;
   }
 }); // no filter because chrome compat
+browser.runtime.onUpdateAvailable.addListener(receiveUpdateNotif);
 
 /**
  * @param tabId id of the tab requesting cue resolution
@@ -140,6 +141,23 @@ async function receiveAuthHeaders(details: WebRequest.OnSendHeadersDetailsType) 
   if (details.requestHeaders === undefined) return;
   if (setHeaders(details.tabId, details.requestHeaders))
     console.debug(`[receiveAuthHeaders] headers set for tab ${details.tabId} based off of ${shortenUrl(details.url)}`);
+}
+
+function receiveUpdateNotif(details: Runtime.OnUpdateAvailableDetailsType) {
+  browser.tabs.query({url: "*://*.crunchyroll.com/*"}).then(tabs => {
+    console.groupCollapsed(`[receiveUpdateNotif] received update ${details.version}`);
+    for (const tab of tabs) {
+      if (tab.id == null) continue;
+
+      browser.tabs.sendMessage(tab.id, {
+        type: "UPDATE_AVAILABLE",
+        version: details.version
+      })
+        .then(() => console.log(`${tab.id}: sent`))
+        .catch(e => console.warn(`${tab.id}: failed`, e));
+    }
+    console.groupEnd();
+  });
 }
 
 export function shortenUrl(urlStr: string) {

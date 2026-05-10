@@ -168,3 +168,35 @@
   width: 22px;
   height: 22px;
 }
+
+#cr-dual-subs-update-notice {
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+
+  border-radius: 8px;
+  background: rgba(244, 117, 33, 0.18);
+  color: #f47521;
+
+  cursor: default;
+}
+
+#cr-dual-subs-update-notice.visible {
+  display: flex;
+}
+
+#cr-dual-subs-update-notice.clickable {
+  cursor: pointer;
+}
+
+#cr-dual-subs-update-notice:hover {
+  background: rgba(244, 117, 33, 0.28);
+}
+
+#cr-dual-subs-update-notice svg {
+  width: 18px;
+  height: 18px;
+}

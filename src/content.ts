@@ -1,6 +1,6 @@
 import browser from "webextension-polyfill";
 import {ensureSubtitleOverlay, overlayText} from "./ui/overlay";
-import {ensureSubtitleControlShell, updateSubtitleDropdownOptions} from "./ui/dropdown";
+import {ensureSubtitleControlShell, setTooltipText, updateNotice, updateSubtitleDropdownOptions} from "./ui/controls";
 import type {EpisodeManifest} from "./subtitle/manager";
 import type {Preference} from "./subtitle/loader";
 
@@ -52,6 +52,12 @@ function addMsgListener() {
       case "FETCH_SUBTITLE":
         console.log("[dual-sub] fetching subtitle in content script");
         return await (await fetch(msg.url)).text();
+      case "UPDATE_AVAILABLE":
+        if (updateNotice) {
+          updateNotice.classList.add("visible");
+          setTooltipText(updateNotice, `Update available: ${browser.runtime.getManifest().version} → ${msg.version}`);
+        }
+        break;
     }
   });
   console.log("[dual-sub] added msg listener");
