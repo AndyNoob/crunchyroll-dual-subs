@@ -83,12 +83,14 @@ export async function grabAndHandleManifest(tabId: number, refresh: boolean = fa
   let response = null;
   if (waitUntil - performance.now() > 0) await sleep(waitUntil - performance.now());
   try {
+    const crTabId = (await browser.tabs.sendMessage(tabId, {type: "TAB_ID"}));
+    console.log(`[grabAndHandleManifest] cr-tab-id is ${crTabId}`);
     response = await fetch(`https://www.crunchyroll.com/playback/v3/${contentId}/${deviceType}/${device}/play?dual_sub=676767`, {
       headers: {
         "Authorization": findHeaderValue(headers, "Authorization"),
-        "Cookies": findHeaderValue(headers, "Cookie"),
-        "Referer": url,
-        "x-cr-tab-id": await browser.tabs.sendMessage(tabId, {type: "TAB_ID"})
+        // "Cookies": findHeaderValue(headers, "Cookie"),
+        // "Referer": url,
+        "x-cr-tab-id": crTabId
       } as Record<string, string>
     });
   } catch (e) {
@@ -98,13 +100,16 @@ export async function grabAndHandleManifest(tabId: number, refresh: boolean = fa
     console.log("[grabAndHandleManifest] got 420, trying to re-fetch after 3s...");
     await sleep(3000);
     try {
+      const crTabId = (await browser.tabs.sendMessage(tabId, {type: "TAB_ID"}));
+      console.log(`[grabAndHandleManifest] cr-tab-id is ${crTabId}`);
       response = await fetch(`https://www.crunchyroll.com/playback/v3/${contentId}/${deviceType}/${device}/play?dual_sub=676767`, {
         headers: {
           "Authorization": findHeaderValue(headers, "Authorization"),
           // "Cookies": findHeaderValue(headers, "Cookie"),
           // "Referer": url,
-          "x-cr-tab-id": await browser.tabs.sendMessage(tabId, {type: "TAB_ID"})
-        } as Record<string, string>
+          "x-cr-tab-id": crTabId
+        } as Record<string, string>,
+        credentials: "omit"
       });
     } catch (e) {
       console.error("[grabAndHandleManifest] re-fetch failed", e);
