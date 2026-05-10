@@ -58,7 +58,7 @@ function makeManifest() {
     host_permissions: ["*://*.crunchyroll.com/*"],
     content_scripts: [
       {
-        css: ["static/overlay.css", "static/dropdown.css"],
+        css: ["static/overlay.css", "static/controls.css"],
         js: ["src/content.js"],
         matches: ["*://*.crunchyroll.com/*"],
         run_at: "document_idle"

@@ -11,6 +11,7 @@ let subtitleMenu: HTMLDivElement | null = null;
 let subtitleLabelNode: Text | null = null;
 let casing: HTMLDivElement | null = null;
 let refreshButton: HTMLButtonElement | null = null;
+export let updateNotice: HTMLDivElement | null = null;
 
 // casing -> [refresh button, [[trigger -> label], menu]]
 
@@ -61,6 +62,8 @@ export function ensureSubtitleControlShell() {
   subtitleControl.append(subtitleTrigger, subtitleMenu);
   casing.append(refreshButton, subtitleControl);
   episodeActions.appendChild(casing);
+
+  ensureUpdateNotice().then(() => console.log("[dual-sub] updated update notice"));
 }
 
 function ensureSubtitleListeners() {
@@ -105,6 +108,22 @@ function ensureSubtitleListeners() {
     });
     subtitleMenu.dataset.listenerAttached = "true";
   }
+}
+
+async function ensureUpdateNotice() {
+  if (!casing) return;
+
+  updateNotice =
+    document.querySelector("#cr-dual-subs-update-notice") ??
+    document.createElement("div");
+
+  updateNotice.id = "cr-dual-subs-update-notice";
+  updateNotice.innerHTML = downloadSvg;
+  updateNotice.classList.remove("visible");
+
+  addTooltip(updateNotice, "why are you seeing this???");
+
+  casing.insertBefore(updateNotice, refreshButton);
 }
 
 export function updateSubtitleDropdownOptions(manifest: EpisodeManifest, pref: Preference) {
@@ -200,14 +219,14 @@ function stopRefreshSpin() {
 function addTooltip(el: HTMLElement, text: string) {
   el.classList.add("cr-dual-subs-tooltip");
 
-  const box = document.createElement("span");
+  const box = el.querySelector(".cr-dual-subs-tooltip-box") ?? document.createElement("span");
   box.className = "cr-dual-subs-tooltip-box";
 
-  const icon = document.createElement("img");
+  const icon: HTMLImageElement = el.querySelector(".cr-dual-subs-tooltip-icon") ?? document.createElement("img");
   icon.className = "cr-dual-subs-tooltip-icon";
   icon.src = browser.runtime.getURL("icon-128.png");
 
-  const label = document.createElement("span");
+  const label = el.querySelector(".cr-dual-subs-tooltip-text") ?? document.createElement("span");
   label.className = "cr-dual-subs-tooltip-text";
   label.textContent = text;
 
@@ -215,4 +234,11 @@ function addTooltip(el: HTMLElement, text: string) {
   el.appendChild(box);
 }
 
+export function setTooltipText(el: HTMLElement, text: string) {
+  const span = el.querySelector(".cr-dual-subs-tooltip-text");
+  if (!span) return;
+  span.textContent = text;
+}
+
 const refreshSvg = `<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#e3e3e3"><path d="M480-192q-120 0-204-84t-84-204q0-120 84-204t204-84q65 0 120.5 27t95.5 72v-99h72v240H528v-72h131q-29-44-76-70t-103-26q-90 0-153 63t-63 153q0 90 63 153t153 63q84 0 144-55.5T693-456h74q-9 112-91 188t-196 76Z"/></svg>`
+const downloadSvg = `<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#e3e3e3"><path d="M480-336 288-528l51-51 105 105v-342h72v342l105-105 51 51-192 192ZM263.72-192Q234-192 213-213.15T192-264v-72h72v72h432v-72h72v72q0 29.7-21.16 50.85Q725.68-192 695.96-192H263.72Z"/></svg>`;
