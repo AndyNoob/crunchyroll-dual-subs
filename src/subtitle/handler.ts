@@ -81,6 +81,7 @@ export async function grabAndHandleManifest(tabId: number, refresh: boolean = fa
   console.log("[grabAndHandleManifest] fetching...");
   // courtesy of https://github.com/Crunchyroll-Plus/crunchyroll-docs/blob/release/Services/Play/GET/getPlayStream.md
   let response = null;
+  await sleep(1600); // always sleep to try and mitigate 420 stream limits
   if (waitUntil - performance.now() > 0) await sleep(waitUntil - performance.now());
   try {
     const crTabId = (await browser.tabs.sendMessage(tabId, {type: "TAB_ID"}));
@@ -89,6 +90,7 @@ export async function grabAndHandleManifest(tabId: number, refresh: boolean = fa
       headers: {
         "Authorization": findHeaderValue(headers, "Authorization"),
         // "Cookies": findHeaderValue(headers, "Cookie"),
+        "Cookie": "",
         // "Referer": url,
         "x-cr-tab-id": crTabId
       } as Record<string, string>
