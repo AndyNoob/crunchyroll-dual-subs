@@ -77,6 +77,12 @@ function makeManifest() {
     } : {
       service_worker: "src/background.js",
       type: "module"
-    })
+    }),
+    web_accessible_resources: [
+      {
+        resources: ["icon-32.png", "icon-64.png", "icon-128.png"],
+        matches: ["*://*.crunchyroll.com/*"]
+      }
+    ]
   }
 }

@@ -67,8 +67,7 @@ function ensureSubtitleListeners() {
   if (!subtitleTrigger || !subtitleMenu || !subtitleControl || !refreshButton) return;
 
   if (!refreshButton.dataset.listenerAttached) {
-    refreshButton.classList.add("cr-dual-subs-tooltip");
-    refreshButton.dataset.tooltip = "Refresh secondary subtitles";
+    addTooltip(refreshButton, "Refresh secondary subtitles");
     refreshButton.addEventListener("click", async () => {
       if (!refreshButton) return;
       console.log("[dual-subs] refresh button clicked, refreshing...");
@@ -90,8 +89,7 @@ function ensureSubtitleListeners() {
   }
 
   if (!subtitleTrigger.dataset.listenerAttached) {
-    subtitleControl.classList.add("cr-dual-subs-tooltip");
-    subtitleControl.dataset.tooltip = "Select secondary subtitles";
+    addTooltip(subtitleControl, "Select secondary subtitles");
 
     subtitleTrigger.addEventListener("click", () => {
       subtitleControl?.classList.toggle("open");
@@ -197,6 +195,24 @@ function stopRefreshSpin() {
   if (!refreshButton) return;
   refreshButton.classList.remove("spinning");
   refreshButton.disabled = false;
+}
+
+function addTooltip(el: HTMLElement, text: string) {
+  el.classList.add("cr-dual-subs-tooltip");
+
+  const box = document.createElement("span");
+  box.className = "cr-dual-subs-tooltip-box";
+
+  const icon = document.createElement("img");
+  icon.className = "cr-dual-subs-tooltip-icon";
+  icon.src = browser.runtime.getURL("icon-128.png");
+
+  const label = document.createElement("span");
+  label.className = "cr-dual-subs-tooltip-text";
+  label.textContent = text;
+
+  box.append(icon, label);
+  el.appendChild(box);
 }
 
 const refreshSvg = `<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#e3e3e3"><path d="M480-192q-120 0-204-84t-84-204q0-120 84-204t204-84q65 0 120.5 27t95.5 72v-99h72v240H528v-72h131q-29-44-76-70t-103-26q-90 0-153 63t-63 153q0 90 63 153t153 63q84 0 144-55.5T693-456h74q-9 112-91 188t-196 76Z"/></svg>`
