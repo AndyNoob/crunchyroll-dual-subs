@@ -60,6 +60,10 @@ function addMsgListener() {
           setTooltipText(updateNotice, `Update available: ${browser.runtime.getManifest().version} → ${msg.version}`);
         }
         break;
+      case "CLEAR_CUES":
+        currentCues = [];
+        console.log("[dual-subs] received clear cues message from background.");
+        break;
     }
   });
   console.log("[dual-sub] added msg listener");

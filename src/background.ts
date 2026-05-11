@@ -36,10 +36,12 @@ browser.webRequest.onBeforeRequest.addListener(details => {
   setNextRequestTime(performance.now() + 5000);
 }, {urls: ["*://www.crunchyroll.com/*"]})
 browser.tabs.onUpdated.addListener(async (tabId, changeInfo, _) => {
-  if (!changeInfo.url) return; // key line
+  if (!changeInfo.url) return;
   const url = changeInfo.url;
   if (!url.includes("crunchyroll.com/watch/")) return;
   console.log(`[dual-sub] new tab url for tab ${tabId} is ${shortenUrl(url)}`);
+  await browser.tabs.sendMessage(tabId, {type: "CLEAR_CUES"});
+  console.log(`[dual-sub] cleared cues on tab ${tabId}`);
   if (__BROWSER_TYPE__ === "chrome") {
     notifyCueRefresh(tabId, await resolveCues(tabId, url, null));
   } else {
