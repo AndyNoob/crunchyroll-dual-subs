@@ -29,7 +29,7 @@ async function grabManifest() {
   return (await browser.runtime.sendMessage({type: "GET_CHOICES"}).catch(r => console.warn(r))) as EpisodeManifest;
 }
 
-async function grabPreference(): Promise<Preference> {
+export async function grabPreference(): Promise<Preference> {
   return (await browser.runtime.sendMessage({type: "GET_PREFERENCE"})) as Preference
 }
 
@@ -51,7 +51,9 @@ function addMsgListener() {
         return sessionStorage.getItem("cx-tab-id");
       case "FETCH_SUBTITLE":
         console.log("[dual-sub] fetching subtitle in content script");
-        return await (await fetch(msg.url)).text();
+        const response = await fetch(msg.url);
+        if (!response || !response.ok) return "";
+        return await response.text();
       case "UPDATE_AVAILABLE":
         if (updateNotice) {
           updateNotice.classList.add("visible");

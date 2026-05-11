@@ -81,5 +81,7 @@ async function loadAltSubtitles(callback: CallableFunction, tabId: number, prefe
 
 export interface Preference {
   doCc: boolean,
-  subLanguage: string
+  subLanguage: string,
+  leftPct?: number,
+  bottomPct?: number,
 }
