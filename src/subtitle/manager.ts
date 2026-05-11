@@ -81,7 +81,7 @@ export async function setPreference(tabId: number, pref: Preference) {
   const rawPrefs = ((await browser.storage.sync.get("cr-dual-sub-prefs"))?.["cr-dual-sub-prefs"] ?? {}) as any;
   rawPrefs[profile.profileId] = pref;
   await browser.storage.sync.set({"cr-dual-sub-prefs": rawPrefs});
-  await loadCues(tabId, pref);
+  // await loadCues(tabId, pref);
   console.log(`[setPreference] set preference!`, rawPrefs);
 }
 

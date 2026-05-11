@@ -89,9 +89,6 @@ export async function grabAndHandleManifest(tabId: number, refresh: boolean = fa
     response = await fetch(`https://www.crunchyroll.com/playback/v3/${contentId}/${deviceType}/${device}/play?dual_sub=676767`, {
       headers: {
         "Authorization": findHeaderValue(headers, "Authorization"),
-        // "Cookies": findHeaderValue(headers, "Cookie"),
-        "Cookie": "",
-        // "Referer": url,
         "x-cr-tab-id": crTabId
       } as Record<string, string>
     });
@@ -107,8 +104,6 @@ export async function grabAndHandleManifest(tabId: number, refresh: boolean = fa
       response = await fetch(`https://www.crunchyroll.com/playback/v3/${contentId}/${deviceType}/${device}/play?dual_sub=676767`, {
         headers: {
           "Authorization": findHeaderValue(headers, "Authorization"),
-          // "Cookies": findHeaderValue(headers, "Cookie"),
-          // "Referer": url,
           "x-cr-tab-id": crTabId
         } as Record<string, string>,
         credentials: "omit"
