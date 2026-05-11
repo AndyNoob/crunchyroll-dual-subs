@@ -76,9 +76,9 @@ function ensureDragListeners() {
   let bottomPct: number | undefined;
 
   overlayText.addEventListener("contextmenu", async (e) => {
+    e.preventDefault();
     await savePref(undefined, undefined);
     setTextPos(undefined, undefined);
-    e.preventDefault();
   });
 
   overlayText.addEventListener("pointerdown", e => {
