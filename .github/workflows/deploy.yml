@@ -77,7 +77,7 @@ jobs:
           {
             echo "markdown<<EOF"
             echo "# ${{ steps.version.outputs.version }}"
-            git log ${{ steps.last_success.outputs.commit-sha }}..HEAD --pretty=format:'%s (%an)' |
+            git log ${{ steps.last_success.outputs.commit-sha }}..HEAD --pretty=format:'- %s (%an)' |
               grep -v 'github-actions\[bot\]' |
               grep -v 'Bump ' || true
             echo
