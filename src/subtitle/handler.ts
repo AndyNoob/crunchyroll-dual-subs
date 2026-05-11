@@ -35,6 +35,10 @@ export function handleProfile(data: any, tabId: number): Profile {
 
 let waitUntil: number = 0;
 
+export function setNextRequestTime(val: number) {
+  waitUntil = val;
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);

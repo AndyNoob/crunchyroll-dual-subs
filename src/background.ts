@@ -1,7 +1,7 @@
 import {
   grabAndHandleManifest,
   handleManifestAndAudio,
-  handleProfile
+  handleProfile, setNextRequestTime
 } from "./subtitle/handler";
 import browser, {type Runtime, type WebRequest} from "webextension-polyfill";
 import {
@@ -30,6 +30,11 @@ browser.webRequest.onSendHeaders.addListener(
   {urls: ["*://www.crunchyroll.com/*"]},
   getRequestHeaderSpec()
 );
+browser.webRequest.onBeforeRequest.addListener(details => {
+  if (details.tabId < 0) return;
+  if (details.url.includes("?dual_sub=676767")) return;
+  setNextRequestTime(performance.now() + 5000);
+}, {urls: ["*://www.crunchyroll.com/*"]})
 browser.tabs.onUpdated.addListener(async (tabId, changeInfo, _) => {
   if (!changeInfo.url) return; // key line
   const url = changeInfo.url;
