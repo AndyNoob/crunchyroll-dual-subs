@@ -1,7 +1,7 @@
 import type {Cue} from "../content";
 import browser from "webextension-polyfill";
 import {grabAndHandleProfile, type Header} from "./handler";
-import {loadCues, type Preference} from "./loader";
+import {type Preference} from "./loader";
 
 export function getEpisodeManifest(tabId: number): EpisodeManifest | undefined {
   return manifestMap.get(tabId);

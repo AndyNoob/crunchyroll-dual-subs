@@ -195,7 +195,7 @@ async function handleSubtitleOptionClick(option: HTMLElement) {
   const isCc = option.dataset.type === "cc";
 
   const pref: Preference = {doCc: isCc, subLanguage: key!}
-  await browser.runtime.sendMessage({type: "SET_PREFERENCE", pref})
+  await browser.runtime.sendMessage({type: "SET_PREFERENCE", pref});
   console.log("[dual-sub] new pref set", pref);
   await updateCues();
   console.log("[dual-sub] updated cues");
