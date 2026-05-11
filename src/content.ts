@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import {ensureSubtitleOverlay, overlayText} from "./ui/overlay";
+import {dragging, ensureSubtitleOverlay, overlayText} from "./ui/overlay";
 import {ensureSubtitleControlShell, setTooltipText, updateNotice, updateSubtitleDropdownOptions} from "./ui/controls";
 import type {EpisodeManifest} from "./subtitle/manager";
 import type {Preference} from "./subtitle/loader";
@@ -138,7 +138,7 @@ async function renderLoop() {
   const time = videoEl.currentTime;
 
   const secondaryCue = getActiveCue(currentCues, time);
-  const nextText = secondaryCue?.text || "";
+  const nextText = dragging ? "(right click to reset)" : (secondaryCue?.text || "");
 
   if (!nextText || nextText !== lastRendered) {
     overlayText.textContent = nextText || "";

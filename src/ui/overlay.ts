@@ -56,11 +56,13 @@ async function savePref(xPct?: number, yPct?: number) {
     console.error("[dual-subs] couldn't grab preference when saving subtitle location");
     return;
   }
-  pref.leftPct = xPct;
-  pref.bottomPct = yPct;
+  pref.leftPct = xPct ?? 50;
+  pref.bottomPct = yPct ?? 10;
   await browser.runtime.sendMessage({type: "SET_PREFERENCE", pref});
   console.log("[dual-subs] new pref set", pref);
 }
+
+export let dragging = false;
 
 function ensureDragListeners() {
   if (!overlayText || !overlayRoot) return;
@@ -69,7 +71,6 @@ function ensureDragListeners() {
   overlayText.draggable = true;
   overlayText.dataset.listenerAttached = "true";
 
-  let dragging = false;
   let offsetX = 0;
   let offsetY = 0;
   let leftPct: number | undefined;
@@ -77,11 +78,14 @@ function ensureDragListeners() {
 
   overlayText.addEventListener("contextmenu", async (e) => {
     e.preventDefault();
+    leftPct = 50;
+    bottomPct = 10;
     await savePref(undefined, undefined);
     setTextPos(undefined, undefined);
   });
 
   overlayText.addEventListener("pointerdown", e => {
+    if (e.button !== 0) return;
     dragging = true;
 
     const textRect = overlayText!.getBoundingClientRect();
