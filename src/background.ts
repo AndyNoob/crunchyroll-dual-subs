@@ -3,13 +3,11 @@ import {getOrLoadHeaders, setHeaders} from "./data/headers";
 import {getAltCues, getAudio, getEpisodeManifest} from "./data/subtitles";
 import {notifyCueRefresh, setNextRequestTime} from "./handlers/manager";
 import {
-  grabAndHandleManifest,
-  handleManifestAndAudio,
   handleProfile,
   resolvePreference,
   setPreference
 } from "./handlers/profiles";
-import {loadCues} from "./handlers/subtitles";
+import {grabAndHandleManifest, handleManifestAndAudio, loadCues} from "./handlers/subtitles";
 
 console.log("[dual-sub] background loaded");
 
