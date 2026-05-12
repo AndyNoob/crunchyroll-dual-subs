@@ -83,6 +83,10 @@ function makeManifest() {
         resources: ["icon-32.png", "icon-64.png", "icon-128.png"],
         matches: ["*://*.crunchyroll.com/*"]
       }
-    ]
+    ],
+    action: {
+      default_title: "Change extension settings",
+      default_popup: "static/popup.html"
+    }
   }
 }

@@ -1,9 +1,11 @@
 import type {Cue} from "../content";
-import {getEpisodeManifest, notifyCueRefresh, setAltCues, type Subtitle} from "./manager";
+import {notifyCueRefresh} from "./manager";
 import {parseSubs} from "frazy-parser";
-import {grabAndHandleProfile, grabAndHandleManifest} from "./handler";
+import {grabAndHandleManifest, grabAndHandleProfile} from "./profiles";
 import browser from "webextension-polyfill";
 import {shortenUrl} from "../background";
+import type {Preference} from "../data/profiles";
+import {getEpisodeManifest, setAltCues, type Subtitle} from "../data/subtitles";
 
 export async function loadCues(tabId: number, preference: Preference | null, notify: boolean = false) {
   if (!preference) {
@@ -19,13 +21,6 @@ export async function loadCues(tabId: number, preference: Preference | null, not
 
 export async function fetchAndParseSubtitle(tabId: number, url: string): Promise<Cue[]> {
   console.log(`[fetchAndParseSubtitle] fetching sub from ${url}`);
-  // const res = await fetch(url);
-  // if (!res.ok) {
-  //   console.error(`[fetchAndParseSubtitle] failed to fetch subtitle: ${res.status}`);
-  //   return Promise.reject("failed to fetch");
-  // }
-  // console.log("[fetchAndParseSubtitle] done fetching.");
-  // const raw = await res.text();
   const raw = (await browser.tabs.sendMessage(tabId, {type: "FETCH_SUBTITLE", url})) as string;
   if (raw.length === 0) {
     console.log("[fetchAndParseSubtitle] subtitle request returned empty.");
@@ -79,9 +74,3 @@ async function loadAltSubtitles(callback: CallableFunction, tabId: number, prefe
   return cues;
 }
 
-export interface Preference {
-  doCc: boolean,
-  subLanguage: string,
-  leftPct?: number,
-  bottomPct?: number,
-}

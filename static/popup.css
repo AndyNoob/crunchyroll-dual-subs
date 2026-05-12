@@ -1,0 +1,175 @@
+:root {
+  --cr-orange: #f47521;
+  --bg: #111217;
+  --panel: #1a1c23;
+  --field: #272934;
+  --field-hover: #30333f;
+  --text: #f4f4f5;
+  --muted: #a9adb8;
+  --border: rgba(255, 255, 255, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #251c28 0, var(--bg) 45%);
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  min-width: 480px;
+}
+
+#cr-dual-subs-options {
+  width: min(860px, calc(100% - 48px));
+  margin: 40px auto;
+  padding: 0 0 28px;
+}
+
+h1 {
+  margin: 0 0 28px;
+  font-size: 36px;
+  line-height: 1.1;
+}
+
+#cr-dual-subs-options > label,
+.scope-block {
+  background: rgba(26, 28, 35, 0.94);
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+#cr-dual-subs-options > label {
+  display: grid;
+  gap: 10px;
+  padding: 24px;
+  border-radius: 18px 18px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.scope-block {
+  padding: 24px;
+  border-top: 0;
+  border-radius: 0 0 18px 18px;
+}
+
+.scope-block > label,
+.settings-block label {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 22px;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.scope-block {
+  border-left: 3px solid rgba(244, 117, 33, 0.7);
+}
+
+.settings-block {
+  margin-left: 24px;
+  padding-left: 24px;
+  border-left: 2px solid rgba(255, 255, 255, 0.09);
+}
+
+select,
+input[type="number"] {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--field);
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+}
+
+select:hover,
+input[type="number"]:hover {
+  background: var(--field-hover);
+}
+
+select:focus,
+input[type="number"]:focus {
+  border-color: var(--cr-orange);
+  box-shadow: 0 0 0 3px rgba(244, 117, 33, 0.22);
+}
+
+#profile-select {
+  border-color: rgba(244, 117, 33, 0.65);
+}
+
+.inline-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#offset-input {
+  width: 160px;
+}
+
+.inline-field span {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+#reset-position-button {
+  margin: 4px 0 22px;
+  padding: 11px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--field);;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+#reset-position-button:hover {
+  background: rgba(244, 117, 33, 0.24);
+  border: 1px solid rgba(244, 117, 33, 0.55);
+  box-shadow: 0 0 0 3px rgba(244, 117, 33, 0.22);
+}
+
+.checkbox-row {
+  display: flex !important;
+  align-items: center;
+  gap: 12px !important;
+  margin-bottom: 0 !important;
+}
+
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--cr-orange);
+}
+
+footer {
+  margin-top: 26px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  color: var(--muted);
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+}
+
+footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+footer a:hover {
+  color: var(--cr-orange);
+}

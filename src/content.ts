@@ -1,8 +1,9 @@
 import browser from "webextension-polyfill";
 import {dragging, ensureSubtitleOverlay, overlayText} from "./ui/overlay";
 import {ensureSubtitleControlShell, setTooltipText, updateNotice, updateSubtitleDropdownOptions} from "./ui/controls";
-import type {EpisodeManifest} from "./subtitle/manager";
-import type {Preference} from "./subtitle/loader";
+
+import type {Preference} from "./data/profiles";
+import type {EpisodeManifest} from "./data/subtitles";
 
 let videoEl: HTMLVideoElement;
 
@@ -17,8 +18,11 @@ init().then().catch(r => {
   console.error(r);
 });
 
-export async function updateCues() {
-  currentCues = await grabCues();
+export async function updateCues(refresh = false) {
+  if (refresh) {
+    currentCues = (await browser.runtime.sendMessage({type: "GET_CUES", refresh})
+      .catch(r => console.warn(r))) as Cue[];
+  } else currentCues = await grabCues();
 }
 
 async function grabCues() {

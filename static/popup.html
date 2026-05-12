@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Change extension settings</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <main id="cr-dual-subs-options">
+        <h1>Crunchyroll Dual Subs</h1>
+        <label>
+            Profile
+            <select id="profile-select"></select>
+        </label>
+
+        <div class="scope-block">
+            <label>
+                Applies to
+                <select id="scope-select">
+                    <option value="global">Global</option>
+                    <option value="show">Current Show</option>
+                    <option value="season">Current Season</option>
+                    <option value="episode">Current Episode</option>
+                </select>
+            </label>
+
+            <div class="settings-block">
+                <label>
+                    Preferred secondary subtitle type
+                    <select id="subtitle-select"></select>
+                </label>
+
+                <label>
+                    Subtitle time offset
+                    <div class="inline-field">
+                        <input id="offset-input" type="number" step="0.05" value="0" />
+                        <span>seconds</span>
+                    </div>
+                </label>
+
+                <button id="reset-position-button">Reset subtitle position</button>
+
+<!--                <label class="checkbox-row">-->
+<!--                    <input id="debug-logs-checkbox" type="checkbox" />-->
+<!--                    Enable debug logs-->
+<!--                </label>-->
+            </div>
+        </div>
+        <footer>
+            <a href="https://github.com/AndyNoob/crunchyroll-dual-subs/" target="_blank">SOURCE ↗</a>
+            <span>|</span>
+            <a href="https://github.com/AndyNoob/crunchyroll-dual-subs/issues" target="_blank">ISSUES ↗</a>
+        </footer>
+    </main>
+</body>
+
+</html>

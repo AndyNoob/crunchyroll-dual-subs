@@ -1,18 +1,15 @@
+import browser, {type Runtime, type WebRequest} from "webextension-polyfill";
+import {getOrLoadHeaders, setHeaders} from "./data/headers";
+import {getAltCues, getAudio, getEpisodeManifest} from "./data/subtitles";
+import {notifyCueRefresh, setNextRequestTime} from "./handlers/manager";
 import {
   grabAndHandleManifest,
   handleManifestAndAudio,
-  handleProfile, setNextRequestTime
-} from "./subtitle/handler";
-import browser, {type Runtime, type WebRequest} from "webextension-polyfill";
-import {
-  getAltCues,
-  getAudio,
-  getOrLoadHeaders,
-  getEpisodeManifest,
-  notifyCueRefresh, resolvePreference,
-  setHeaders, setPreference
-} from "./subtitle/manager";
-import {loadCues} from "./subtitle/loader";
+  handleProfile,
+  resolvePreference,
+  setPreference
+} from "./handlers/profiles";
+import {loadCues} from "./handlers/subtitles";
 
 console.log("[dual-sub] background loaded");
 
@@ -54,9 +51,10 @@ browser.runtime.onUpdateAvailable.addListener(receiveUpdateNotif);
  * @param tabId id of the tab requesting cue resolution
  * @param url url of the tab requesting cue resolution
  * @param audio audio locale of the tab requesting cue resolution
+ * @param refresh refreshes the cache
  */
-async function resolveCues(tabId: number, url: string, audio: string | null) {
-  let altCues = getAltCues(tabId, url, audio);
+async function resolveCues(tabId: number, url: string, audio: string | null, refresh = false) {
+  let altCues = refresh ? null : getAltCues(tabId, url, audio);
   if (altCues === null || altCues === undefined) {
     console.log("[resolveCues] alt subs are undefined/wrong upon request, grabbing...");
     const headers = getOrLoadHeaders(tabId);
@@ -129,7 +127,7 @@ async function receiveContentMsg(msg: any, sender: any) {
   if (!isValid) return Promise.reject();
   switch (msg?.type) {
     case "GET_CUES":
-      return await resolveCues(tabId, url, getAudio(tabId) ?? null);
+      return await resolveCues(tabId, url, getAudio(tabId) ?? null, msg.refresh);
     case "GET_CHOICES":
       let manifest = getEpisodeManifest(tabId);
       if (!manifest) manifest = await grabAndHandleManifest(tabId);

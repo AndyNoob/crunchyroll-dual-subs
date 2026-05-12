@@ -1,7 +1,7 @@
-import type {EpisodeManifest} from "../subtitle/manager";
-import type {Preference} from "../subtitle/loader";
 import browser from "webextension-polyfill";
 import {updateCues} from "../content";
+import type {Preference} from "../data/profiles";
+import type {EpisodeManifest} from "../data/subtitles";
 
 // I love when GPT-5.2 does 90% of the work :muscles:
 
@@ -197,7 +197,7 @@ async function handleSubtitleOptionClick(option: HTMLElement) {
   const pref: Preference = {doCc: isCc, subLanguage: key!}
   await browser.runtime.sendMessage({type: "SET_PREFERENCE", pref});
   console.log("[dual-sub] new pref set", pref);
-  await updateCues();
+  await updateCues(true);
   console.log("[dual-sub] updated cues");
 }
 
