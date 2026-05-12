@@ -70,6 +70,14 @@ h1 {
   font-weight: 700;
 }
 
+.field {
+  margin-bottom: 22px;
+}
+
+.field > label {
+  margin-bottom: 10px;
+}
+
 .scope-block {
   border-left: 3px solid rgba(244, 117, 33, 0.7);
 }
