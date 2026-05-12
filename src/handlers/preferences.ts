@@ -27,7 +27,7 @@ export async function saveStoredPreferences(prefs: StoredPreferences) {
 export function getDefaultPreference(profile: Profile): Preference {
   return {
     doCc: profile.doCc,
-    subLanguage: profile.subLanguage
+    subLanguage: profile.subLanguage,
   };
 }
 
@@ -38,8 +38,22 @@ export async function resolvePreference(
 ): Promise<Preference> {
   const prefs = await loadStoredPreferences();
 
-  const globalPref =
-    prefs.global[profile.profileId] ?? getDefaultPreference(profile);
+  console.groupCollapsed("[resolvePreference] begun");
+  console.log("profile is", profile);
+  console.log("season guid is", seasonGuid);
+  console.log("episode guid is", episodeGuid);
+
+  let globalPref: Preference;
+  const global = prefs.global[profile.profileId];
+
+  if (global == null) {
+    console.log("no global pref found, using default.");
+    globalPref = getDefaultPreference(profile);
+  } else {
+    globalPref = global;
+  }
+
+  console.groupEnd();
 
   return {
     ...globalPref,

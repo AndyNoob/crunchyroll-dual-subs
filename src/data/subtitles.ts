@@ -1,5 +1,6 @@
 import type {Cue} from "../content";
-import {normalizeUrl} from "../handlers/manager";
+
+import {normalizeUrl} from "../utils";
 
 export function getEpisodeManifest(tabId: number): EpisodeManifest | undefined {
   return manifestMap.get(tabId);
@@ -21,23 +22,13 @@ export function getAltCues(tabId: number, url: string, audio: string | null): Cu
 export function findSeasonGuid(tabId: number) {
   const manifest = getEpisodeManifest(tabId);
   if (!manifest) return null;
-  const audio = getAudio(tabId);
-  for (let version of manifest.versions) {
-    if (version.audioLocale !== audio) continue;
-    return version.seasonGuid;
-  }
-  return null;
+  return manifest.findSeasonalGuid(getAudio(tabId)!);
 }
 
 export function findGuid(tabId: number) {
   const manifest = getEpisodeManifest(tabId);
   if (!manifest) return null;
-  const audio = getAudio(tabId);
-  for (let version of manifest.versions) {
-    if (version.audioLocale !== audio) continue;
-    return version.guid;
-  }
-  return null;
+  return manifest.findGuid(getAudio(tabId)!);
 }
 
 export function getAudio(tabId: number) {
@@ -82,7 +73,9 @@ export interface EpisodeManifest {
   url: string,
   ccs: Subtitles,
   subs: Subtitles,
-  versions: EpisodeVersion[]
+  versions: EpisodeVersion[],
+  findGuid(audio: string): string | null,
+  findSeasonalGuid(audio: string): string | null,
 }
 
 export interface Subtitles {
