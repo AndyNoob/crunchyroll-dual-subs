@@ -1,4 +1,3 @@
-import {setNextRequestTime, sleep, waitUntil,} from "./manager";
 import {
   addToAllProfiles,
   clearAllProfiles,
@@ -9,6 +8,7 @@ import {
   setProfile
 } from "../data/profiles";
 import {findHeaderValue, getOrLoadHeaders} from "../data/headers";
+import {setNextRequestTime, singleFlight, sleep, waitUntil} from "../utils";
 
 export function handleProfile(data: any, tabId: number): Profile {
   const profiles: Profile[] = (data?.["profiles"] as [RawProfile]).map(a => mapProfile(a));
@@ -28,10 +28,18 @@ export function handleProfile(data: any, tabId: number): Profile {
   return selected;
 }
 
-export async function grabAndHandleProfile(tabId: number, refresh: boolean = false): Promise<Profile> {
+export const grabAndHandleProfile = singleFlight(
+  grabAndHandleProfile0,
+  (tabId, _ = false) => tabId.toString()
+);
+
+async function grabAndHandleProfile0(tabId: number, refresh: boolean = false): Promise<Profile> {
   if (!refresh) {
     const profile = getProfile(tabId);
-    if (profile) return profile;
+    if (profile) {
+      console.log("[grabAndHandleProfile] profile already exists, not refreshing.");
+      return profile;
+    }
   }
   const headers = await getOrLoadHeaders(tabId);
   if (!headers) return Promise.reject("no auth");

@@ -9,7 +9,7 @@ export interface Preference {
   subLanguage: string,
   leftPct?: number,
   bottomPct?: number,
-  subtitleOffsetMs?: number
+  subtitleOffsetMs?: number,
 }
 
 export type PreferenceScope =

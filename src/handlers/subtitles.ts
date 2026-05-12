@@ -1,12 +1,11 @@
 import type {Cue} from "../content";
-import {normalizeUrl, notifyCueRefresh, setNextRequestTime, sleep, waitUntil} from "./manager";
+import {notifyCueRefresh} from "./manager";
 import {parseSubs} from "frazy-parser";
-import {grabAndHandleProfile} from "./profiles";
 import browser from "webextension-polyfill";
-import {shortenUrl} from "../background";
 import {
   type EpisodeManifest,
-  getEpisodeManifest, mapVersion,
+  getEpisodeManifest,
+  mapVersion,
   setAltCues,
   setAudio,
   setEpisodeManifest,
@@ -15,12 +14,9 @@ import {
 import {findHeaderValue, getOrLoadHeaders, type Header} from "../data/headers";
 
 import type {Preference} from "../data/preferences";
+import {normalizeUrl, setNextRequestTime, shortenUrl, singleFlight, sleep, waitUntil} from "../utils";
 
-export async function loadCues(tabId: number, preference: Preference | null, notify: boolean = false) {
-  if (!preference) {
-    console.log("[loadCues] profile isn't loaded on load alt sub.");
-    preference = await grabAndHandleProfile(tabId);
-  }
+export async function loadCues(tabId: number, preference: Preference, notify: boolean = false) {
   console.log("[loadCues] begin loading cues");
   const cues = await loadAltSubtitles(() => console.log(`[loadCues] alt cues loaded for tab ${tabId}`), tabId, preference);
   setAltCues(tabId, cues, (await browser.tabs.get(tabId)).url!);
@@ -68,15 +64,37 @@ export async function handleManifestAndAudio(playback: any, tabId: number): Prom
     versions: mapVersion(playback["versions"]),
     ccs,
     subs,
+    findGuid: (audio) => {
+      for (const version of manifest.versions) {
+        if (version.audioLocale.toLowerCase() !== audio.toLowerCase()) continue;
+        return version.guid;
+      }
+      return null;
+    },
+    findSeasonalGuid: (audio) => {
+      for (const version of manifest.versions) {
+        if (version.audioLocale.toLowerCase() !== audio.toLowerCase()) continue;
+        return version.seasonGuid;
+      }
+      return null;
+    }
   };
   setEpisodeManifest(tabId, manifest);
   return manifest;
 }
 
-export async function grabAndHandleManifest(tabId: number, refresh: boolean = false) {
+export const grabAndHandleManifest = singleFlight(
+  grabAndHandleManifest0,
+  (tabId, _ = false) => tabId.toString()
+);
+
+async function grabAndHandleManifest0(tabId: number, refresh: boolean = false) {
   if (!refresh) {
     const manifest = getEpisodeManifest(tabId);
-    if (manifest) return manifest;
+    if (manifest) {
+      console.log("[grabAndHandleManifest] manifest already exists, not refreshing.");
+      return manifest;
+    }
   }
   let headers = await getOrLoadHeaders(tabId);
   if (!headers) {
@@ -132,8 +150,8 @@ async function loadAltSubtitles(callback: CallableFunction, tabId: number, prefe
   console.log("[loadAltSubtitles] begin load alt subs");
   let manifest = getEpisodeManifest(tabId) || await grabAndHandleManifest(tabId);
   if (!manifest) {
-    console.error("[loadAltSubtitles] sub choices not found");
-    return Promise.reject("[loadAltSubtitles] sub choices not found");
+    console.error("[loadAltSubtitles] manifest not found");
+    return Promise.reject("[loadAltSubtitles] manifest not found");
   }
   const url = (await browser.tabs.get(tabId)).url;
   if (manifest.url !== url) {
@@ -147,7 +165,7 @@ async function loadAltSubtitles(callback: CallableFunction, tabId: number, prefe
     return [];
   }
   const cues = await fetchAndParseSubtitle(tabId, sub.url);
-  console.log(preference)
+  console.log("[loadAltSubtitles] pref is", preference);
   console.log(`[loadAltSubtitles] loaded ${cues.length} alternate cues from ${sub.language} ${preference.doCc ? "[CC]" : ""}`);
   callback();
   return cues;

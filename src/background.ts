@@ -1,14 +1,13 @@
 import browser, {type Runtime, type WebRequest} from "webextension-polyfill";
 import {getOrLoadHeaders, setHeaders} from "./data/headers";
 import {findGuid, findSeasonGuid, getAltCues, getAudio, getEpisodeManifest} from "./data/subtitles";
-import {notifyCueRefresh, setNextRequestTime} from "./handlers/manager";
-import {
-  grabAndHandleProfile,
-  handleProfile
-} from "./handlers/profiles";
+import {notifyCueRefresh} from "./handlers/manager";
+import {grabAndHandleProfile, handleProfile} from "./handlers/profiles";
 import {grabAndHandleManifest, handleManifestAndAudio, loadCues} from "./handlers/subtitles";
 import {resolvePreference, setPreference} from "./handlers/preferences";
 import {getProfile} from "./data/profiles";
+import {setNextRequestTime, shortenUrl} from "./utils";
+import type {PreferenceScope} from "./data/preferences";
 
 console.log("[dual-sub] background loaded");
 
@@ -61,7 +60,12 @@ async function resolveCues(tabId: number, url: string, audio: string | null, ref
       console.log("[resolveCues] headers not set");
       return Promise.reject("auth data not found.");
     }
-    const preference = await resolvePreference(getProfile(tabId) ?? await grabAndHandleProfile(tabId));
+    await grabAndHandleManifest(tabId);
+    const preference = await resolvePreference(
+      getProfile(tabId) ?? await grabAndHandleProfile(tabId),
+      findSeasonGuid(tabId)!,
+      findGuid(tabId)!
+    );
     console.log("[resolveCues] preference is", preference);
     altCues = await loadCues(tabId, preference, false);
     console.log(`[resolveCues] grabbed ${altCues?.length} cues upon request`);
@@ -135,19 +139,25 @@ async function receiveContentMsg(msg: any, sender: any) {
       }
       return manifest;
     case "GET_PREFERENCE":
-      return await resolvePreference(getProfile(tabId) ?? await grabAndHandleProfile(tabId));
+      await grabAndHandleManifest(tabId);
+      return await resolvePreference(
+        getProfile(tabId) ?? await grabAndHandleProfile(tabId),
+        findSeasonGuid(tabId)!,
+        findGuid(tabId)!
+      );
     case "SET_PREFERENCE":
       if (msg.scope !== "global" && !getEpisodeManifest(tabId)) {
         console.log("[receiveContentMsg] SET_PREFERENCE: manifest not found, loading...");
         await grabAndHandleManifest(tabId);
       }
-      const set = await setPreference(msg.scope ?? "season",
+      const scope: PreferenceScope = msg.scope ?? "season";
+      const set = await setPreference(scope,
         getProfile(tabId) ?? await grabAndHandleProfile(tabId),
         msg.pref!,
         findSeasonGuid(tabId),
         findGuid(tabId)
       );
-      console.log("[receiveContentMsg] SET_PREFERENCE: done", msg, set);
+      console.log(`[receiveContentMsg] SET_PREFERENCE(${scope}): done`, msg, set);
       break;
     case "REFRESH_TAB":
       return browser.tabs.reload(tabId);
@@ -176,15 +186,6 @@ function receiveUpdateNotif(details: Runtime.OnUpdateAvailableDetailsType) {
     }
     console.groupEnd();
   });
-}
-
-export function shortenUrl(urlStr: string) {
-  try {
-    const parts = new URL(urlStr).pathname.split("/").filter(Boolean);
-    return parts.length ? `/${parts[parts.length - 1]}` : "/";
-  } catch {
-    return urlStr;
-  }
 }
 
 function getRequestHeaderSpec(): WebRequest.OnSendHeadersOptions[] {
