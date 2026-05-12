@@ -12,6 +12,10 @@ export function addToAllProfiles(profile: Profile) {
   (globalThis as any)["dualSubs"].profiles = allProfiles;
 }
 
+export function getFromAllProfiles(id: string) {
+  return allProfiles.get(id);
+}
+
 export function setProfile(tabId: number, profile: Profile) {
   profileMap.set(tabId, profile);
 }

@@ -27,8 +27,8 @@ body {
 
 #cr-dual-subs-options {
   width: min(860px, calc(100% - 48px));
-  margin: 15px auto 0;
-  padding: 0 0 28px;
+  margin: 0 auto 0;
+  padding: 12px 0 28px;
 }
 
 h1 {

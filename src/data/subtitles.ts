@@ -25,7 +25,7 @@ export function findSeasonGuid(tabId: number) {
   return manifest.findSeasonalGuid(getAudio(tabId)!);
 }
 
-export function findGuid(tabId: number) {
+export function findEpisodeGuid(tabId: number) {
   const manifest = getEpisodeManifest(tabId);
   if (!manifest) return null;
   return manifest.findGuid(getAudio(tabId)!);
