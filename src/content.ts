@@ -1,9 +1,8 @@
 import browser from "webextension-polyfill";
 import {dragging, ensureSubtitleOverlay, overlayText} from "./ui/overlay";
 import {ensureSubtitleControlShell, setTooltipText, updateNotice, updateSubtitleDropdownOptions} from "./ui/controls";
-
-import type {Preference} from "./data/profiles";
 import type {EpisodeManifest} from "./data/subtitles";
+import type {Preference} from "./data/preferences";
 
 let videoEl: HTMLVideoElement;
 

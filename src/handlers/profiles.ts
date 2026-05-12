@@ -1,11 +1,9 @@
-import browser from "webextension-polyfill";
 import {setNextRequestTime, sleep, waitUntil,} from "./manager";
 import {
   addToAllProfiles,
   clearAllProfiles,
   getProfile,
   mapProfile,
-  type Preference,
   type Profile,
   type RawProfile,
   setProfile
@@ -48,22 +46,3 @@ export async function grabAndHandleProfile(tabId: number, refresh: boolean = fal
   return handleProfile(await response.json(), tabId);
 }
 
-export async function resolvePreference(tabId: number): Promise<Preference> {
-  const rawPrefs = ((await browser.storage.sync.get("cr-dual-sub-prefs"))?.["cr-dual-sub-prefs"] ?? {}) as any;
-  const profile = getProfile(tabId) ?? await grabAndHandleProfile(tabId);
-  const pref: any = rawPrefs[profile.profileId];
-  if (pref && "doCc" in pref && "subLanguage" in pref) return pref as Preference;
-  rawPrefs[profile.profileId] = profile as Preference;
-  await browser.storage.sync.set({"cr-dual-sub-prefs": rawPrefs});
-  console.log(`[resolvePreference] set preference!`, rawPrefs);
-  return profile;
-}
-
-export async function setPreference(tabId: number, pref: Preference) {
-  const profile = getProfile(tabId) ?? await grabAndHandleProfile(tabId);
-  const rawPrefs = ((await browser.storage.sync.get("cr-dual-sub-prefs"))?.["cr-dual-sub-prefs"] ?? {}) as any;
-  rawPrefs[profile.profileId] = pref;
-  await browser.storage.sync.set({"cr-dual-sub-prefs": rawPrefs});
-  // await loadCues(tabId, pref);
-  console.log(`[setPreference] set preference!`, rawPrefs);
-}

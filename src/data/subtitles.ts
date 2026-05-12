@@ -18,6 +18,28 @@ export function getAltCues(tabId: number, url: string, audio: string | null): Cu
   }
 }
 
+export function findSeasonGuid(tabId: number) {
+  const manifest = getEpisodeManifest(tabId);
+  if (!manifest) return null;
+  const audio = getAudio(tabId);
+  for (let version of manifest.versions) {
+    if (version.audioLocale !== audio) continue;
+    return version.seasonGuid;
+  }
+  return null;
+}
+
+export function findGuid(tabId: number) {
+  const manifest = getEpisodeManifest(tabId);
+  if (!manifest) return null;
+  const audio = getAudio(tabId);
+  for (let version of manifest.versions) {
+    if (version.audioLocale !== audio) continue;
+    return version.guid;
+  }
+  return null;
+}
+
 export function getAudio(tabId: number) {
   return audioMap.get(tabId);
 }
@@ -26,6 +48,8 @@ export function setAltCues(tabId: number, cues: Cue[], url: string) {
   cueMap.set(tabId, cues);
   const value = normalizeUrl(url);
   urlMap.set(tabId, value);
+  (globalThis as any)["dualSubs"] = (globalThis as any)["dualSubs"] ?? {};
+  (globalThis as any)["dualSubs"].cues = cueMap;
 }
 
 export function setAudio(tabId: number, audio: string) {
@@ -35,23 +59,48 @@ export function setAudio(tabId: number, audio: string) {
 
 export function setEpisodeManifest(tabId: number, opt: EpisodeManifest) {
   manifestMap.set(tabId, opt);
+  (globalThis as any)["dualSubs"] = (globalThis as any)["dualSubs"] ?? {};
+  (globalThis as any)["dualSubs"].manifests = manifestMap;
 }
 
-const manifestMap = new Map<number, EpisodeManifest>();
+export function mapVersion(versions: any[]): EpisodeVersion[] {
+  return (versions as EpisodeVersionRaw[]).map(v => {
+    return {
+      audioLocale: v.audio_locale,
+      guid: v.guid,
+      seasonGuid: v.season_guid
+    } as EpisodeVersion
+  });
+}
+
+export const manifestMap = new Map<number, EpisodeManifest>();
 export const cueMap = new Map<number, Cue[]>();
 const urlMap = new Map<number, string>();
 const audioMap = new Map<number, string>();
 
 export interface EpisodeManifest {
   url: string,
-  ccs: Subtitle,
-  subs: Subtitle
+  ccs: Subtitles,
+  subs: Subtitles,
+  versions: EpisodeVersion[]
 }
 
-export interface Subtitle {
+export interface Subtitles {
   [key: string]: {
     language: string,
     format?: string,
     url?: string
   }
+}
+
+export interface EpisodeVersion {
+  audioLocale: string,
+  seasonGuid: string,
+  guid: string
+}
+
+interface EpisodeVersionRaw {
+  audio_locale: string,
+  season_guid: string,
+  guid: string
 }
