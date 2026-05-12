@@ -1,7 +1,8 @@
 import browser from "webextension-polyfill";
 import {updateCues} from "../content";
-import type {Preference} from "../data/profiles";
 import type {EpisodeManifest} from "../data/subtitles";
+
+import type {Preference} from "../data/preferences";
 
 // I love when GPT-5.2 does 90% of the work :muscles:
 

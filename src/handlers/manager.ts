@@ -1,7 +1,5 @@
 import type {Cue} from "../content";
 import browser from "webextension-polyfill";
-import {profileMap} from "../data/profiles";
-import {cueMap} from "../data/subtitles";
 
 export function normalizeUrl(url: string) {
   const normalized = new URL(url);
@@ -9,11 +7,6 @@ export function normalizeUrl(url: string) {
   normalized.hash = '';
   return normalized.toString();
 }
-
-(globalThis as any)["dualSubs"] = {
-  cueMap,
-  profileMap
-};
 
 export function notifyCueRefresh(tabId: number, cues: Cue[], attemptsLeft = 3) {
   if (attemptsLeft <= 0) return;

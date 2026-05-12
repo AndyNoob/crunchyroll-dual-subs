@@ -8,6 +8,8 @@ export function clearAllProfiles() {
 
 export function addToAllProfiles(profile: Profile) {
   allProfiles.set(profile.profileId, profile);
+  (globalThis as any)["dualSubs"] = (globalThis as any)["dualSubs"] ?? {};
+  (globalThis as any)["dualSubs"].profiles = allProfiles;
 }
 
 export function setProfile(tabId: number, profile: Profile) {
@@ -41,12 +43,4 @@ export interface Profile {
   doCc: boolean;
   profileId: string;
   profileName: string;
-}
-
-export interface Preference {
-  doCc: boolean,
-  subLanguage: string,
-  leftPct?: number,
-  bottomPct?: number,
-  subtitleOffsetMs?: number
 }

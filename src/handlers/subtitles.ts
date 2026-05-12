@@ -4,16 +4,17 @@ import {parseSubs} from "frazy-parser";
 import {grabAndHandleProfile} from "./profiles";
 import browser from "webextension-polyfill";
 import {shortenUrl} from "../background";
-import type {Preference} from "../data/profiles";
 import {
   type EpisodeManifest,
-  getEpisodeManifest,
+  getEpisodeManifest, mapVersion,
   setAltCues,
   setAudio,
   setEpisodeManifest,
-  type Subtitle
+  type Subtitles
 } from "../data/subtitles";
 import {findHeaderValue, getOrLoadHeaders, type Header} from "../data/headers";
+
+import type {Preference} from "../data/preferences";
 
 export async function loadCues(tabId: number, preference: Preference | null, notify: boolean = false) {
   if (!preference) {
@@ -58,11 +59,16 @@ function normalizeFrazyCues(parsed: any[]): Cue[] {
 }
 
 export async function handleManifestAndAudio(playback: any, tabId: number): Promise<EpisodeManifest> {
-  const ccs: Subtitle = playback["captions"];
-  const subs: Subtitle = playback["subtitles"];
+  const ccs: Subtitles = playback["captions"];
+  const subs: Subtitles = playback["subtitles"];
   console.log(`[handleManifestAndAudio] audio locale for tab ${tabId} is ${playback["audioLocale"]}`);
   setAudio(tabId, playback["audioLocale"]);
-  const manifest: EpisodeManifest = {url: normalizeUrl((await browser.tabs.get(tabId)).url!), ccs, subs};
+  const manifest: EpisodeManifest = {
+    url: normalizeUrl((await browser.tabs.get(tabId)).url!),
+    versions: mapVersion(playback["versions"]),
+    ccs,
+    subs,
+  };
   setEpisodeManifest(tabId, manifest);
   return manifest;
 }
@@ -134,7 +140,7 @@ async function loadAltSubtitles(callback: CallableFunction, tabId: number, prefe
     console.log(`[loadAltSubtitles] updating from old manifest ${shortenUrl(manifest.url)} to ${shortenUrl(url!)}`);
     manifest = await grabAndHandleManifest(tabId, true);
   }
-  const altSub: Subtitle = preference.doCc ? manifest.ccs : manifest.subs;
+  const altSub: Subtitles = preference.doCc ? manifest.ccs : manifest.subs;
   const sub = altSub[preference.subLanguage];
   if (!sub || !sub.url) {
     console.warn("[loadAltSubtitles] alternate subtitle is none");
