@@ -1,3 +1,21 @@
+# 0.9.0
+- Fix overlay and dropdown being above profile switcher (AndyNoob)
+- Fix multi-profile and remove popup profile selection (AndyNoob)
+- Fix audio switching issues (AndyNoob)
+- Fix not being able to unset options (AndyNoob)
+- Fix popup not fetching subtitle manifest (AndyNoob)
+- Fix subtitle manifest expiry time (AndyNoob)
+- Aggressive caching of subtitle cues and manifests (AndyNoob)
+- Add functionality to popup (AndyNoob)
+- Implement background receiver for popup (AndyNoob)
+- Refactor & improvements; fix preferences (AndyNoob)
+- Implement scoped preferences (AndyNoob)
+- More reorganization, start work on popup functionality (AndyNoob)
+- Major refactoring in prep for popups (AndyNoob)
+- Fix CHANGELOG.md (again) (AndyNoob)
+- Add back missing '- ' at the start of changelogs (AndyNoob)
+
+
 # 0.8.0
 - Clear cues when tab changes (AndyNoob)
 - Make it easier to understand subtitle dragging (AndyNoob)
