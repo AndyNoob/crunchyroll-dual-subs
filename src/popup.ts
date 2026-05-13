@@ -14,6 +14,7 @@ const scopeSelect = document.querySelector("#scope-select") as HTMLSelectElement
 const subtitleSelect = document.querySelector("#subtitle-select") as HTMLSelectElement;
 const offsetInput = document.querySelector("#offset-input") as HTMLInputElement;
 const resetPositionButton = document.querySelector("#reset-position-button") as HTMLButtonElement;
+const streamLimitNotice = document.querySelector("#stream-limit-notice") as HTMLDivElement;
 
 let manifest: SubtitleManifest | null = null;
 
@@ -223,7 +224,50 @@ function attachListeners() {
   });
 }
 
+let cooldownTimer: number | undefined;
+
+function showStreamLimitNotice(blockedUntil: number) {
+  clearInterval(cooldownTimer);
+  loadingState.hidden = true;
+
+  function render() {
+    const remainingMs = blockedUntil - Date.now();
+
+    if (remainingMs <= 0) {
+      streamLimitNotice.hidden = true;
+      clearInterval(cooldownTimer);
+      init().catch(err => {
+        console.error("[dual-sub popup] failed to init", err);
+      });
+      return;
+    }
+
+    const seconds = Math.ceil(remainingMs / 1000);
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+
+    console.log(remainingMs);
+
+    streamLimitNotice.hidden = false;
+    streamLimitNotice.textContent =
+      `Stream limit hit. Try again in ${mins}:${String(secs).padStart(2, "0")}.`;
+    settingsContent.hidden = true;
+  }
+
+  render();
+  cooldownTimer = window.setInterval(render, 1000);
+}
+
 async function init() {
+  const status = await send<{ blockedUntil: number }>({
+    type: "GET_PLAYBACK_BLOCK_STATUS"
+  });
+
+  if (status.blockedUntil) {
+    showStreamLimitNotice(status.blockedUntil);
+    return;
+  }
+
   setLoading(true);
 
   try {
@@ -246,6 +290,12 @@ async function init() {
     loadingState.textContent = "Could not load settings. Open this on a Crunchyroll episode page.";
   }
 }
+
+browser.runtime.onMessage.addListener((msg: any) => {
+  if (msg.type === "PLAYBACK_BLOCKED") {
+    showStreamLimitNotice(Number(msg.blockedUntil));
+  }
+})
 
 document.addEventListener("DOMContentLoaded", () => {
   init().catch(err => {

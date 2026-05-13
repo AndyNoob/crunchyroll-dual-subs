@@ -1,6 +1,6 @@
 import browser, {type Runtime, type Tabs, type WebRequest} from "webextension-polyfill";
 import {setHeaders} from "./data/headers";
-import {notifyCueRefresh} from "./handlers/manager";
+import {getPlaybackBlockedUntil, notifyCueRefresh} from "./handlers/manager";
 import {grabAndHandleProfile, handleProfile} from "./handlers/profiles";
 import {grabEpisodeManifest, handleManifestAndAudio} from "./handlers/episode";
 import {getScopedPreference, resolvePreference, setPreference} from "./handlers/preferences";
@@ -25,6 +25,7 @@ browser.runtime.onMessage.addListener(async (msg: any, sender: Runtime.MessageSe
   if (sender.tab == null) return await receivePopupMsg(msg, sender);
   else return await receiveContentMsg(msg, sender);
 });
+
 browser.webRequest.onSendHeaders.addListener(
   receiveAuthHeaders,
   {urls: ["*://www.crunchyroll.com/*"]},
@@ -234,6 +235,11 @@ async function receivePopupMsg(msg: any, sender: Runtime.MessageSender) {
         const newPref = await setPreference(scope, profile, pref, seasonGuid, episodeGuid);
         console.log("new pref is", await resolvePreference(profile, seasonGuid, episodeGuid));
         return newPref;
+      }
+      case "GET_PLAYBACK_BLOCK_STATUS": {
+        return {
+          blockedUntil: getPlaybackBlockedUntil()
+        };
       }
     }
   } finally {

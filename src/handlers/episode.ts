@@ -89,8 +89,7 @@ async function grabAndHandleManifest0(tabId: number, refresh: boolean = false) {
   let response = null;
 
   try {
-    const crTabId = (await browser.tabs.sendMessage(tabId, {type: "TAB_ID"})) as string;
-    response = await sendManifestRequest(contentId, headers, crTabId);
+    response = await sendManifestRequest(contentId, headers);
   } catch (e) {
     l.warn("first fetch failed", e);
   }
@@ -107,8 +106,7 @@ async function grabAndHandleManifest0(tabId: number, refresh: boolean = false) {
     l.info("waiting 3s...");
     await sleep(3000);
     try {
-      const crTabId = (await browser.tabs.sendMessage(tabId, {type: "TAB_ID"})) as string;
-      response = await sendManifestRequest(contentId, headers, crTabId);
+      response = await sendManifestRequest(contentId, headers);
     } catch (e) {
       l.error("re-fetch failed", e);
     }
@@ -124,9 +122,8 @@ async function grabAndHandleManifest0(tabId: number, refresh: boolean = false) {
   return await handleManifestAndAudio(await response.json(), tabId);
 }
 
-export async function sendManifestRequest(contentId: string | undefined, headers: Header[], crTabId: string) {
+export async function sendManifestRequest(contentId: string | undefined, headers: Header[]) {
   if (!contentId) return null;
-  logger.info(`cr-tab-id is ${crTabId}`);
   return await fetch(`https://www.crunchyroll.com/content/v2/cms/objects/${contentId}?dual_sub=676767`, {
     headers: {
       "Authorization": findHeaderValue(headers, "Authorization"),

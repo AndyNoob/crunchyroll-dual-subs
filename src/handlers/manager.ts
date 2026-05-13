@@ -13,3 +13,15 @@ export function notifyCueRefresh(tabId: number, cues: Cue[], attemptsLeft = 3) {
     }, 5000);
   }).then(() => console.log(`[notifyCueRefresh] sent refresh cue to tab ${tabId}`));
 }
+
+let playbackBlockedUntil = 0;
+
+export function markPlaybackBlocked(ms = 3 * 60 * 1000) {
+  playbackBlockedUntil = Date.now() + ms;
+}
+
+export function getPlaybackBlockedUntil() {
+  return playbackBlockedUntil > Date.now()
+    ? playbackBlockedUntil
+    : 0;
+}

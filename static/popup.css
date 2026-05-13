@@ -32,14 +32,25 @@ body {
   font-weight: 700;
 }
 
+#stream-limit-notice {
+  margin: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(244, 117, 33, 0.55);
+  border-radius: 12px;
+  background: rgba(244, 117, 33, 0.14);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 #cr-dual-subs-options[hidden] {
   display: none;
 }
 
 #cr-dual-subs-options {
-  width: min(860px, calc(100% - 48px));
-  margin: 0 auto 0;
-  padding: 12px 0 28px;
+  /*width: min(860px, calc(100% - 48px));*/
+  margin: 0 16px;
+  padding: 16px 0 28px;
 }
 
 h1 {
