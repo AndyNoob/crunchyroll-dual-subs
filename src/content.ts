@@ -9,6 +9,8 @@ let videoEl: HTMLVideoElement;
 let lastRendered = "";
 let currentCues: Cue[];
 let lastInit: string | null = null;
+let preference: Preference | null = null;
+export let rendering: boolean = false;
 
 addMsgListener();
 
@@ -101,10 +103,10 @@ function addMsgListener() {
 async function updateDropdownOptions() {
   log("updating sub choices...");
   const manifest = await grabSubManifest();
-  const pref = await grabPreference();
-  log("pref is", pref);
+  preference = await grabPreference();
+  log("pref is", preference);
   log("manifest is", manifest);
-  updateSubtitleDropdownOptions(manifest, pref);
+  updateSubtitleDropdownOptions(manifest, preference);
   log("updated sub choices");
 }
 
@@ -156,19 +158,22 @@ async function init() {
   log("init complete!");
 }
 
-async function renderLoop() {
+export async function renderLoop() {
   if (await shouldSkip()) {
     log("[dual-sub] stopping render loop");
+    rendering = false;
     return;
   }
   if (!videoEl || !overlayText) {
     console.error("[dual-sub] overlay or video doesn't exist while rendering");
+    rendering = false;
     return;
   }
 
+  rendering = true;
   const time = videoEl.currentTime;
 
-  const secondaryCue = getActiveCue(currentCues, time);
+  const secondaryCue = getActiveCue(currentCues, time + Number(preference?.subtitleOffsetMs ?? 0) / 1000);
   const nextText = dragging ? "(right click to reset)" : (secondaryCue?.text || "");
 
   if (!nextText || nextText !== lastRendered) {

@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import {updateCues} from "../content";
+import {rendering, renderLoop, updateCues} from "../content";
 
 import type {Preference} from "../data/preferences";
 import type {SubtitleManifest} from "../data/subtitles";
@@ -82,6 +82,12 @@ function ensureSubtitleListeners() {
 
       try {
         await updateCues();
+        if (!rendering) {
+          console.log("[dual-subs] restarting render loop after refresh");
+          requestAnimationFrame(renderLoop);
+        }
+      } catch (e) {
+        console.error(e);
       } finally {
         setTimeout(() => {
           refreshButton!.style.opacity = "1";
