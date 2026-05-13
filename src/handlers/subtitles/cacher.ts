@@ -116,7 +116,7 @@ function timeUntilExpiry(url: string | undefined): number | null {
   if (!url) return null;
   const t = new URL(url).searchParams.get("t");
   const exp = t?.match(/(?:^|~)exp=(\d+)(?:~|$)/)?.[1];
-  return exp ? Number(exp) - Date.now() : null;
+  return exp ? Number(exp) * 1000 - Date.now() : null;
 }
 
 export async function getCachedCues(manifest: EpisodeManifest, pref: Preference): Promise<Cue[] | null> {
