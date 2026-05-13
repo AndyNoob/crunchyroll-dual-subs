@@ -1,8 +1,8 @@
 import browser from "webextension-polyfill";
 import {updateCues} from "../content";
-import type {EpisodeManifest} from "../data/subtitles";
 
 import type {Preference} from "../data/preferences";
+import type {SubtitleManifest} from "../data/subtitles";
 
 // I love when GPT-5.2 does 90% of the work :muscles:
 
@@ -127,7 +127,7 @@ async function ensureUpdateNotice() {
   casing.insertBefore(updateNotice, refreshButton);
 }
 
-export function updateSubtitleDropdownOptions(manifest: EpisodeManifest, pref: Preference) {
+export function updateSubtitleDropdownOptions(manifest: SubtitleManifest, pref: Preference) {
   if (!subtitleControl || !subtitleMenu || !subtitleLabelNode) ensureSubtitleControlShell();
   if (!subtitleMenu || !subtitleLabelNode) return;
 

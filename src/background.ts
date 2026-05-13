@@ -1,13 +1,15 @@
 import browser, {type Runtime, type Tabs, type WebRequest} from "webextension-polyfill";
-import {getOrLoadHeaders, setHeaders} from "./data/headers";
-import {findEpisodeGuid, findSeasonGuid, getAltCues, getAudio, getEpisodeManifest} from "./data/subtitles";
+import {setHeaders} from "./data/headers";
 import {notifyCueRefresh} from "./handlers/manager";
 import {grabAndHandleProfile, handleProfile} from "./handlers/profiles";
-import {grabAndHandleManifest, handleManifestAndAudio, loadCues} from "./handlers/subtitles";
+import {grabEpisodeManifest, handleManifestAndAudio} from "./handlers/episode";
 import {getScopedPreference, resolvePreference, setPreference} from "./handlers/preferences";
 import {getFromAllProfiles, getProfile} from "./data/profiles";
 import {setNextRequestTime, shortenUrl} from "./utils";
 import type {Preference, PreferenceScope} from "./data/preferences";
+import {findEpisodeGuid, findSeasonGuid, getEpisodeManifest} from "./data/episode";
+import {grabCues, grabSubtitleManifest} from "./handlers/subtitles/loader";
+import {getCachedSubtitleManifest} from "./handlers/subtitles/cacher";
 
 console.log("[dual-sub] background loaded");
 
@@ -38,30 +40,16 @@ browser.runtime.onUpdateAvailable.addListener(receiveUpdateNotif);
 
 /**
  * @param tabId id of the tab requesting cue resolution
- * @param url url of the tab requesting cue resolution
- * @param audio audio locale of the tab requesting cue resolution
  * @param refresh refreshes the cache
  */
-async function resolveCues(tabId: number, url: string, audio: string | null, refresh = false) {
-  let altCues = refresh ? null : getAltCues(tabId, url, audio);
-  if (altCues === null || altCues === undefined) {
-    console.log("[resolveCues] alt subs are undefined/wrong upon request, grabbing...");
-    const headers = getOrLoadHeaders(tabId);
-    if (!headers) {
-      console.log("[resolveCues] headers not set");
-      return Promise.reject("auth data not found.");
-    }
-    await grabAndHandleManifest(tabId);
-    const preference = await resolvePreference(
-      getProfile(tabId) ?? await grabAndHandleProfile(tabId),
-      findSeasonGuid(tabId)!,
-      findEpisodeGuid(tabId)!
-    );
-    console.log("[resolveCues] preference is", preference);
-    altCues = await loadCues(tabId, preference, false);
-    console.log(`[resolveCues] grabbed ${altCues?.length} cues upon request`);
-  }
-  return altCues;
+async function resolveCues(tabId: number, refresh = false) {
+  await grabEpisodeManifest(tabId);
+  const preference = await resolvePreference(
+    getProfile(tabId) ?? await grabAndHandleProfile(tabId),
+    findSeasonGuid(tabId)!,
+    findEpisodeGuid(tabId)!
+  );
+  return await grabCues(tabId, preference, refresh);
 }
 
 function receiveProfileOrPlayback(details: WebRequest.OnBeforeRequestDetailsType) {
@@ -104,7 +92,7 @@ function receiveProfileOrPlayback(details: WebRequest.OnBeforeRequestDetailsType
         if (shouldRefresh) {
           shouldRefresh = false;
           console.log("[receiveProfileOrPlayback] refresh triggered.");
-          notifyCueRefresh(details.tabId, await resolveCues(details.tabId, details.documentUrl!, getAudio(details.tabId) || null))
+          notifyCueRefresh(details.tabId, await resolveCues(details.tabId))
         }
       }
       console.log(`[receiveProfileOrPlayback] processed ${isProfile ? "profiles" : "playback"} data on tab ${details.tabId}`);
@@ -118,19 +106,25 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
   const isValid: boolean = sender.tab != null && sender.tab.id != null && sender.tab.id >= 0;
   if (!isValid) return Promise.reject();
   const tabId: number = sender.tab!.id!;
-  const url: string = sender.tab!.url!;
+  // const url: string = sender.tab!.url!;
   switch (msg?.type) {
     case "GET_CUES":
-      return await resolveCues(tabId, url, getAudio(tabId) ?? null, msg.refresh);
+      return await resolveCues(tabId);
+    case "REFRESH_CUES":
+      return await resolveCues(tabId, true);
     case "GET_CHOICES":
       let manifest = getEpisodeManifest(tabId);
       if (!manifest) {
-        console.log("[receiveContentMsg] GET_CHOICES: manifest not found, loading...");
-        manifest = await grabAndHandleManifest(tabId);
+        console.log("[receiveContentMsg] GET_CHOICES: eps manifest not found, loading...");
+        manifest = await grabEpisodeManifest(tabId);
       }
-      return manifest;
+      let val = await getCachedSubtitleManifest(manifest, true);
+      if (!val) {
+        console.log("[receiveContentMsg] GET_CHOICES: sub manifest not found, loading...");
+      }
+      return val ?? (await grabSubtitleManifest(tabId));
     case "GET_PREFERENCE":
-      await grabAndHandleManifest(tabId);
+      await grabEpisodeManifest(tabId);
       const preference = await resolvePreference(
         getProfile(tabId) ?? await grabAndHandleProfile(tabId),
         findSeasonGuid(tabId)!,
@@ -141,9 +135,9 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
     case "SET_PREFERENCE":
       if (msg.scope !== "global" && !getEpisodeManifest(tabId)) {
         console.log("[receiveContentMsg] SET_PREFERENCE: manifest not found, loading...");
-        await grabAndHandleManifest(tabId);
+        await grabEpisodeManifest(tabId);
       }
-      const scope: PreferenceScope = msg.scope ?? "season";
+      const scope: PreferenceScope = msg.scope ?? "global";
       const set = await setPreference(scope,
         getProfile(tabId) ?? await grabAndHandleProfile(tabId),
         msg.pref!,
@@ -164,7 +158,7 @@ async function receivePopupMsg(msg: any, sender: Runtime.MessageSender) {
     switch (msg.type) {
       case "GET_CONTEXT": {
         console.groupCollapsed(`[receivePopupMsg] GET_CONTEXT(${tabId}): retrieving...`);
-        await grabAndHandleManifest(tabId);
+        await grabEpisodeManifest(tabId);
         const seasonGuid = findSeasonGuid(tabId);
         const episodeGuid = findEpisodeGuid(tabId);
         const currentProfile = await grabAndHandleProfile(tabId);
@@ -178,7 +172,7 @@ async function receivePopupMsg(msg: any, sender: Runtime.MessageSender) {
       }
       case "GET_MANIFEST": {
         console.groupCollapsed(`[receivePopupMsg] GET_MANIFEST(${tabId}): retrieving...`);
-        const manifest = await grabAndHandleManifest(tabId);
+        const manifest = await grabEpisodeManifest(tabId);
         console.log(manifest);
         return manifest;
       }
@@ -256,7 +250,7 @@ async function receiveTabUpdate(tabId: number, changeInfo: Tabs.OnUpdatedChangeI
   await browser.tabs.sendMessage(tabId, {type: "CLEAR_CUES"});
   console.log(`[dual-sub] cleared cues on tab ${tabId}`);
   if (__BROWSER_TYPE__ === "chrome") {
-    notifyCueRefresh(tabId, await resolveCues(tabId, url, null));
+    notifyCueRefresh(tabId, await resolveCues(tabId));
   } else {
     shouldRefresh = true;
   }
