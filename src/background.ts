@@ -6,7 +6,7 @@ import {grabEpisodeManifest, handleManifestAndAudio} from "./handlers/episode";
 import {getScopedPreference, resolvePreference, setPreference} from "./handlers/preferences";
 import {getFromAllProfiles, getProfile} from "./data/profiles";
 import {setNextRequestTime, shortenUrl} from "./utils";
-import type {Preference, PreferenceScope} from "./data/preferences";
+import type {PreferencePatch, PreferenceScope} from "./data/preferences";
 import {findEpisodeGuid, findSeasonGuid, getEpisodeManifest} from "./data/episode";
 import {grabCues, grabSubtitleManifest} from "./handlers/subtitles/loader";
 import {getCachedSubtitleManifest} from "./handlers/subtitles/cacher";
@@ -207,14 +207,16 @@ async function receivePopupMsg(msg: any, sender: Runtime.MessageSender) {
       }
       case "SET_SCOPED_PREFERENCE": {
         console.groupCollapsed(`[receivePopupMsg] SET_SCOPED_PREFERENCE(${tabId}): applying new pref...`);
-        const pref: Partial<Preference> = msg.pref;
+        const pref: PreferencePatch = msg.pref;
         const seasonGuid: string = msg.seasonGuid;
         const episodeGuid: string = msg.episodeGuid;
         const profileId: string = msg.profileId;
         const scope: PreferenceScope = msg.scope;
 
+        console.log(pref);
+        console.log(scope);
         console.log({
-          pref, seasonGuid, episodeGuid, profileId, scope
+          seasonGuid, episodeGuid, profileId
         });
 
         let profile = await resolveProfile(tabId, profileId);

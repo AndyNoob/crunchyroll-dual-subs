@@ -1,4 +1,4 @@
-import type {Preference, PreferenceScope, StoredPreferences} from "../data/preferences";
+import type {Preference, PreferencePatch, PreferenceScope, StoredPreferences} from "../data/preferences";
 import {type Profile} from "../data/profiles";
 import browser from "webextension-polyfill";
 
@@ -90,7 +90,7 @@ export async function getScopedPreference(
 export async function setPreference(
   scope: PreferenceScope,
   profile: Profile,
-  partial: Partial<Preference>,
+  partial: PreferencePatch,
   seasonGuid?: string | null,
   episodeGuid?: string | null
 ): Promise<Preference | Partial<Preference>> {
@@ -98,10 +98,9 @@ export async function setPreference(
   const profileId = profile.profileId;
 
   if (scope === "global") {
-    prefs.global[profileId] = {
-      ...(prefs.global[profileId] ?? getDefaultPreference(profile)),
-      ...partial
-    };
+    const existing = prefs.global[profileId] ?? getDefaultPreference(profile);
+
+    prefs.global[profileId] = applyPreferencePatch(existing, partial) as Preference;
 
     await saveStoredPreferences(prefs);
     return prefs.global[profileId];
@@ -109,15 +108,12 @@ export async function setPreference(
 
   if (scope === "season") {
     if (!seasonGuid) {
-      console.error("[setPreference] cannot set season preference without seasonGuid");
-      return Promise.reject("[setPreference] cannot set season preference without seasonGuid");
+      throw new Error("[setPreference] cannot set season preference without seasonGuid");
     }
 
     prefs.seasons[profileId] ??= {};
-    prefs.seasons[profileId][seasonGuid] = {
-      ...(prefs.seasons[profileId][seasonGuid] ?? {}),
-      ...partial
-    };
+    const existing = prefs.seasons[profileId][seasonGuid] ?? {};
+    prefs.seasons[profileId][seasonGuid] = applyPreferencePatch(existing, partial);
 
     await saveStoredPreferences(prefs);
     return prefs.seasons[profileId][seasonGuid];
@@ -125,21 +121,35 @@ export async function setPreference(
 
   if (scope === "episode") {
     if (!episodeGuid) {
-      console.error("[setPreference] cannot set episode preference without episodeGuid");
-      return Promise.reject("[setPreference] cannot set episode preference without episodeGuid");
+      throw new Error("[setPreference] cannot set episode preference without episodeGuid");
     }
 
     prefs.episodes[profileId] ??= {};
-    prefs.episodes[profileId][episodeGuid] = {
-      ...(prefs.episodes[profileId][episodeGuid] ?? {}),
-      ...partial
-    };
+
+    const existing = prefs.episodes[profileId][episodeGuid] ?? {};
+
+    prefs.episodes[profileId][episodeGuid] = applyPreferencePatch(existing, partial);
 
     await saveStoredPreferences(prefs);
     return prefs.episodes[profileId][episodeGuid];
   }
 
-  return Promise.reject(`[setPreference] unknown preference scope: ${scope}`);
+  throw new Error(`[setPreference] unknown preference scope: ${scope}`);
+}
+
+function applyPreferencePatch<T extends Partial<Preference>>(
+  target: T,
+  partial: PreferencePatch
+): T {
+  for (const [key, value] of Object.entries(partial) as [keyof Preference, any][]) {
+    if (value === null) {
+      delete target[key];
+    } else {
+      target[key] = value;
+    }
+  }
+
+  return target;
 }
 
 export async function resetPreference(
