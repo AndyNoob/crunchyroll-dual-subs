@@ -8,7 +8,8 @@
 </head>
 
 <body>
-    <main id="cr-dual-subs-options">
+    <div id="loading-state">Loading settings...</div>
+    <main id="cr-dual-subs-options" hidden>
 <!--        <h1>Crunchyroll Dual Subs</h1>-->
         <label>
             Profile
@@ -19,15 +20,15 @@
             <label>
                 Applies to
                 <select id="scope-select">
-                    <option value="global">Global</option>
-                    <option value="season">Current Season</option>
+                    <option value="global">Global (overridden by season)</option>
+                    <option value="season">Current Season (overridden by episode)</option>
                     <option value="episode">Current Episode</option>
                 </select>
             </label>
 
             <div class="settings-block">
                 <label>
-                    Preferred secondary subtitle type
+                    Preferred secondary subtitle
                     <select id="subtitle-select"></select>
                 </label>
 
