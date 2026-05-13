@@ -1,7 +1,8 @@
 import type {Profile} from "./data/profiles";
 import browser from "webextension-polyfill";
 import type {Preference, PreferenceScope} from "./data/preferences";
-import type {EpisodeManifest, Subtitles} from "./data/subtitles";
+import type {Subtitles} from "./data/subtitles";
+import type {EpisodeManifest} from "./data/episode";
 // GPT-5.3/5.5 might be goated
 type ContextResponse = {
   seasonGuid?: string;

@@ -1,46 +1,7 @@
 import type {Cue} from "../content";
 
-import {normalizeUrl} from "../utils";
-
-export function getEpisodeManifest(tabId: number): EpisodeManifest | undefined {
-  return manifestMap.get(tabId);
-}
-
-export function getAltCues(tabId: number, url: string, audio: string | null): Cue[] | undefined | null {
-  if (!cueMap.has(tabId)) return undefined;
-  if (audioMap.get(tabId) !== audio) return null;
-  const inMap = urlMap.get(tabId)!;
-  const search = normalizeUrl(url);
-  if (inMap.includes(search) || search.includes(inMap)) {
-    return cueMap.get(tabId);
-  } else {
-    console.log(`[getAltCues] expected ${inMap} but found ${search}`);
-    return null;
-  }
-}
-
-export function findSeasonGuid(tabId: number) {
-  const manifest = getEpisodeManifest(tabId);
-  if (!manifest) return null;
-  return manifest.findSeasonalGuid(getAudio(tabId)!);
-}
-
-export function findEpisodeGuid(tabId: number) {
-  const manifest = getEpisodeManifest(tabId);
-  if (!manifest) return null;
-  return manifest.findGuid(getAudio(tabId)!);
-}
-
 export function getAudio(tabId: number) {
   return audioMap.get(tabId);
-}
-
-export function setAltCues(tabId: number, cues: Cue[], url: string) {
-  cueMap.set(tabId, cues);
-  const value = normalizeUrl(url);
-  urlMap.set(tabId, value);
-  (globalThis as any)["dualSubs"] = (globalThis as any)["dualSubs"] ?? {};
-  (globalThis as any)["dualSubs"].cues = cueMap;
 }
 
 export function setAudio(tabId: number, audio: string) {
@@ -48,34 +9,11 @@ export function setAudio(tabId: number, audio: string) {
   audioMap.set(tabId, audio);
 }
 
-export function setEpisodeManifest(tabId: number, opt: EpisodeManifest) {
-  manifestMap.set(tabId, opt);
-  (globalThis as any)["dualSubs"] = (globalThis as any)["dualSubs"] ?? {};
-  (globalThis as any)["dualSubs"].manifests = manifestMap;
-}
-
-export function mapVersion(versions: any[]): EpisodeVersion[] {
-  return (versions as EpisodeVersionRaw[]).map(v => {
-    return {
-      audioLocale: v.audio_locale,
-      guid: v.guid,
-      seasonGuid: v.season_guid
-    } as EpisodeVersion
-  });
-}
-
-export const manifestMap = new Map<number, EpisodeManifest>();
-export const cueMap = new Map<number, Cue[]>();
-const urlMap = new Map<number, string>();
 const audioMap = new Map<number, string>();
 
-export interface EpisodeManifest {
-  url: string,
+export interface SubtitleManifest {
   ccs: Subtitles,
   subs: Subtitles,
-  versions: EpisodeVersion[],
-  findGuid(audio: string): string | null,
-  findSeasonalGuid(audio: string): string | null,
 }
 
 export interface Subtitles {
@@ -86,14 +24,20 @@ export interface Subtitles {
   }
 }
 
-export interface EpisodeVersion {
-  audioLocale: string,
-  seasonGuid: string,
-  guid: string
+export interface SubtitleCacheEntry {
+  cachedAt: number,
+  expiresAt: number,
+  subs: Record<string, Cue[]>,
+  ccs: Record<string, Cue[]>,
 }
 
-interface EpisodeVersionRaw {
-  audio_locale: string,
-  season_guid: string,
-  guid: string
+export type SubtitleCache = Record<string, SubtitleCacheEntry>; // episodeGuid -> entry
+
+export type SubtitleManifestCache = Record<string, SubtitleManifestCacheEntry>;
+
+export interface SubtitleManifestCacheEntry {
+  cachedAt: number,
+  expiresAt: number,
+  manifest: SubtitleManifest,
+  stale: boolean
 }

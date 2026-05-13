@@ -50,3 +50,24 @@ export let waitUntil: number = 0;
 export function setNextRequestTime(val: number) {
   waitUntil = val;
 }
+
+export async function getOrFail<T, Args extends unknown[]>(
+  name: string,
+  get: (...args: Args) => Promise<T>,
+  ...args: Args
+): Promise<NonNullable<T>> {
+  let value: T;
+
+  try {
+    value = await get(...args);
+  } catch (e) {
+    console.error(e);
+    throw new Error(`could not retrieve ${name}!`);
+  }
+
+  if (value == null) {
+    throw new Error(`could not retrieve ${name}!`);
+  }
+
+  return value as NonNullable<T>;
+}

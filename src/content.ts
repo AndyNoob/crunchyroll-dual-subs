@@ -1,8 +1,8 @@
 import browser from "webextension-polyfill";
 import {dragging, ensureSubtitleOverlay, overlayText} from "./ui/overlay";
 import {ensureSubtitleControlShell, setTooltipText, updateNotice, updateSubtitleDropdownOptions} from "./ui/controls";
-import type {EpisodeManifest} from "./data/subtitles";
 import type {Preference} from "./data/preferences";
+import type {SubtitleManifest} from "./data/subtitles";
 
 let videoEl: HTMLVideoElement;
 
@@ -28,8 +28,8 @@ async function grabCues() {
   return (await browser.runtime.sendMessage({type: "GET_CUES"}).catch(r => console.warn(r))) as Cue[];
 }
 
-async function grabManifest() {
-  return (await browser.runtime.sendMessage({type: "GET_CHOICES"}).catch(r => console.warn(r))) as EpisodeManifest;
+async function grabSubManifest() {
+  return (await browser.runtime.sendMessage({type: "GET_CHOICES"}).catch(r => console.warn(r))) as SubtitleManifest;
 }
 
 export async function grabPreference(): Promise<Preference> {
@@ -56,7 +56,6 @@ function getCallerName() {
   const match = /at (\S+)/.exec(callerLine);
   return match ? match[1] : 'anonymous';
 }
-
 
 function addMsgListener() {
   browser.runtime.onMessage.addListener(async (msg: any) => {
@@ -101,7 +100,7 @@ function addMsgListener() {
 
 async function updateDropdownOptions() {
   log("updating sub choices...");
-  const manifest = await grabManifest();
+  const manifest = await grabSubManifest();
   const pref = await grabPreference();
   log("pref is", pref);
   log("manifest is", manifest);
