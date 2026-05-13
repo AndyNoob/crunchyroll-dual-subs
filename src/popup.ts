@@ -1,6 +1,6 @@
 import type {Profile} from "./data/profiles";
 import browser from "webextension-polyfill";
-import type {Preference, PreferenceScope} from "./data/preferences";
+import type {Preference, PreferencePatch, PreferenceScope} from "./data/preferences";
 import type {SubtitleManifest, Subtitles} from "./data/subtitles";
 // GPT-5.3/5.5 might be goated
 type ContextResponse = {
@@ -156,7 +156,7 @@ async function loadScopedPreference(): Promise<Partial<Preference>> {
   });
 }
 
-async function saveScopedPreference(pref: Partial<Preference>) {
+async function saveScopedPreference(pref: PreferencePatch) {
   await send({
     type: "SET_SCOPED_PREFERENCE",
     profileId: profileSelect.value,
@@ -165,6 +165,7 @@ async function saveScopedPreference(pref: Partial<Preference>) {
     episodeGuid: context.episodeGuid,
     pref
   });
+  await browser.tabs.sendMessage(tabId, {type: "UPDATE_PREFERENCE"});
 }
 
 async function refreshForm() {
@@ -185,8 +186,8 @@ function attachListeners() {
 
     if (option.value === "__unset__") {
       await saveScopedPreference({
-        subLanguage: undefined,
-        doCc: undefined
+        subLanguage: null,
+        doCc: null
       });
 
       return;
@@ -206,7 +207,7 @@ function attachListeners() {
   offsetInput.addEventListener("change", async () => {
     if (offsetInput.value.trim() === "") {
       await saveScopedPreference({
-        subtitleOffsetMs: undefined
+        subtitleOffsetMs: null
       });
 
       return;
