@@ -10,7 +10,7 @@ import {
 import {findHeaderValue, getOrLoadHeaders} from "../data/headers";
 import {setNextRequestTime, singleFlight, sleep, waitUntil} from "../utils";
 
-export function handleProfile(data: any, tabId: number): Profile {
+export function handleProfiles(tabId: number, data: any): Profile {
   const profiles: Profile[] = (data?.["profiles"] as [RawProfile]).map(a => mapProfile(a));
   let selected: Profile | null = null;
   clearAllProfiles();
@@ -28,16 +28,16 @@ export function handleProfile(data: any, tabId: number): Profile {
   return selected;
 }
 
-export const grabAndHandleProfile = singleFlight(
-  grabAndHandleProfile0,
+export const grabSelectedProfile = singleFlight(
+  grabAndHandleProfiles,
   (tabId, _ = false) => tabId.toString()
 );
 
-async function grabAndHandleProfile0(tabId: number, refresh: boolean = false): Promise<Profile> {
+async function grabAndHandleProfiles(tabId: number, refresh: boolean = false): Promise<Profile> {
   if (!refresh) {
     const profile = getProfile(tabId);
     if (profile) {
-      console.log("[grabAndHandleProfile] profile already exists, not refreshing.");
+      console.log("[grabAndHandleProfiles] profile already exists, not refreshing.");
       return profile;
     }
   }
@@ -51,6 +51,6 @@ async function grabAndHandleProfile0(tabId: number, refresh: boolean = false): P
   });
   setNextRequestTime(performance.now() + 5000);
   if (!response.ok) return Promise.reject("failed to grab profile");
-  return handleProfile(await response.json(), tabId);
+  return handleProfiles(tabId, await response.json());
 }
 
