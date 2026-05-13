@@ -1,8 +1,7 @@
 import type {Profile} from "./data/profiles";
 import browser from "webextension-polyfill";
 import type {Preference, PreferenceScope} from "./data/preferences";
-import type {Subtitles} from "./data/subtitles";
-import type {EpisodeManifest} from "./data/episode";
+import type {SubtitleManifest, Subtitles} from "./data/subtitles";
 // GPT-5.3/5.5 might be goated
 type ContextResponse = {
   seasonGuid?: string;
@@ -16,7 +15,7 @@ const subtitleSelect = document.querySelector("#subtitle-select") as HTMLSelectE
 const offsetInput = document.querySelector("#offset-input") as HTMLInputElement;
 const resetPositionButton = document.querySelector("#reset-position-button") as HTMLButtonElement;
 
-let manifest: EpisodeManifest | null = null;
+let manifest: SubtitleManifest | null = null;
 
 let tabId: number;
 let context: ContextResponse;
@@ -37,10 +36,10 @@ async function send<T>(msg: Record<string, unknown>): Promise<T> {
 }
 
 async function grabManifest() {
-  return (await send({type: "GET_MANIFEST"}).catch(r => console.warn(r))) as EpisodeManifest;
+  return (await send({type: "GET_MANIFEST"}).catch(r => console.warn(r))) as SubtitleManifest;
 }
 
-function formatLocale(locale: string) {
+/*function formatLocale(locale: string) {
   try {
     return new Intl.DisplayNames(
       ["en"],
@@ -49,7 +48,7 @@ function formatLocale(locale: string) {
   } catch {
     return locale;
   }
-}
+}*/
 
 async function getActiveCrunchyrollTabId(): Promise<number> {
   const tabs = await browser.tabs.query({
@@ -109,7 +108,7 @@ function renderSubtitleSelect(pref: Partial<Preference>) {
       option.dataset.language = sub.language;
       option.dataset.cc = String(doCc);
 
-      option.textContent = `${formatLocale(sub.language)}${doCc ? " [CC]" : ""}`;
+      option.textContent = `${(sub.language)}${doCc ? " [CC]" : ""}`;
 
       if (pref.subLanguage === sub.language && pref.doCc === doCc) {
         option.selected = true;
@@ -121,10 +120,30 @@ function renderSubtitleSelect(pref: Partial<Preference>) {
 
   appendOptions(manifest.subs, false);
   appendOptions(manifest.ccs, true);
+
+  const unset = document.createElement("option");
+
+  unset.value = "__unset__";
+  unset.textContent = "<unset>";
+
+  subtitleSelect.appendChild(unset);
+
+  if (
+    pref.subLanguage == null ||
+    pref.doCc == null
+  ) {
+    unset.selected = true;
+  }
 }
 
 function renderOffset(pref: Partial<Preference>) {
-  offsetInput.value = String((pref.subtitleOffsetMs ?? 0) / 1000);
+  if (pref.subtitleOffsetMs == null) {
+    offsetInput.value = "";
+    return;
+  }
+
+  offsetInput.value =
+    String(pref.subtitleOffsetMs / 1000);
 }
 
 async function loadScopedPreference(): Promise<Partial<Preference>> {
@@ -164,6 +183,15 @@ function attachListeners() {
     const option = subtitleSelect.selectedOptions[0];
     if (!option) return;
 
+    if (option.value === "__unset__") {
+      await saveScopedPreference({
+        subLanguage: undefined,
+        doCc: undefined
+      });
+
+      return;
+    }
+
     const subLanguage = option.dataset.language;
     const doCc = option.dataset.cc === "true";
 
@@ -173,17 +201,24 @@ function attachListeners() {
       subLanguage,
       doCc
     });
-
-    await browser.tabs.sendMessage(tabId, {
-      type: "UPDATE_PREFERENCE"
-    });
   });
 
   offsetInput.addEventListener("change", async () => {
+    if (offsetInput.value.trim() === "") {
+      await saveScopedPreference({
+        subtitleOffsetMs: undefined
+      });
+
+      return;
+    }
+
     const seconds = Number(offsetInput.value);
 
     await saveScopedPreference({
-      subtitleOffsetMs: Number.isFinite(seconds) ? Math.round(seconds * 1000) : 0
+      subtitleOffsetMs:
+        Number.isFinite(seconds)
+          ? Math.round(seconds * 1000)
+          : undefined
     });
   });
 
