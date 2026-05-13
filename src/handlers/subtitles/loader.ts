@@ -60,10 +60,20 @@ function normalizeFrazyCues(parsed: any[]): Cue[] {
 async function loadSubtitles(tabId: number, pref: Preference): Promise<Cue[]> {
   logger.info("begin load alt subs");
   const manifest = await grabSubtitleManifest(tabId);
-  const subtitle = (pref.doCc ? manifest.ccs : manifest.subs)[pref.subLanguage];
+  let subtitles = (pref.doCc ? manifest.ccs : manifest.subs);
+  let subtitle = subtitles[pref.subLanguage];
   if (!subtitle) {
-    logger.error("requested subtitle not found in manifest", pref);
-    return Promise.reject("can't find it, gave up");
+    logger.warn("requested subtitle not found in manifest, selecting first", pref);
+    let keys = Object.keys(subtitles);
+    if (keys.length === 0) {
+      subtitles = pref.doCc ? manifest.subs : manifest.ccs;
+      keys = Object.keys(subtitles);
+    }
+    subtitle = subtitles[keys[0]!];
+    if (!subtitle) {
+      logger.warn("there are none in preferred subtitle type", pref);
+      return Promise.reject("can't find it, gave up");
+    }
   }
   if (!subtitle.url) {
     if (subtitle.language === "none") {

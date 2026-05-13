@@ -45,13 +45,22 @@ export const grabEpisodeManifest = singleFlight(
   (tabId, _ = false) => tabId.toString()
 );
 
+async function getGuid(tabId: number) {
+  return (await browser.tabs.get(tabId))?.url?.match(/watch\/(.+)\//)?.[1];
+}
+
 async function grabAndHandleManifest0(tabId: number, refresh: boolean = false) {
   const l = logger.getSubLogger({
     name: "grabAndHandleManifest0"
   });
   if (!refresh) {
     const manifest = getEpisodeManifest(tabId);
-    if (manifest) {
+    const currentGuid = await getGuid(tabId);
+    if (currentGuid == undefined) {
+      l.error("url guid not found.");
+      return Promise.reject("can't find guid, gave up");
+    }
+    if (manifest && manifest.episodeGuid === currentGuid) {
       l.info("manifest already exists, not refreshing.");
       return manifest;
     }
