@@ -2,13 +2,13 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 999999;
+  z-index: 999;
 }
 
 #cr-dual-subs-secondary {
   cursor: move;
   pointer-events: auto;
-  z-index: 999999;
+  z-index: 999;
   box-sizing: content-box;
 
   position: absolute;
