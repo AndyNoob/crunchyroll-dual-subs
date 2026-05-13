@@ -9,7 +9,7 @@ type ContextResponse = {
   currentProfile: Profile;
 };
 
-const profileSelect = document.querySelector("#profile-select") as HTMLSelectElement;
+const profileDisplay = document.querySelector("#profile-select") as HTMLSelectElement;
 const scopeSelect = document.querySelector("#scope-select") as HTMLSelectElement;
 const subtitleSelect = document.querySelector("#subtitle-select") as HTMLSelectElement;
 const offsetInput = document.querySelector("#offset-input") as HTMLInputElement;
@@ -67,15 +67,7 @@ async function getActiveCrunchyrollTabId(): Promise<number> {
 
 function renderProfileSelect() {
   const profile = context.currentProfile;
-
-  profileSelect.innerHTML = "";
-
-  const option = document.createElement("option");
-  option.value = profile.profileId;
-  option.textContent = profile.profileName;
-
-  profileSelect.appendChild(option);
-  profileSelect.value = profile.profileId;
+  profileDisplay.textContent = `${profile.profileName}`;
 }
 
 function renderScopeSelect() {
@@ -149,7 +141,7 @@ function renderOffset(pref: Partial<Preference>) {
 async function loadScopedPreference(): Promise<Partial<Preference>> {
   return await send<Partial<Preference>>({
     type: "GET_SCOPED_PREFERENCE",
-    profileId: profileSelect.value,
+    profileId: context.currentProfile.profileId,
     scope: scopeSelect.value as PreferenceScope,
     seasonGuid: context.seasonGuid,
     episodeGuid: context.episodeGuid
@@ -159,7 +151,7 @@ async function loadScopedPreference(): Promise<Partial<Preference>> {
 async function saveScopedPreference(pref: PreferencePatch) {
   await send({
     type: "SET_SCOPED_PREFERENCE",
-    profileId: profileSelect.value,
+    profileId: context.currentProfile.profileId,
     scope: scopeSelect.value as PreferenceScope,
     seasonGuid: context.seasonGuid,
     episodeGuid: context.episodeGuid,
@@ -170,7 +162,7 @@ async function saveScopedPreference(pref: PreferencePatch) {
 
 async function refreshForm() {
   const pref = await loadScopedPreference();
-
+  console.log("pref is", pref);
   renderSubtitleSelect(pref);
   renderOffset(pref);
 }
@@ -236,8 +228,10 @@ async function init() {
 
   try {
     tabId = await getActiveCrunchyrollTabId();
-    context = await send<ContextResponse>({ type: "GET_CONTEXT" });
+    context = await send<ContextResponse>({type: "GET_CONTEXT"});
+    console.log("context is", context);
     manifest = await grabManifest();
+    console.log("manifest is", manifest)
 
     renderProfileSelect();
     renderScopeSelect();
@@ -247,7 +241,8 @@ async function init() {
 
     setLoading(false);
   } catch (err) {
-    console.error("[dual-sub popup] failed to init", err);
+    console.error("[dual-sub popup] failed to init");
+    console.error(err);
     loadingState.textContent = "Could not load settings. Open this on a Crunchyroll episode page.";
   }
 }
