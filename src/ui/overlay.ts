@@ -25,7 +25,11 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
   container.appendChild(overlayRoot);
 
   grabPreference().then(pref => {
-    if (pref.leftPct !== undefined && pref.bottomPct !== undefined) {
+    if (pref == null) {
+      console.error("[dual-sub] could not load preference");
+      return;
+    }
+    if (pref.leftPct != null && pref.bottomPct != null) {
       setTextPos(pref.leftPct, pref.bottomPct);
     }
   })

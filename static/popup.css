@@ -25,6 +25,17 @@ body {
   min-width: 480px;
 }
 
+#loading-state {
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+#cr-dual-subs-options[hidden] {
+  display: none;
+}
+
 #cr-dual-subs-options {
   width: min(860px, calc(100% - 48px));
   margin: 0 auto 0;

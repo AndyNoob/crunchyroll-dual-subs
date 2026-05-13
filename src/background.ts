@@ -19,8 +19,10 @@ if (__BROWSER_TYPE__ !== "chrome") {
     ["blocking"]
   );
 }
-browser.runtime.onMessage.addListener(receiveContentMsg);
-browser.runtime.onMessage.addListener(receivePopupMsg);
+browser.runtime.onMessage.addListener(async (msg: any, sender: Runtime.MessageSender) => {
+  if (sender.tab == null) return await receivePopupMsg(msg, sender);
+  else return await receiveContentMsg(msg, sender);
+});
 browser.webRequest.onSendHeaders.addListener(
   receiveAuthHeaders,
   {urls: ["*://www.crunchyroll.com/*"]},
@@ -129,11 +131,13 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
       return manifest;
     case "GET_PREFERENCE":
       await grabAndHandleManifest(tabId);
-      return await resolvePreference(
+      const preference = await resolvePreference(
         getProfile(tabId) ?? await grabAndHandleProfile(tabId),
         findSeasonGuid(tabId)!,
         findEpisodeGuid(tabId)!
       );
+      console.log("[receiveContentMsg] GET_PREFERENCE", preference);
+      return preference;
     case "SET_PREFERENCE":
       if (msg.scope !== "global" && !getEpisodeManifest(tabId)) {
         console.log("[receiveContentMsg] SET_PREFERENCE: manifest not found, loading...");
@@ -172,6 +176,12 @@ async function receivePopupMsg(msg: any, sender: Runtime.MessageSender) {
         console.log(response);
         return response;
       }
+      case "GET_MANIFEST": {
+        console.groupCollapsed(`[receivePopupMsg] GET_MANIFEST(${tabId}): retrieving...`);
+        const manifest = await grabAndHandleManifest(tabId);
+        console.log(manifest);
+        return manifest;
+      }
       case "GET_SCOPED_PREFERENCE": {
         console.groupCollapsed(`[receivePopupMsg] GET_SCOPED_PREFERENCE(${tabId}): retrieving...`);
         const seasonGuid: string = msg.seasonGuid;
@@ -194,7 +204,7 @@ async function receivePopupMsg(msg: any, sender: Runtime.MessageSender) {
         return pref;
       }
       case "SET_SCOPED_PREFERENCE": {
-        console.groupCollapsed(`[receivePopupMsg] SET_SCOPED_PREFERENCE(${tabId}): retrieving...`);
+        console.groupCollapsed(`[receivePopupMsg] SET_SCOPED_PREFERENCE(${tabId}): applying new pref...`);
         const pref: Partial<Preference> = msg.pref;
         const seasonGuid: string = msg.seasonGuid;
         const episodeGuid: string = msg.episodeGuid;
@@ -212,7 +222,7 @@ async function receivePopupMsg(msg: any, sender: Runtime.MessageSender) {
         }
 
         const newPref = await setPreference(scope, profile, pref, seasonGuid, episodeGuid);
-        console.log("new pref is", newPref);
+        console.log("new pref is", await resolvePreference(profile, seasonGuid, episodeGuid));
         return newPref;
       }
     }
