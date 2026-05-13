@@ -30,10 +30,14 @@ browser.webRequest.onSendHeaders.addListener(
   {urls: ["*://www.crunchyroll.com/*"]},
   getRequestHeaderSpec()
 );
-browser.webRequest.onBeforeRequest.addListener(details => {
+browser.webRequest.onBeforeRequest.addListener((details) => {
   if (details.tabId < 0) return;
   if (details.url.includes("?dual_sub=676767")) return;
   setNextRequestTime(performance.now() + 5000);
+  if (__BROWSER_TYPE__ === "chrome" && details.url.includes("multiprofile")) {
+    // user possibly have changed profiles, but we don't know...
+    grabAndHandleProfile(details.tabId, true).then();
+  }
 }, {urls: ["*://www.crunchyroll.com/*"]});
 browser.tabs.onUpdated.addListener(receiveTabUpdate);
 browser.runtime.onUpdateAvailable.addListener(receiveUpdateNotif);
@@ -182,7 +186,9 @@ async function receivePopupMsg(msg: any, sender: Runtime.MessageSender) {
       }
       case "GET_MANIFEST": {
         console.groupCollapsed(`[receivePopupMsg] GET_MANIFEST(${tabId}): retrieving...`);
-        return resolveSubManifest(tabId);
+        const manifest = await resolveSubManifest(tabId);
+        console.log(manifest);
+        return manifest;
       }
       case "GET_SCOPED_PREFERENCE": {
         console.groupCollapsed(`[receivePopupMsg] GET_SCOPED_PREFERENCE(${tabId}): retrieving...`);
