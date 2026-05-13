@@ -102,6 +102,19 @@ function receiveProfileOrPlayback(details: WebRequest.OnBeforeRequestDetailsType
   }
 }
 
+async function resolveSubManifest(tabId: number) {
+  let manifest = getEpisodeManifest(tabId);
+  if (!manifest) {
+    console.log("eps manifest not found, loading...");
+    manifest = await grabEpisodeManifest(tabId);
+  }
+  let val = await getCachedSubtitleManifest(manifest, true);
+  if (!val) {
+    console.log("sub manifest not found, loading...");
+  }
+  return val ?? (await grabSubtitleManifest(tabId));
+}
+
 async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
   const isValid: boolean = sender.tab != null && sender.tab.id != null && sender.tab.id >= 0;
   if (!isValid) return Promise.reject();
@@ -112,17 +125,14 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
       return await resolveCues(tabId);
     case "REFRESH_CUES":
       return await resolveCues(tabId, true);
-    case "GET_CHOICES":
-      let manifest = getEpisodeManifest(tabId);
-      if (!manifest) {
-        console.log("[receiveContentMsg] GET_CHOICES: eps manifest not found, loading...");
-        manifest = await grabEpisodeManifest(tabId);
+    case "GET_CHOICES": {
+      console.groupCollapsed(`[receiveContentMsg] GET_MANIFEST(${tabId}): retrieving...`);
+      try {
+        return await resolveSubManifest(tabId);
+      } finally {
+        console.groupEnd();
       }
-      let val = await getCachedSubtitleManifest(manifest, true);
-      if (!val) {
-        console.log("[receiveContentMsg] GET_CHOICES: sub manifest not found, loading...");
-      }
-      return val ?? (await grabSubtitleManifest(tabId));
+    }
     case "GET_PREFERENCE":
       await grabEpisodeManifest(tabId);
       const preference = await resolvePreference(
@@ -172,9 +182,7 @@ async function receivePopupMsg(msg: any, sender: Runtime.MessageSender) {
       }
       case "GET_MANIFEST": {
         console.groupCollapsed(`[receivePopupMsg] GET_MANIFEST(${tabId}): retrieving...`);
-        const manifest = await grabEpisodeManifest(tabId);
-        console.log(manifest);
-        return manifest;
+        return resolveSubManifest(tabId);
       }
       case "GET_SCOPED_PREFERENCE": {
         console.groupCollapsed(`[receivePopupMsg] GET_SCOPED_PREFERENCE(${tabId}): retrieving...`);
