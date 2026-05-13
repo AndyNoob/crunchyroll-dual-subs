@@ -15,12 +15,12 @@ const logger = new Logger({
   name: "episodeManifests"
 });
 
-export async function handleManifestAndAudio(response: any, tabId: number): Promise<EpisodeManifest> {
+export async function handleEpisodeManifest(tabId: number, response: any): Promise<EpisodeManifest> {
   const item = response?.data?.[0];
   const meta = item?.episode_metadata;
 
   setAudio(tabId, meta.audio_locale);
-  logger.info(`audio locale for tab ${tabId} is ${response["audio_locale"]}`);
+  logger.info(`audio locale for tab ${tabId} is ${meta.audio_locale}`);
 
   const manifest: EpisodeManifest = {
     url: normalizeUrl((await browser.tabs.get(tabId)).url ?? ""),
@@ -119,7 +119,7 @@ async function grabAndHandleManifest0(tabId: number, refresh: boolean = false) {
     return Promise.reject("[grabAndHandleManifest] failed to grab sub choice");
   }
 
-  return await handleManifestAndAudio(await response.json(), tabId);
+  return await handleEpisodeManifest(tabId, await response.json());
 }
 
 export async function sendManifestRequest(contentId: string | undefined, headers: Header[]) {

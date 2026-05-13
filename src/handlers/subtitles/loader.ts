@@ -9,6 +9,7 @@ import {grabEpisodeManifest} from "../episode";
 import {findHeaderValue, getOrLoadHeaders, type Header} from "../../data/headers";
 import {Logger} from "tslog";
 import {getCachedCues, getCachedSubtitleManifest, setCachedCues, setCachedSubtitleManifest} from "./cacher";
+import type {EpisodeManifest} from "../../data/episode";
 
 const logger = new Logger({
   name: "subtitleLoader"
@@ -132,6 +133,10 @@ export async function grabSubtitleManifest(tabId: number, refresh = false, isRet
     }
   }
   const playback = await response.json();
+  return await handleSubtitleManifest(manifest, playback);
+}
+
+export async function handleSubtitleManifest(manifest: EpisodeManifest, playback: any) {
   const ccs: Subtitles = playback["captions"];
   const subs: Subtitles = playback["subtitles"];
   const subManifest = {

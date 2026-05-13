@@ -71,3 +71,17 @@ export async function getOrFail<T, Args extends unknown[]>(
 
   return value as NonNullable<T>;
 }
+
+// Source - https://stackoverflow.com/a/9763769
+// Posted by RobG, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-05-13, License - CC BY-SA 3.0
+
+export function msToTime(s: number) {
+  const ms = s % 1000;
+  s = (s - ms) / 1000;
+  const secs = s % 60;
+  s = (s - secs) / 60;
+  const mins = s % 60;
+  const hrs = (s - mins) / 60;
+  return `${Math.round(hrs / 24)}d ${hrs % 24}h ${mins}m ${secs}s`;
+}

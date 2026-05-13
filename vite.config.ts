@@ -62,6 +62,12 @@ function makeManifest() {
         js: ["src/content.js"],
         matches: ["*://*.crunchyroll.com/*"],
         run_at: "document_idle"
+      },
+      {
+        js: ["src/monkey_patch_fetch.js"],
+        matches: ["*://*.crunchyroll.com/*"],
+        run_at: "document_start",
+        world: "MAIN"
       }
     ],
     browser_specific_settings: {

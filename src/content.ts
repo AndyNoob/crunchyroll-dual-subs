@@ -18,7 +18,7 @@ let lastInit: string | null = null;
 let preference: Preference | null = null;
 export let rendering: boolean = false;
 
-addMsgListener();
+addListeners();
 
 init().then().catch(r => {
   console.error(`[dual-sub] failed to init extension on ${location.href}`);
@@ -65,7 +65,7 @@ function getCallerName() {
   return match ? match[1] : 'anonymous';
 }
 
-function addMsgListener() {
+function addListeners() {
   browser.runtime.onMessage.addListener(async (msg: any) => {
     switch (msg?.type) {
       case "REFRESH_CUES":
@@ -107,6 +107,15 @@ function addMsgListener() {
     }
   });
   log("added msg listener");
+  window.addEventListener(
+    "cr-dual-subs-monkey-patching",
+    async (e) => {
+      const detail = (e as CustomEvent).detail;
+      log("received communications", detail);
+      await browser.runtime.sendMessage({type: "MONKEY_PATCH_UPDATE", detail});
+    }
+  );
+  log("established connections with monkey patching host");
 }
 
 export async function updateDropdownOptions() {

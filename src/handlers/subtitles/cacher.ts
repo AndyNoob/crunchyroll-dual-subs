@@ -9,6 +9,7 @@ import type {EpisodeManifest} from "../../data/episode";
 import type {Preference} from "../../data/preferences";
 import type {Cue} from "../../content";
 import {Logger} from "tslog";
+import {msToTime} from "../../utils";
 
 const logger = new Logger({
   name: "subtitleCache"
@@ -106,7 +107,7 @@ export async function setCachedSubtitleManifest(
     },
     stale: false
   };
-  logger.info(`cache time for sub manifest of "${epsManifest.episodeTitle}" is ${time}ms`, entry);
+  logger.info(`cache time for sub manifest of "${epsManifest.episodeTitle}" is ${msToTime(time)}`, entry);
   cache[epsManifest.episodeGuid] = entry;
 
   await saveSubtitleManifestCache(cache);
