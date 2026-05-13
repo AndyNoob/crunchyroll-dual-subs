@@ -1,6 +1,12 @@
 import browser from "webextension-polyfill";
 import {dragging, ensureSubtitleOverlay, overlayText} from "./ui/overlay";
-import {ensureSubtitleControlShell, setTooltipText, updateNotice, updateSubtitleDropdownOptions} from "./ui/controls";
+import {
+  ensureSubtitleControlShell,
+  setTooltipText,
+  showStreamLimitNotice,
+  updateNotice,
+  updateSubtitleDropdownOptions
+} from "./ui/controls";
 import type {Preference} from "./data/preferences";
 import type {SubtitleManifest} from "./data/subtitles";
 
@@ -95,12 +101,15 @@ function addMsgListener() {
         await updateDropdownOptions();
         await updateCues(true);
         break;
+      case "PLAYBACK_BLOCKED": {
+        showStreamLimitNotice(msg.blockedUntil);
+      }
     }
   });
   log("added msg listener");
 }
 
-async function updateDropdownOptions() {
+export async function updateDropdownOptions() {
   log("updating sub choices...");
   const manifest = await grabSubManifest();
   preference = await grabPreference();

@@ -2,7 +2,7 @@ import type {Cue} from "../../content";
 import type {Preference} from "../../data/preferences";
 import {type SubtitleManifest, type Subtitles} from "../../data/subtitles";
 import browser from "webextension-polyfill";
-import {notifyCueRefresh} from "../manager";
+import {getPlaybackBlockedUntil, markPlaybackBlocked, notifyCueRefresh} from "../manager";
 import {parseSubs} from "frazy-parser";
 import {getOrFail, singleFlight, sleep} from "../../utils";
 import {grabEpisodeManifest} from "../episode";
@@ -109,6 +109,19 @@ export async function grabSubtitleManifest(tabId: number, refresh = false, isRet
     (await browser.tabs.sendMessage(tabId, {type: "TAB_ID"})) as string
   );
   if ((!response || !response.ok)) {
+    if (response?.status === 420) {
+      markPlaybackBlocked();
+
+      await browser.tabs.sendMessage(tabId, {
+        type: "PLAYBACK_BLOCKED",
+        blockedUntil: getPlaybackBlockedUntil()
+      }).catch(() => {});
+      await browser.runtime.sendMessage({
+        type: "PLAYBACK_BLOCKED",
+        blockedUntil: getPlaybackBlockedUntil()
+      }).catch(() => {});
+      return Promise.reject("stream limited, gave up");
+    }
     if (isRetry) {
       logger.error("failed to grab subtitle manifest", response);
       return Promise.reject(`failed to grab subtitle manifest, code ${response?.status}`);
