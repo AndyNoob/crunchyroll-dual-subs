@@ -5,6 +5,7 @@ import type {Preference} from "../data/preferences";
 import ASS from "assjs";
 import {parse} from "@plussub/srt-vtt-parser";
 import type {Entry} from "@plussub/srt-vtt-parser/dist/types";
+import {askMainWorld} from "../world-bridge";
 
 export let videoEl: HTMLVideoElement;
 
@@ -30,7 +31,7 @@ export async function grabVideo() {
 
 export async function beginRender(tracks: Tracks) {
   log("render initiating...", Object.keys(tracks));
-  let sweetSet = false;
+  let otherSet = false;
   for (let [_, value] of Object.entries(tracks)) {
     if (value.format === "none") continue;
     if (value.format === "vtt") {
@@ -39,8 +40,13 @@ export async function beginRender(tracks: Tracks) {
       vttRender.renderLoop().then();
       continue;
     }
-    if (sweetSet) continue;
-    sweetSet = true;
+    if (otherSet) continue;
+    otherSet = true;
+    // @ts-ignore
+    if (await askMainWorld<boolean>("CHECK_CROPTIX")) {
+      log("detected croptix, will not set up ASS renderer");
+      continue;
+    }
     if (!otherRender) {
       otherRender = new ASS(value.content, videoEl, {
         container: overlayCanvasContainer
@@ -51,12 +57,19 @@ export async function beginRender(tracks: Tracks) {
   await updateOffsets(await grabPreference());
   log("render began!", {
     vtt: !!vttRender,
-    sweet: sweetSet
+    sweet: otherSet
   });
 }
 
 export async function updateOffsets(pref: Preference) {
-  if (otherRender) {
+  if (await askMainWorld<boolean>("CHECK_CROPTIX")) {
+    const offset = ((pref.doCc ? pref.primaryOffsetMs : pref.secondaryOffsetMs) ?? 0) / 1000;
+    if (await askMainWorld<boolean>("SET_CROPTIX_OFFSET", {offset: -offset})) { // croptix is inverted (shrug)
+      log(`changed offset of croptix to ${offset}sec`);
+    } else {
+      console.error("[dual-subs] could not change offset of croptix even though it was found");
+    }
+  } else if (otherRender) {
     otherRender.delay = ((pref.doCc ? pref.primaryOffsetMs : pref.secondaryOffsetMs) ?? 0) / 1000;
     log(`changed offset of ASSJS to ${otherRender.delay}sec`);
     otherRender.hide();
