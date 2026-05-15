@@ -30,6 +30,7 @@ export async function handleEpisodeManifest(tabId: number, response: any): Promi
     seriesTitle: meta.series_title as string,
     seasonTitle: meta.season_title as string,
     episodeTitle: item.title as string,
+    audioLocale: meta.audio_locale as string,
     versions: (meta.versions ?? []).map((v: any) => ({
       audioLocale: v.audio_locale,
       guid: v.guid,

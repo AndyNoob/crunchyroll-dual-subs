@@ -15,7 +15,8 @@ export default defineConfig({
     minify: false
   },
   define: {
-    __BROWSER_TYPE__: JSON.stringify(browserType)
+    __BROWSER_TYPE__: JSON.stringify(browserType),
+    "import.meta": {},
   },
   plugins: [
     webExtension({
@@ -86,7 +87,11 @@ function makeManifest() {
     }),
     web_accessible_resources: [
       {
-        resources: ["icon-32.png", "icon-64.png", "icon-128.png"],
+        resources: [
+          "icon-32.png",
+          "icon-64.png",
+          "icon-128.png"
+        ],
         matches: ["*://*.crunchyroll.com/*"]
       }
     ],

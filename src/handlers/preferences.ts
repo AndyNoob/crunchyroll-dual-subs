@@ -1,7 +1,6 @@
 import type {Preference, PreferencePatch, PreferenceScope, StoredPreferences} from "../data/preferences";
 import {type Profile} from "../data/profiles";
 import browser from "webextension-polyfill";
-import type {EpisodeManifest} from "../data/episode";
 
 export const prefKey = "cr-dual-sub-prefs";
 

@@ -5,11 +5,15 @@ export interface StoredPreferences {
 }
 
 export interface Preference {
+  /**
+   * use CC for secondary subtitle
+   */
   doCc: boolean,
   subLanguage: string,
   leftPct?: number,
   bottomPct?: number,
-  subtitleOffsetMs?: number,
+  primaryOffsetMs?: number,
+  secondaryOffsetMs?: number,
 }
 
 export type PreferenceScope =

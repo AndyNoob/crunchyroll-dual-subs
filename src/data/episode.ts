@@ -31,6 +31,7 @@ export interface EpisodeManifest {
   seriesTitle: string,
   seasonTitle: string,
   episodeTitle: string,
+  audioLocale: string,
   versions: EpisodeVersion[],
 }
 

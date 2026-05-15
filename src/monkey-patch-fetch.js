@@ -16,7 +16,7 @@ window.fetch = async function ( input, init ) {
       const clone = res.clone();
       const data = await clone.json();
       dispatchExtensionEvent("playback", data);
-      if (typeof SubtitlesOctopus != "function") {
+      if (typeof window.SubtitlesOctopus != "function") {
         for (let [ key, value ] of Object.entries(data[ "hardSubs" ])) {
           if (key === data[ "audioLocale" ]) {
             value.url = data[ "hardSubs" ][ "none" ].url;

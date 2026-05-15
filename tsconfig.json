@@ -18,7 +18,10 @@
     /* Modern Defaults */
     "esModuleInterop": true,
     "isolatedModules": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "types": [
+      "node"
+    ]
   },
   "include": ["src/**/*"]
 }

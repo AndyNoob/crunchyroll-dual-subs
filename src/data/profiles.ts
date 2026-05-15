@@ -35,7 +35,7 @@ export function mapProfile(raw: RawProfile): Profile {
   return {
     isSelected: raw.is_selected,
     subLanguage: raw.preferred_content_subtitle_language,
-    doCc: !raw.prefer_closed_captions,
+    doCc: raw.prefer_closed_captions,
     profileId: raw.profile_id,
     profileName: raw.profile_name
   };

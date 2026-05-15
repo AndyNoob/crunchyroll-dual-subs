@@ -179,7 +179,7 @@ input[type="number"]:focus {
   gap: 12px;
 }
 
-#offset-input {
+#secondary-offset-input, #primary-offset-input {
   width: 160px;
 }
 
