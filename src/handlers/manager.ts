@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import type {Track, Tracks} from "../content";
+import type {Format, Track, Tracks} from "../content";
 import {grabSelectedProfile} from "./profiles";
 import {resolvePreference} from "./preferences";
 import {grabEpisodeManifest} from "./episode";
@@ -27,9 +27,11 @@ export async function bundleCues(tabId: number, refresh = false) {
   if (profile.subLanguage != "none" && !profile.doCc) {
     console.log("[receiveContentMsg] GET_CUES: grabbing both cues");
     const trackSecondary = await resolveCues(tabId, refresh);
-    const trackInPlayer = await resolveCues(tabId, refresh, profile);
+    if (profile.subLanguage === (await grabEpisodeManifest(tabId)).audioLocale) {
+      const trackInPlayer = await resolveCues(tabId, refresh, profile);
+      tracks[trackInPlayer.lang] = trackInPlayer;
+    }
     tracks[trackSecondary.lang] = trackSecondary;
-    tracks[trackInPlayer.lang] = trackInPlayer;
   } else {
     const track = await resolveCues(tabId, refresh);
     tracks[track.lang] = track;
@@ -54,7 +56,7 @@ export async function resolveCues(tabId: number, refresh = false, pref: Preferen
   if (!cues) {
     return {format: "none", lang: "none", content: ""};
   }
-  return {format: cues.format, lang: `${preference.subLanguage}-${preference.doCc ? "cc" : ""}`, content: cues.content};
+  return {format: cues.format as Format, lang: `${preference.subLanguage}-${preference.doCc ? "cc" : ""}`, content: cues.content};
 }
 
 let playbackBlockedUntil = 0;

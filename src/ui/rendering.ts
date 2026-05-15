@@ -63,14 +63,14 @@ export async function beginRender(tracks: Tracks) {
 
 export async function updateOffsets(pref: Preference) {
   if (await askMainWorld<boolean>("CHECK_CROPTIX")) {
-    const offset = ((pref.doCc ? pref.primaryOffsetMs : pref.secondaryOffsetMs) ?? 0) / 1000;
+    const offset = ((pref.subLanguage === "none" || pref.doCc ? pref.primaryOffsetMs : pref.secondaryOffsetMs) ?? 0) / 1000;
     if (await askMainWorld<boolean>("SET_CROPTIX_OFFSET", {offset: -offset})) { // croptix is inverted (shrug)
       log(`changed offset of croptix to ${offset}sec`);
     } else {
       console.error("[dual-subs] could not change offset of croptix even though it was found");
     }
   } else if (otherRender) {
-    otherRender.delay = ((pref.doCc ? pref.primaryOffsetMs : pref.secondaryOffsetMs) ?? 0) / 1000;
+    otherRender.delay = ((pref.subLanguage === "none" || pref.doCc ? pref.primaryOffsetMs : pref.secondaryOffsetMs) ?? 0) / 1000;
     log(`changed offset of ASSJS to ${otherRender.delay}sec`);
     otherRender.hide();
     await sleep(50);
@@ -177,7 +177,10 @@ class VTTRender {
   }
 
   public shutdown() {
-    if (this.render != null) cancelAnimationFrame(this.render);
+    if (this.render != null) {
+      cancelAnimationFrame(this.render);
+    }
+    overlayText.style.display = "none";
   }
 
   public async renderLoop() {
