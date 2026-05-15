@@ -60,7 +60,7 @@ function makeManifest() {
     content_scripts: [
       {
         css: ["static/overlay.css", "static/controls.css"],
-        js: ["src/content.js"],
+        js: ["src/content.js", "src/monkey-patch-animate.js"],
         matches: ["*://*.crunchyroll.com/*"],
         run_at: "document_idle"
       },
