@@ -48,7 +48,7 @@ export async function beginRender(tracks: Tracks) {
       continue;
     }
     if (!otherRender) {
-      otherRender = new ASS(value.content, videoEl, {
+      otherRender = new ASS(assSpecPatch(value.content), videoEl, {
         container: overlayCanvasContainer
       });
       otherRender.show();
@@ -116,6 +116,15 @@ function normalizeCues(parsed: Entry[]): Cue[] {
     end: cue.to / 1000,
     text: cleanSubtitleText(cue.text)
   }));
+}
+
+function assSpecPatch(str: string): string {
+  // i encountered an episode of slime show (41) with a malformed ASS subtitle file
+  // GPT-5.3/5.5 proposed this fix for the malformed fade in tag
+  return str.replace(
+    /\\t\((\d+),(\d+),(\d+)\s+([^}]*)}/g,
+    "\\t($1,$2,$3,$4)}"
+  );
 }
 
 function getActiveCue(cues: Cue[], time: number): Cue | null {
