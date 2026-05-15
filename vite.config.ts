@@ -47,14 +47,9 @@ function makeManifest() {
       "64": "icon-64.png",
       "128": "icon-128.png"
     },
-    permissions: browserType === "chrome" ? [
+    permissions: [
       "storage",
       "webRequest",
-    ] : [
-      "storage",
-      "webRequest",
-      "webRequestFilterResponse",
-      "webRequestBlocking",
     ],
     host_permissions: ["*://*.crunchyroll.com/*"],
     content_scripts: [
