@@ -67,7 +67,7 @@ async function init() {
   if (lastInit === location.href) {
     log("skipping double init");
     await updateDropdownOptions();
-    return;
+    return false;
   }
   log(`init begin on ${location.href}`);
   lastInit = location.href;
@@ -77,8 +77,8 @@ async function init() {
   }
   log("not skipping, injecting...");
   await ensurePageInjections();
-  log("done, grabbing cues in 3s...");
-  await sleep(3000);
+  log("done, grabbing cues in 1.5s...");
+  await sleep(1500);
   await updateCuesAndRender();
   if (tracks == null) {
     console.warn("failed to grab cues!");
@@ -91,6 +91,7 @@ async function init() {
   log("updating subtitle dropdown...");
   await updateDropdownOptions();
   log("init complete!");
+  return true;
 }
 
 async function ensurePageInjections() {
@@ -107,7 +108,14 @@ function addListeners() {
       case "REFRESH_CUES":
         tracks = msg.cues;
         log(`refreshed cues`);
-        init().then().catch(r => {
+        init().then(async (r) => {
+          if (!r) {
+            log(`manual init`);
+            await updateDropdownOptions();
+            await shutdownRender();
+            await beginRender(msg.cues as Tracks);
+          }
+        }).catch(async (r) => {
           console.error(`[dual-sub] failed to (re)init extension on ${location.href}`);
           console.error(r);
         });
@@ -130,6 +138,7 @@ function addListeners() {
         break;
       case "CLEAR_CUES":
         tracks = null;
+        await shutdownRender();
         log("received clear cues message from background.");
         break;
       case "UPDATE_PREFERENCE": {

@@ -31,6 +31,7 @@ export async function grabVideo() {
 
 export async function beginRender(tracks: Tracks) {
   log("render initiating...", Object.keys(tracks));
+  if (vttRender || otherRender) await shutdownRender();
   let otherSet = false;
   for (let [_, value] of Object.entries(tracks)) {
     if (value.format === "none") continue;
@@ -42,17 +43,15 @@ export async function beginRender(tracks: Tracks) {
     }
     if (otherSet) continue;
     otherSet = true;
-    // @ts-ignore
+
     if (await askMainWorld<boolean>("CHECK_CROPTIX")) {
       log("detected croptix, will not set up ASS renderer");
       continue;
     }
-    if (!otherRender) {
-      otherRender = new ASS(assSpecPatch(value.content), videoEl, {
-        container: overlayCanvasContainer
-      });
-      otherRender.show();
-    }
+    otherRender = new ASS(assSpecPatch(value.content), videoEl, {
+      container: overlayCanvasContainer
+    });
+    otherRender.show();
   }
   await updateOffsets(await grabPreference());
   log("render began!", {
@@ -83,9 +82,7 @@ export async function updateOffsets(pref: Preference) {
 }
 
 export async function shutdownRender() {
-  if (otherRender) {
-    otherRender.destroy();
-  }
+  if (otherRender) otherRender.destroy();
   if (vttRender) vttRender.shutdown();
   vttRender = otherRender = null;
   log("successfully shutdown rendering.");
