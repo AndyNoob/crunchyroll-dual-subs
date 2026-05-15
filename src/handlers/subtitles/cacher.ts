@@ -1,4 +1,5 @@
 import type {
+  CachedCues,
   SubtitleCache,
   SubtitleCacheEntry,
   SubtitleManifest,
@@ -7,7 +8,6 @@ import type {
 import browser from "webextension-polyfill";
 import type {EpisodeManifest} from "../../data/episode";
 import type {Preference} from "../../data/preferences";
-import type {Cue} from "../../content";
 import {Logger} from "tslog";
 import {msToTime} from "../../utils";
 
@@ -120,7 +120,7 @@ function timeUntilExpiry(url: string | undefined): number | null {
   return exp ? Number(exp) * 1000 - Date.now() : null;
 }
 
-export async function getCachedCues(manifest: EpisodeManifest, pref: Preference): Promise<Cue[] | null> {
+export async function getCachedCues(manifest: EpisodeManifest, pref: Preference): Promise<CachedCues | null> {
   const cache = await loadSubtitleCache();
   const entry = cache[manifest.episodeGuid];
   if (!entry) return null;
@@ -140,7 +140,7 @@ export async function getCachedCues(manifest: EpisodeManifest, pref: Preference)
 export async function setCachedCues(
   manifest: EpisodeManifest,
   pref: Preference,
-  cues: Cue[]
+  cues: CachedCues
 ): Promise<void> {
   const cache = await loadSubtitleCache();
   const entry =

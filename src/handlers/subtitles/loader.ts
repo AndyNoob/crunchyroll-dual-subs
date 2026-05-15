@@ -1,9 +1,8 @@
-import type {Cue} from "../../content";
 import type {Preference} from "../../data/preferences";
-import {type SubtitleManifest, type Subtitles} from "../../data/subtitles";
+import {type CachedCues, type SubtitleManifest, type Subtitles} from "../../data/subtitles";
 import browser from "webextension-polyfill";
-import {getPlaybackBlockedUntil, markPlaybackBlocked, notifyCueRefresh} from "../manager";
-import {parseSubs} from "frazy-parser";
+import {getPlaybackBlockedUntil, markPlaybackBlocked} from "../manager";
+
 import {getOrFail, singleFlight, sleep} from "../../utils";
 import {grabEpisodeManifest} from "../episode";
 import {findHeaderValue, getOrLoadHeaders, type Header} from "../../data/headers";
@@ -17,16 +16,16 @@ const logger = new Logger({
 
 export const grabCues = singleFlight(
   grabCues0,
-  (tabId: number, preference: Preference, _ = false, __ = false) =>
+  (tabId: number, preference: Preference, _ = false) =>
     `${tabId}-${preference.subLanguage}-${preference.doCc}`
 )
 
-export async function grabCues0(tabId: number, preference: Preference, refresh = false, notify = false) {
+export async function grabCues0(tabId: number, preference: Preference, refresh = false) {
   const manifest = await grabEpisodeManifest(tabId);
   if (!refresh) {
     const cached = await getCachedCues(manifest, preference);
-    if (cached != null) {
-      logger.info(`using cached cues (${cached.length} cached)`);
+    if (cached && cached.content && cached.format) {
+      logger.info(`using cached cues`);
       return cached;
     }
     logger.info("cache not found, begin loading cues...");
@@ -35,31 +34,11 @@ export async function grabCues0(tabId: number, preference: Preference, refresh =
   }
   const cues = await loadSubtitles(tabId, preference);
   await setCachedCues(manifest, preference, cues);
-  if (notify) notifyCueRefresh(tabId, cues);
   return cues;
 }
 
-function cleanSubtitleText(text: string): string {
-  const withoutTags = text.replace(/<[^>]*>/g, "");
-  return withoutTags
-    .replace(/\r/g, "")
-    .trim();
-}
-
-function normalizeFrazyCues(parsed: any[]): Cue[] {
-  return parsed.map((cue: any) => ({
-    id: cue.id,
-    start: cue.start,
-    end: cue.end,
-    text: (cue.body || [])
-      .map((part: any) => cleanSubtitleText(part.text || ""))
-      .join("\n")
-      .trim()
-  }));
-}
-
-async function loadSubtitles(tabId: number, pref: Preference): Promise<Cue[]> {
-  logger.info("begin load alt subs");
+async function loadSubtitles(tabId: number, pref: Preference): Promise<CachedCues> {
+  logger.info("begin load subs");
   const manifest = await grabSubtitleManifest(tabId);
   let subtitles = (pref.doCc ? manifest.ccs : manifest.subs);
   let subtitle = subtitles[pref.subLanguage];
@@ -78,13 +57,13 @@ async function loadSubtitles(tabId: number, pref: Preference): Promise<Cue[]> {
   }
   if (!subtitle.url) {
     if (subtitle.language === "none") {
-      return [];
+      return {format: "none", content: ""} as CachedCues;
     } else {
       logger.error("subtitle doesn't have a url yet isn't 'none'", subtitle);
       return Promise.reject("no url, gave up");
     }
   }
-  return await fetchAndParseSubtitle(tabId, subtitle.url);
+  return {content: await fetchAndParseSubtitle(tabId, subtitle.url), format: subtitle.format ?? "unknown"};
 }
 
 const device = __BROWSER_TYPE__; // apparently the allowed values are phone,tablet,android_tv,firefox,chrome
@@ -147,15 +126,14 @@ export async function handleSubtitleManifest(manifest: EpisodeManifest, playback
   return subManifest;
 }
 
-async function fetchAndParseSubtitle(tabId: number, url: string): Promise<Cue[]> {
+async function fetchAndParseSubtitle(tabId: number, url: string): Promise<string> {
   logger.info(`fetching sub from ${url}`);
   const raw = (await browser.tabs.sendMessage(tabId, {type: "FETCH_SUBTITLE", url})) as string;
   if (raw.length === 0) {
     logger.error("subtitle request returned empty.");
-    return [];
+    return "";
   }
-  const parsed = parseSubs(raw);
-  return normalizeFrazyCues(parsed);
+  return raw;
 }
 
 async function sendManifestRequest(contentId: string | undefined, deviceType: string, device: string, headers: Header[], crTabId: string) {

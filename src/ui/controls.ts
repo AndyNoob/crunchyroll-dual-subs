@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import {rendering, renderLoop, updateCues, updateDropdownOptions} from "../content";
+import {updateCuesAndRender, updateDropdownOptions} from "../content";
 
 import type {Preference} from "../data/preferences";
 import type {SubtitleManifest} from "../data/subtitles";
@@ -71,21 +71,17 @@ function ensureSubtitleListeners() {
   if (!subtitleTrigger || !subtitleMenu || !subtitleControl || !refreshButton) return;
 
   if (!refreshButton.dataset.listenerAttached) {
-    addTooltip(refreshButton, "Refresh secondary subtitles");
-    refreshButton.addEventListener("click", async () => {
+    addTooltip(refreshButton, "Refresh secondary subtitles (shift to hard refresh)");
+    refreshButton.addEventListener("click", async (e) => {
       if (!refreshButton) return;
-      console.log("[dual-subs] refresh button clicked, refreshing...");
+      console.log(`[dual-subs] refresh button clicked, refreshing (hard refreshing: ${e.shiftKey})...`);
       if (!refreshButton) return;
 
       startRefreshSpin();
       refreshButton.style.opacity = "0.4";
 
       try {
-        await updateCues();
-        if (!rendering) {
-          console.log("[dual-subs] restarting render loop after refresh");
-          requestAnimationFrame(renderLoop);
-        }
+        await updateCuesAndRender(e.shiftKey);
       } catch (e) {
         console.error(e);
       } finally {
@@ -204,7 +200,7 @@ async function handleSubtitleOptionClick(option: HTMLElement) {
   const pref: Preference = {doCc: isCc, subLanguage: key!}
   await browser.runtime.sendMessage({type: "SET_PREFERENCE", pref});
   console.log("[dual-sub] new pref set", pref);
-  await updateCues(true);
+  await updateCuesAndRender();
   console.log("[dual-sub] updated cues");
 }
 

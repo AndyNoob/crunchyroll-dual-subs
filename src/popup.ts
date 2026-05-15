@@ -12,7 +12,8 @@ type ContextResponse = {
 const profileDisplay = document.querySelector("#profile-select") as HTMLSelectElement;
 const scopeSelect = document.querySelector("#scope-select") as HTMLSelectElement;
 const subtitleSelect = document.querySelector("#subtitle-select") as HTMLSelectElement;
-const offsetInput = document.querySelector("#offset-input") as HTMLInputElement;
+const primaryOffsetInput = document.querySelector("#primary-offset-input") as HTMLInputElement;
+const secondaryOffsetInput = document.querySelector("#secondary-offset-input") as HTMLInputElement;
 const resetPositionButton = document.querySelector("#reset-position-button") as HTMLButtonElement;
 const streamLimitNotice = document.querySelector("#stream-limit-notice") as HTMLDivElement;
 
@@ -130,13 +131,18 @@ function renderSubtitleSelect(pref: Partial<Preference>) {
 }
 
 function renderOffset(pref: Partial<Preference>) {
-  if (pref.subtitleOffsetMs == null) {
-    offsetInput.value = "";
-    return;
+  if (pref.primaryOffsetMs == null) {
+    primaryOffsetInput.value = "";
+  } else {
+    primaryOffsetInput.value =
+      String(pref.primaryOffsetMs / 1000);
   }
-
-  offsetInput.value =
-    String(pref.subtitleOffsetMs / 1000);
+  if (pref.secondaryOffsetMs == null) {
+    secondaryOffsetInput.value = "";
+  } else {
+    secondaryOffsetInput.value =
+      String(pref.secondaryOffsetMs / 1000);
+  }
 }
 
 async function loadScopedPreference(): Promise<Partial<Preference>> {
@@ -197,19 +203,38 @@ function attachListeners() {
     });
   });
 
-  offsetInput.addEventListener("change", async () => {
-    if (offsetInput.value.trim() === "") {
+  primaryOffsetInput.addEventListener("change", async () => {
+    if (primaryOffsetInput.value.trim() === "") {
       await saveScopedPreference({
-        subtitleOffsetMs: null
+        primaryOffsetMs: null
       });
 
       return;
     }
 
-    const seconds = Number(offsetInput.value);
+    const seconds = Number(primaryOffsetInput.value);
 
     await saveScopedPreference({
-      subtitleOffsetMs:
+      primaryOffsetMs:
+        Number.isFinite(seconds)
+          ? Math.round(seconds * 1000)
+          : undefined
+    });
+  });
+
+  secondaryOffsetInput.addEventListener("change", async () => {
+    if (secondaryOffsetInput.value.trim() === "") {
+      await saveScopedPreference({
+        secondaryOffsetMs: null
+      });
+
+      return;
+    }
+
+    const seconds = Number(secondaryOffsetInput.value);
+
+    await saveScopedPreference({
+      secondaryOffsetMs:
         Number.isFinite(seconds)
           ? Math.round(seconds * 1000)
           : undefined

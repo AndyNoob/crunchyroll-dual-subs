@@ -5,7 +5,7 @@
   "description": "Display English and English [CC] subtitles at the same time.",
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && echo -e \"\\a\"",
     "dev": "vite dev",
     "icons": "node scripts/build-icons.js"
   },
@@ -13,13 +13,14 @@
   "license": "MIT",
   "homepage": "https://github.com/AndyNoob/crunchyroll-dual-subs",
   "dependencies": {
-    "frazy-parser": "^2.10.2",
+    "@plussub/srt-vtt-parser": "^2.0.5",
+    "assjs": "^0.1.6",
     "tslog": "^4.10.2",
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.8",
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.7.0",
     "@types/psd": "^3.4.3",
     "@types/webextension-polyfill": "^0.12.5",
     "adm-zip": "^0.5.17",
@@ -27,6 +28,7 @@
     "sharp": "^0.34.5",
     "typescript": "^6.0.3",
     "vite": "^8.0.8",
+    "vite-plugin-static-copy": "^3.4.0",
     "vite-plugin-web-extension": "^4.5.1",
     "vite-plugin-zip-pack": "^1.2.4"
   }

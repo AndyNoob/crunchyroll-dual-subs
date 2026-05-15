@@ -1,5 +1,3 @@
-import type {Cue} from "../content";
-
 export function getAudio(tabId: number) {
   return audioMap.get(tabId);
 }
@@ -27,8 +25,13 @@ export interface Subtitles {
 export interface SubtitleCacheEntry {
   cachedAt: number,
   expiresAt: number,
-  subs: Record<string, Cue[]>,
-  ccs: Record<string, Cue[]>,
+  subs: Record<string, CachedCues>,
+  ccs: Record<string, CachedCues>,
+}
+
+export interface CachedCues {
+  content: string,
+  format: string,
 }
 
 export type SubtitleCache = Record<string, SubtitleCacheEntry>; // episodeGuid -> entry

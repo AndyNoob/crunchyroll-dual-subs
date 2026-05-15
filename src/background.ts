@@ -1,6 +1,6 @@
 import browser, {type Runtime, type Tabs, type WebRequest} from "webextension-polyfill";
 import {setHeaders} from "./data/headers";
-import {getPlaybackBlockedUntil, notifyCueRefresh} from "./handlers/manager";
+import {bundleCues, getPlaybackBlockedUntil, notifyCueRefresh} from "./handlers/manager";
 import {grabSelectedProfile, handleProfiles} from "./handlers/profiles";
 import {grabEpisodeManifest, handleEpisodeManifest} from "./handlers/episode";
 import {getScopedPreference, resolvePreference, setPreference} from "./handlers/preferences";
@@ -8,7 +8,7 @@ import {getFromAllProfiles, getProfile} from "./data/profiles";
 import {setNextRequestTime, shortenUrl, sleep} from "./utils";
 import type {PreferencePatch, PreferenceScope} from "./data/preferences";
 import {findEpisodeGuid, findSeasonGuid, getEpisodeManifest} from "./data/episode";
-import {grabCues, grabSubtitleManifest, handleSubtitleManifest} from "./handlers/subtitles/loader";
+import {grabSubtitleManifest, handleSubtitleManifest} from "./handlers/subtitles/loader";
 import {getCachedSubtitleManifest} from "./handlers/subtitles/cacher";
 
 console.log("[dual-sub] background loaded");
@@ -17,29 +17,9 @@ browser.runtime.onMessage.addListener(async (msg: any, sender: Runtime.MessageSe
   if (sender.tab == null) return await receivePopupMsg(msg, sender);
   else return await receiveContentMsg(msg, sender);
 });
-// browser.webRequest.onSendHeaders.addListener(
-//   receiveAuthHeaders,
-//   {urls: ["*://www.crunchyroll.com/*"]},
-//   getRequestHeaderSpec()
-// );
 browser.webRequest.onBeforeRequest.addListener(receiveMiscReqs, {urls: ["*://www.crunchyroll.com/*"]});
 browser.tabs.onUpdated.addListener(receiveTabUpdate);
 browser.runtime.onUpdateAvailable.addListener(receiveUpdateNotif);
-
-/**
- * @param tabId id of the tab requesting cue resolution
- * @param refresh refreshes the cache
- */
-async function resolveCues(tabId: number, refresh = false) {
-  console.log("[resolveCues] resolution began...");
-  await grabEpisodeManifest(tabId);
-  const preference = await resolvePreference(
-    getProfile(tabId) ?? await grabSelectedProfile(tabId),
-    findSeasonGuid(tabId)!,
-    findEpisodeGuid(tabId)!
-  );
-  return await grabCues(tabId, preference, refresh);
-}
 
 async function resolveSubManifest(tabId: number) {
   let manifest = getEpisodeManifest(tabId);
@@ -58,12 +38,12 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
   const isValid: boolean = sender.tab != null && sender.tab.id != null && sender.tab.id >= 0;
   if (!isValid) return Promise.reject();
   const tabId: number = sender.tab!.id!;
-  // const url: string = sender.tab!.url!;
   switch (msg?.type) {
     case "GET_CUES":
-      return await resolveCues(tabId);
-    case "REFRESH_CUES":
-      return await resolveCues(tabId, true);
+    case "REFRESH_CUES": {
+      const refresh = msg?.type === "REFRESH_CUES";
+      return await bundleCues(tabId, refresh);
+    }
     case "GET_CHOICES": {
       console.groupCollapsed(`[receiveContentMsg] GET_MANIFEST(${tabId}): retrieving...`);
       try {
@@ -113,7 +93,10 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
           return handleProfiles(tabId, detail.payload);
         }
         case "token": {
-          const headers = [{name: "authorization", value: `${detail.payload.token_type} ${detail.payload.access_token}`}];
+          const headers = [{
+            name: "authorization",
+            value: `${detail.payload.token_type} ${detail.payload.access_token}`
+          }];
           if (setHeaders(tabId, headers))
             console.info("authorization token received!");
           break;
@@ -214,13 +197,6 @@ async function resolveProfile(tabId: number, profileId: string) {
   return profile;
 }
 
-// async function receiveAuthHeaders(details: WebRequest.OnSendHeadersDetailsType) {
-//   if (details.tabId < 0) return;
-//   if (details.requestHeaders === undefined) return;
-//   if (setHeaders(details.tabId, details.requestHeaders))
-//     console.debug(`[receiveAuthHeaders] headers set for tab ${details.tabId} based off of ${shortenUrl(details.url)}`);
-// }
-
 function receiveMiscReqs(details: WebRequest.OnBeforeRequestDetailsType) {
   if (details.tabId < 0) return;
   if (details.url.includes("?dual_sub=676767")) return;
@@ -235,7 +211,7 @@ async function receiveTabUpdate(tabId: number, changeInfo: Tabs.OnUpdatedChangeI
   await browser.tabs.sendMessage(tabId, {type: "CLEAR_CUES"});
   console.log(`[dual-sub] cleared cues on tab ${tabId}, waiting 3s...`);
   await sleep(3000);
-  notifyCueRefresh(tabId, await resolveCues(tabId));
+  notifyCueRefresh(tabId, await bundleCues(tabId));
 }
 
 function receiveUpdateNotif(details: Runtime.OnUpdateAvailableDetailsType) {
