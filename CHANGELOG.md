@@ -1,3 +1,19 @@
+# 0.10.0
+- Fix audio switching & the offset being chosen sometimes (AndyNoob)
+- Hacky patch for some malformed ASS files (AndyNoob)
+- Re-add croptix support (AndyNoob)
+- Update README to include new changes (AndyNoob)
+- Add ability to offset primary subtitle rendering (AndyNoob)
+- Default preference's doCc should be inverted (AndyNoob)
+- Hijack hardSubs in playback if croptix isn't found (AndyNoob)
+- Credit copilot in croptix-subtitle-hijack.js (AndyNoob)
+- Add croptix-subtitle-hijack.js to manifest and rename monkey-patch-fetch.js (AndyNoob)
+- Monkey patch fetch! No more 420 stream limits! (AndyNoob)
+- Add Croptix SubtitlesOctopus timeOffset hijack helper (AndyNoob)
+- Add timer if user is 420 stream limited (AndyNoob)
+- Fix two issues (AndyNoob)
+
+
 # 0.9.0
 - Fix overlay and dropdown being above profile switcher (AndyNoob)
 - Fix multi-profile and remove popup profile selection (AndyNoob)
