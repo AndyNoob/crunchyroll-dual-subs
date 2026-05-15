@@ -47,4 +47,32 @@
   } + ')();'
   ;(document.documentElement || document.head).appendChild(s)
   s.remove()
+
+  window.addEventListener("cr-dual-sub-request", async (event) => {
+    const { id, type, payload } = event["detail"];
+
+    try {
+      let result;
+
+      switch (type) {
+        case "CHECK_CROPTIX": {
+          result = typeof SubtitlesOctopus == "function";
+          break;
+        }
+        case "SET_CROPTIX_OFFSET": {
+          window.__setCroptixTimeOffset?.(payload.offset);
+          result = true;
+          break;
+        }
+      }
+
+      window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
+        detail: { id, result }
+      }));
+    } catch (e) {
+      window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
+        detail: { id, error: String(e?.message ?? e) }
+      }));
+    }
+  });
 })()
