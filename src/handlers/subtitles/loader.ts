@@ -25,7 +25,7 @@ export async function grabCues0(tabId: number, preference: Preference, refresh =
   if (!refresh) {
     const cached = await getCachedCues(manifest, preference);
     if (cached && cached.content && cached.format) {
-      logger.info(`using cached cues`);
+      logger.info(`using cached cues`, preference);
       return cached;
     }
     logger.info("cache not found, begin loading cues...");

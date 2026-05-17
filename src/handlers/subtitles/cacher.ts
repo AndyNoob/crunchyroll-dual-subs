@@ -40,6 +40,8 @@ export async function loadSubtitleCache(): Promise<SubtitleCache> {
 }
 
 export async function saveSubtitleCache(cache: SubtitleCache) {
+  const number = purgeExpired(cache);
+  if (number) logger.info(`purged ${number} subtitle cue entries`);
   await browser.storage.local.set({
     [cueCacheKey]: cache
   });
@@ -54,6 +56,8 @@ export async function loadSubtitleManifestCache(): Promise<SubtitleManifestCache
 }
 
 export async function saveSubtitleManifestCache(cache: SubtitleManifestCache) {
+  const number = purgeExpired(cache);
+  if (number) logger.info(`purged ${number} subtitle manifest entries`);
   await browser.storage.local.set({
     [manifestCacheKey]: cache
   });
@@ -156,4 +160,20 @@ export async function setCachedCues(
   logger.info(`new entry for "${manifest.episodeTitle}" added to cue cache`, entry);
 
   await saveSubtitleCache(cache);
+}
+
+function purgeExpired<T extends { expiresAt: number }>(
+  cache: Record<string, T>
+): number {
+  const now = Date.now();
+  let changed = 0;
+
+  for (const [key, value] of Object.entries(cache)) {
+    if (now > value.expiresAt) {
+      delete cache[key];
+      changed++;
+    }
+  }
+
+  return changed;
 }
