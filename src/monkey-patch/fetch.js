@@ -14,13 +14,14 @@ window.fetch = async function ( input, init ) {
     if (url.includes("/playback/v3/")) {
       console.log("[dual-sub] playback hijacked");
       const clone = res.clone();
+      sendAuthHeaders(init);
       const data = await clone.json();
       dispatchExtensionEvent("playback", data);
       if (typeof window.SubtitlesOctopus != "function") {
         for (let [ key, value ] of Object.entries(data[ "hardSubs" ])) {
           if (key === data[ "audioLocale" ]) {
             value.url = data[ "hardSubs" ][ "none" ].url;
-            console.log(`[dual-sub] changed hard sub url of ${key}`);
+            console.log(`[dual-sub] changed hard sub url of ${ key }`);
           }
         }
         const cleanBlob = new Blob([ JSON.stringify(data) ], { type: 'application/json' });
@@ -34,6 +35,7 @@ window.fetch = async function ( input, init ) {
     if (url.includes("content/v2/cms/objects")) {
       console.log("[dual-sub] manifest hijacked");
       const clone = res.clone();
+      sendAuthHeaders(init);
       clone.json().then(data => {
         dispatchExtensionEvent("manifest", data);
       });
@@ -68,7 +70,6 @@ XMLHttpRequest.prototype.send = function ( ...args ) {
       if (url?.includes("/token")) {
         console.log("[dual-sub] token (XHR) hijacked");
         const payload = JSON.parse(this.responseText);
-        window.__dualSubsAuth = `${ payload.token_type } ${ payload.access_token }`
         dispatchExtensionEvent("token", payload);
       }
     } catch (e) {
@@ -78,6 +79,16 @@ XMLHttpRequest.prototype.send = function ( ...args ) {
 
   return originalSend.apply(this, args);
 };
+
+function sendAuthHeaders( req ) {
+  if (!req) return;
+  const authorization = req.headers.get("authorization");
+  if (!authorization) return;
+  const split = authorization.split(" ");
+  if (split.length !== 2) return;
+  const payload = { "access_token": split[ 1 ], "token_type": split[ 0 ] };
+  dispatchExtensionEvent("token", payload);
+}
 
 console.log("[dual-sub] monkey patched XHR", new Date());
 
