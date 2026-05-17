@@ -1,3 +1,11 @@
+# 0.10.1
+- Defer to using communication lang if subtitle lang is not found (AndyNoob)
+- Update permissions in manifest (AndyNoob)
+- Reorganize folder structure (AndyNoob)
+- Fix some lifecycle issues; fix Element.animate exploding (AndyNoob)
+- Add new screenshot (AndyNoob)
+
+
 # 0.10.0
 - Fix audio switching & the offset being chosen sometimes (AndyNoob)
 - Hacky patch for some malformed ASS files (AndyNoob)
