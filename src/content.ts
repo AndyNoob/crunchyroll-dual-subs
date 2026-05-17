@@ -1,7 +1,7 @@
 import browser from "webextension-polyfill";
 import {ensureSubtitleOverlay} from "./ui/overlay";
 import {
-  ensureSubtitleControlShell,
+  ensureSubtitleControlShell, markAsLoading,
   setTooltipText,
   showStreamLimitNotice,
   updateNotice,
@@ -138,6 +138,7 @@ function addListeners() {
         break;
       case "CLEAR_CUES":
         tracks = null;
+        markAsLoading();
         await shutdownRender();
         log("received clear cues message from background.");
         break;

@@ -48,8 +48,9 @@ export function ensureSubtitleControlShell() {
     refreshButton.innerHTML = refreshSvg;
 
   if (!subtitleTrigger.hasChildNodes()) {
-    subtitleLabelNode = document.createTextNode("Subtitles loading... ");
+    subtitleLabelNode = document.createTextNode("");
     subtitleTrigger.appendChild(subtitleLabelNode);
+    markAsLoading();
 
     const arrow = document.createElement("span");
     arrow.textContent = "▾";
@@ -65,6 +66,11 @@ export function ensureSubtitleControlShell() {
   episodeActions.appendChild(casing);
 
   ensureUpdateNotice().then(() => console.log("[dual-sub] updated update notice"));
+}
+
+export function markAsLoading() {
+  if (subtitleLabelNode)
+    subtitleLabelNode.textContent = "Subtitles loading... ";
 }
 
 function ensureSubtitleListeners() {
