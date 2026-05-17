@@ -44,7 +44,7 @@ export async function beginRender(tracks: Tracks) {
     if (otherSet) continue;
     otherSet = true;
 
-    if (await askMainWorld<boolean>("CHECK_CROPTIX")) {
+    if (await askMainWorld<boolean>("CHECK_CROPTIX").catch(() => false)) {
       log("detected croptix, will not set up ASS renderer");
       continue;
     }
@@ -61,7 +61,7 @@ export async function beginRender(tracks: Tracks) {
 }
 
 export async function updateOffsets(pref: Preference) {
-  if (await askMainWorld<boolean>("CHECK_CROPTIX")) {
+  if (await askMainWorld<boolean>("CHECK_CROPTIX").catch(() => false)) {
     const offset = ((pref.subLanguage === "none" || pref.doCc ? pref.primaryOffsetMs : pref.secondaryOffsetMs) ?? 0) / 1000;
     if (await askMainWorld<boolean>("SET_CROPTIX_OFFSET", {offset: -offset})) { // croptix is inverted (shrug)
       log(`changed offset of croptix to ${offset}sec`);
