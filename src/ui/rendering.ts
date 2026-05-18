@@ -125,10 +125,17 @@ function normalizeCues(parsed: Entry[]): Cue[] {
 function assSpecPatch(str: string): string {
   // i encountered an episode of slime show (41) with a malformed ASS subtitle file
   // GPT-5.3/5.5 proposed this fix for the malformed fade in tag
-  return str.replace(
+  str = str.replace(
     /\\t\((\d+),(\d+),(\d+)\s+([^}]*)}/g,
     "\\t($1,$2,$3,$4)}"
   );
+  // i encountered another episode of slime show (72) with another malformed ASS subtitle file
+  // GPT-5.3/5.5 proposed this fix for the malformed fade in tag AGAIN (WTF MAN)
+  str = str.replace(
+    /\\t\((\d+),(\d+),([0-9.]+)\s+(\\[^)]*)\)/g,
+    "\\t($1,$2,$3,$4)"
+  );
+  return str;
 }
 
 function assSortByTime(assContent: string) {
