@@ -90,6 +90,7 @@ export async function shutdownRender() {
     overlayCanvasContainer.replaceChildren();
   }
   if (vttRender) vttRender.shutdown();
+  overlayText.style.display = "none";
   vttRender = otherRender = null;
   log("successfully shutdown rendering.");
 }
