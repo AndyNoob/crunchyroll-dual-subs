@@ -18,6 +18,11 @@
         fixedOptions.easing = "linear";
       }
 
+      if (typeof fixedOptions.duration == "number" && isNaN(fixedOptions.duration)) {
+          console.warn("[dual-sub] fixed bad animation duration:", fixedOptions.duration);
+          fixedOptions.duration = 0;
+      }
+
       return originalAnimate.call(this, keyframes, fixedOptions);
     }
 
@@ -25,4 +30,5 @@
   };
 
   (Element.prototype.animate).__dualSubsPatched = true;
+  console.log("[dual-sub] patched animate", new Date());
 })();
