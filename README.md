@@ -5,7 +5,7 @@ Web extension created to fix the annoying issue of not being able to use `Englis
 ## How it works
 When the Crunchyroll watch page is loaded, the extension intercepts and reads your profile for your preferred/selected subtitle language and type (if you don't have one set via the drop-down or unless you use Chrome... see below). The extension retrieves the episode's subtitle data in the same manner. The alternate subtitle will then be loaded and rendered accordingly by the extension.
 
-> ~~Because of Chrome's recent efforts to fight ad blockers, the extension can't intercept information being loaded by the watch page. Instead, it will fetch the information (redundantly) from Crunchyroll. Don't worry, this won't affect your normal watch experience.~~ 
+> ~~Because of Chrome's recent efforts to fight ad blockers, the extension can't intercept information being loaded by the watch page. Instead, it will fetch the information (redundantly) from Crunchyroll. Don't worry, this won't affect your normal watch experience.~~ <br>
 > Fixed as of `0.10.0`.
 
 The extension adds a drop-down menu for you to select your desired secondary subtitle. The choice is saved for your selected profile to the sync-ed storage (if it is enabled). As of `0.10.0`, a pop-up menu is provided by the extension for scoped preference control (per season, per episode, global). In the menu, you can apply an offset to the timing of both primary and secondary subtitles. 
