@@ -50,7 +50,7 @@ body {
 #cr-dual-subs-options {
   /*width: min(860px, calc(100% - 48px));*/
   margin: 0 16px;
-  padding: 16px 0 28px;
+  padding: 16px 0 0;
 }
 
 h1 {
@@ -77,7 +77,7 @@ h1 {
 }
 
 .scope-block {
-  padding: 24px;
+  padding: 10px 24px;
   border-top: 0;
   border-radius: 0 0 18px 18px;
 }
@@ -138,7 +138,7 @@ input[type="number"]:focus {
   align-items: center;
   justify-content: space-between;
 
-  padding: 20px 24px;
+  padding: 10px 24px;
 
   background: rgba(26, 28, 35, 0.94);
   border: 1px solid var(--border);
@@ -189,7 +189,7 @@ input[type="number"]:focus {
 }
 
 #reset-position-button {
-  margin: 4px 0 22px;
+  margin: 4px 0 14px;
   padding: 11px 16px;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -220,7 +220,7 @@ input[type="checkbox"] {
 }
 
 footer {
-  margin-top: 26px;
+  margin: 26px 0;
   display: flex;
   justify-content: center;
   align-items: center;
