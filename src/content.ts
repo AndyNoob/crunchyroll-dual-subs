@@ -193,7 +193,7 @@ async function tryHackToRefreshToken() {
   } else {
     await videoEl.play();
   }
-  await sleep(5000);
+  log("hack complete.");
 }
 
 export function log(...data: any[]) {

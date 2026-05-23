@@ -40,6 +40,10 @@ window.fetch = async function ( input, init ) {
         dispatchExtensionEvent("manifest", data);
       });
     }
+    if (url.includes("/playheads")) {
+      console.log("[dual-sub] play heads received.");
+      sendAuthHeaders(init);
+    }
   } catch (e) {
     console.warn("[dual-sub] fetch patch failed", e);
   }
