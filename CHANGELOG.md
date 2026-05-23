@@ -1,3 +1,23 @@
+# 0.10.4
+- Save last selected scope in popup menu (AndyNoob)
+- Restyle popup page to be more compact! (AndyNoob)
+- Fix token play heads hack (AndyNoob)
+- Change formatting in README.md (AndyNoob)
+- Fix CHANGELOG.md again (AndyNoob)
+- Fix another ass malform; bump assjs (AndyNoob)
+- Hide overlayText in shutdownRender (AndyNoob)
+- Fix ASS rendering having timing issues after switching eps (AndyNoob)
+- Fix Firefox compatibility (AndyNoob)
+- Mark subtitles as loading when cleared by background (AndyNoob)
+- Extract token out of monkey patched requests (AndyNoob)
+- Add cache purging (AndyNoob)
+- Defer to using communication lang if subtitle lang is not found (AndyNoob)
+- Update permissions in manifest (AndyNoob)
+- Reorganize folder structure (AndyNoob)
+- Fix some lifecycle issues; fix Element.animate exploding (AndyNoob)
+- Add new screenshot (AndyNoob)
+
+
 # 0.10.3
 - Hide overlayText in shutdownRender (AndyNoob)
 - Fix ASS rendering having timing issues after switching eps (AndyNoob)
