@@ -2,7 +2,11 @@ import type {Profile} from "./data/profiles";
 import browser from "webextension-polyfill";
 import type {Preference, PreferencePatch, PreferenceScope} from "./data/preferences";
 import type {SubtitleManifest, Subtitles} from "./data/subtitles";
+
+const lastScopeKey = "cr-dual-sub-last-scope";
+
 // GPT-5.3/5.5 might be goated
+
 type ContextResponse = {
   seasonGuid?: string;
   episodeGuid?: string;
@@ -72,7 +76,7 @@ function renderProfileSelect() {
   profileDisplay.textContent = `${profile.profileName}`;
 }
 
-function renderScopeSelect() {
+async function renderScopeSelect() {
   const seasonOption = scopeSelect.querySelector('option[value="season"]') as HTMLOptionElement | null;
   const episodeOption = scopeSelect.querySelector('option[value="episode"]') as HTMLOptionElement | null;
 
@@ -86,7 +90,18 @@ function renderScopeSelect() {
     episodeOption.textContent = context.episodeGuid ? "Current Episode" : "Current Episode (Unavailable)";
   }
 
-  scopeSelect.value = "global";
+  let scope = await loadLastScope();
+
+  // fallback if unavailable
+  if (scope === "season" && !context.seasonGuid) {
+    scope = "global";
+  }
+
+  if (scope === "episode" && !context.episodeGuid) {
+    scope = "global";
+  }
+
+  scopeSelect.value = scope;
 }
 
 function renderSubtitleSelect(pref: Partial<Preference>) {
@@ -167,6 +182,28 @@ async function saveScopedPreference(pref: PreferencePatch) {
   await browser.tabs.sendMessage(tabId, {type: "UPDATE_PREFERENCE"});
 }
 
+async function loadLastScope(): Promise<PreferenceScope> {
+  const result = await browser.storage.local.get(lastScopeKey);
+
+  const value = result[lastScopeKey];
+
+  if (
+    value === "global" ||
+    value === "season" ||
+    value === "episode"
+  ) {
+    return value;
+  }
+
+  return "global";
+}
+
+async function saveLastScope(scope: PreferenceScope): Promise<void> {
+  await browser.storage.local.set({
+    [lastScopeKey]: scope
+  });
+}
+
 async function refreshForm() {
   const pref = await loadScopedPreference();
   console.log("pref is", pref);
@@ -176,6 +213,7 @@ async function refreshForm() {
 
 function attachListeners() {
   scopeSelect.addEventListener("change", async () => {
+    await saveLastScope(scopeSelect.value as PreferenceScope);
     await refreshForm();
   });
 
@@ -303,7 +341,7 @@ async function init() {
     console.log("manifest is", manifest)
 
     renderProfileSelect();
-    renderScopeSelect();
+    await renderScopeSelect();
     await refreshForm();
 
     attachListeners();
