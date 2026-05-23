@@ -6,7 +6,7 @@ export async function getOrLoadHeaders(tabId: number, refresh = false) {
     if (!refresh)
       console.log(`[getOrLoadHeaders] headers not found for tab ${tabId}, messaging for content script to try hack.`);
     try {
-      await browser.runtime.sendMessage({type: "TRY_HACK"});
+      await browser.tabs.sendMessage(tabId, {type: "TRY_HACK"});
     } catch {
       return Promise.reject("hack failed");
     }
