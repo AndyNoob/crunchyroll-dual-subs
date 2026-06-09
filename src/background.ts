@@ -4,7 +4,14 @@ import {bundleCues, getPlaybackBlockedUntil, notifyCueRefresh} from "./handlers/
 import {grabSelectedProfile, handleProfiles} from "./handlers/profiles";
 import {grabEpisodeManifest, handleEpisodeManifest} from "./handlers/episode";
 import {getScopedPreference, resolvePreference, setPreference} from "./handlers/preferences";
-import {getFromAllProfiles, getProfile} from "./data/profiles";
+import {
+  addToAllProfiles,
+  getFromAllProfiles,
+  getProfile,
+  mapProfile,
+  type RawProfile,
+  setProfile
+} from "./data/profiles";
 import {setNextRequestTime, shortenUrl, sleep} from "./utils";
 import type {PreferencePatch, PreferenceScope} from "./data/preferences";
 import {findEpisodeGuid, findSeasonGuid, getEpisodeManifest} from "./data/episode";
@@ -91,6 +98,19 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
         }
         case "profiles": {
           return handleProfiles(tabId, detail.payload);
+        }
+        case "patch_profile": {
+          const newProfile = mapProfile(detail.payload as RawProfile);
+          if (newProfile.isSelected) {
+            console.log("[receiveContentMsg] new profile applying...");
+            setProfile(tabId, newProfile);
+            await clearCues(tabId);
+            await refreshCues(tabId);
+            console.log("[receiveContentMsg] rebundled cues after profile patching");
+            console.log("[receiveContentMsg] new profile applied");
+          }
+          addToAllProfiles(newProfile);
+          break;
         }
         case "token": {
           const headers = [{
@@ -203,15 +223,23 @@ function receiveMiscReqs(details: WebRequest.OnBeforeRequestDetailsType) {
   setNextRequestTime(performance.now() + 5000);
 }
 
+async function clearCues(tabId: number) {
+  await browser.tabs.sendMessage(tabId, {type: "CLEAR_CUES"});
+}
+
+async function refreshCues(tabId: number) {
+  notifyCueRefresh(tabId, await bundleCues(tabId));
+}
+
 async function receiveTabUpdate(tabId: number, changeInfo: Tabs.OnUpdatedChangeInfoType, _: Tabs.Tab) {
   if (!changeInfo.url) return;
   const url = changeInfo.url;
   if (!url.includes("crunchyroll.com/watch/")) return;
   console.log(`[dual-sub] new tab url for tab ${tabId} is ${shortenUrl(url)}`);
-  await browser.tabs.sendMessage(tabId, {type: "CLEAR_CUES"});
-  console.log(`[dual-sub] cleared cues on tab ${tabId}, waiting 3s...`);
-  await sleep(3000);
-  notifyCueRefresh(tabId, await bundleCues(tabId));
+  await clearCues(tabId);
+  console.log(`[dual-sub] cleared cues on tab ${tabId}, waiting 1.5s...`);
+  await sleep(1500);
+  await refreshCues(tabId);
 }
 
 function receiveUpdateNotif(details: Runtime.OnUpdateAvailableDetailsType) {

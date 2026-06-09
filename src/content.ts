@@ -12,14 +12,17 @@ import type {SubtitleManifest} from "./data/subtitles";
 import {grabVideo, shouldSkip, videoEl, beginRender, shutdownRender, updateOffsets} from "./ui/rendering";
 
 export type Format = "vtt" | "ass" | "none";
+
 export interface Tracks {
   [lang: string]: Track
 }
+
 export interface Track {
   content: string,
   format: Format,
   lang: string
 }
+
 let tracks: Tracks | null = null;
 let lastInit: string | null = null;
 export let preference: Preference | null = null;
