@@ -4,6 +4,7 @@ window.fetch = async function ( input, init ) {
   const res = await originalFetch.apply(this, [ input, init ]);
 
   if (!res.ok) return res;
+  if (input.method !== "GET") return res;
 
   try {
     const url =
@@ -58,6 +59,7 @@ const originalSend = XMLHttpRequest.prototype.send;
 
 XMLHttpRequest.prototype.open = function ( method, url, ...rest ) {
   this.__crDualSubsUrl = String(url);
+  this.__crDualSubsMethod = method;
   return originalOpen.call(this, method, url, ...rest);
 };
 
@@ -67,9 +69,15 @@ XMLHttpRequest.prototype.send = function ( ...args ) {
 
     try {
       if (url?.includes("/multiprofile")) {
-        console.log("[dual-sub] profiles (XHR) hijacked");
-        const payload = JSON.parse(this.responseText);
-        dispatchExtensionEvent("profiles", payload);
+        if (this.__crDualSubsMethod === "GET") {
+          console.log("[dual-sub] profiles (XHR) hijacked");
+          const payload = JSON.parse(this.responseText);
+          dispatchExtensionEvent("profiles", payload);
+        } else if (this.__crDualSubsMethod === "PATCH") {
+          console.log("[dual-sub] patch profile (XHR) hijacked");
+          const payload = JSON.parse(this.responseText);
+          dispatchExtensionEvent("patch_profile", payload);
+        }
       }
       if (url?.includes("/token")) {
         console.log("[dual-sub] token (XHR) hijacked");
