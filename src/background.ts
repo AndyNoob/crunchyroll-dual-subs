@@ -236,7 +236,11 @@ async function receiveTabUpdate(tabId: number, changeInfo: Tabs.OnUpdatedChangeI
   const url = changeInfo.url;
   if (!url.includes("crunchyroll.com/watch/")) return;
   console.log(`[dual-sub] new tab url for tab ${tabId} is ${shortenUrl(url)}`);
-  await clearCues(tabId);
+  try {
+    await clearCues(tabId);
+  } catch (e) {
+    console.warn(`[dual-sub] failed to clear cues for tab ${tabId}`, e);
+  }
   console.log(`[dual-sub] cleared cues on tab ${tabId}, waiting 1.5s...`);
   await sleep(1500);
   await refreshCues(tabId);
