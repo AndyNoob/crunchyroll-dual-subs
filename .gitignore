@@ -144,3 +144,4 @@ vite.config.ts.timestamp-*
 
 # Zip
 dist-zip
+/dev-notes.json
