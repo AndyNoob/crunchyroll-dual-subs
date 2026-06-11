@@ -1,3 +1,10 @@
+# 0.10.5
+- Update .gitignore (AndyNoob)
+- Maybe fix #1, make sure to sleep after requesting hack (AndyNoob)
+- Handle patch multi-profile requests to fix #2 (AndyNoob)
+- Fix CHANGELOG.md for like the 5th time (AndyNoob)
+
+
 # 0.10.4
 - Save last selected scope in popup menu (AndyNoob)
 - Restyle popup page to be more compact! (AndyNoob)
