@@ -1,3 +1,7 @@
+# 0.10.6
+- Fix errors in firefox (AndyNoob)
+
+
 # 0.10.5
 - Update .gitignore (AndyNoob)
 - Maybe fix #1, make sure to sleep after requesting hack (AndyNoob)
