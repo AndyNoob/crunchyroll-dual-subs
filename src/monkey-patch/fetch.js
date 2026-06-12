@@ -4,7 +4,11 @@ window.fetch = async function ( input, init ) {
   const res = await originalFetch.apply(this, [ input, init ]);
 
   if (!res.ok) return res;
-  if (input.method !== "GET") return res;
+  const method = input instanceof Request
+    ? input.method
+    : (init?.method ?? "GET");
+
+  if (method !== "GET") return res;
 
   try {
     const url =
@@ -12,17 +16,19 @@ window.fetch = async function ( input, init ) {
         input instanceof URL ? input.href :
           String(input);
 
-    if (url.includes("/playback/v3/")) {
+    if (url.includes("playback/v3")) {
       console.log("[dual-sub] playback hijacked");
       const clone = res.clone();
       sendAuthHeaders(init);
       const data = await clone.json();
-      dispatchExtensionEvent("playback", data);
       if (typeof window.SubtitlesOctopus != "function") {
-        for (let [ key, value ] of Object.entries(data[ "hardSubs" ])) {
-          if (key === data[ "audioLocale" ]) {
-            value.url = data[ "hardSubs" ][ "none" ].url;
-            console.log(`[dual-sub] changed hard sub url of ${ key }`);
+        dispatchExtensionEvent("playback", data);
+        if (typeof window.SubtitlesOctopus != "function") {
+          for (let [ key, value ] of Object.entries(data[ "hardSubs" ])) {
+            if (key === data[ "audioLocale" ]) {
+              value.url = data[ "hardSubs" ][ "none" ].url;
+              console.log(`[dual-sub] changed hard sub url of ${ key }`);
+            }
           }
         }
         const cleanBlob = new Blob([ JSON.stringify(data) ], { type: 'application/json' });
