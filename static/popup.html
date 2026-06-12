@@ -4,20 +4,21 @@
 <head>
     <meta charset="utf-8">
     <title>Change extension settings</title>
-    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="popup/common.css">
+    <link rel="stylesheet" href="popup/scoped-options.css">
 </head>
 
 <body>
     <div id="loading-state">Loading settings...</div>
     <div id="stream-limit-notice" hidden></div>
-    <main id="cr-dual-subs-options" hidden>
-<!--        <h1>Crunchyroll Dual Subs</h1>-->
+
+    <div id="cr-dual-subs-overlay-options" hidden>
         <div class="profile-display">
-            <span>Profile</span>
+            <span>Overlay options</span>
             <span id="profile-select"></span>
         </div>
 
-        <div class="scope-block">
+        <div class="scope-block" collapsed="true">
             <label>
                 Applies to
                 <select id="scope-select">
@@ -57,13 +58,16 @@
 <!--                </label>-->
             </div>
         </div>
-    </main>
+    </div>
     <footer>
+        Github:
         <a href="https://github.com/AndyNoob/crunchyroll-dual-subs/" target="_blank">SOURCE ↗</a>
         <span>|</span>
         <a href="https://github.com/AndyNoob/crunchyroll-dual-subs/issues" target="_blank">ISSUES ↗</a>
     </footer>
-    <script src="../src/popup.ts" type="module"></script>
+    <script src="../src/ui/popup/common.ts" type="module"></script>
+    <script src="../src/ui/popup/scoped-options.ts" type="module"></script>
+    <script src="../src/ui/popup/dev-note.ts" type="module"></script>
 </body>
 
 </html>
