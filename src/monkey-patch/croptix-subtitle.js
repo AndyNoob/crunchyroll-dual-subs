@@ -49,11 +49,17 @@
   s.remove()
 
   window.addEventListener("cr-dual-sub-request", async (event) => {
-    let id, type, payload;
+    let uid, type, payload;
+    const detail = JSON.parse(event["detail"]);
     try {
-      ( { id, type, payload } = event[ "detail" ] );
+      uid = detail["uid"];
+      type = detail["type"];
+      payload = detail["payload"];
     } catch (e) {
-      console.error("[dual subs croptix] failed to grab event detail", event[ "detail" ], e);
+      console.error("[dual subs croptix] failed to grab event detail", detail, e);
+      window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
+        detail: { uid, result: false }
+      }));
       return;
     }
 
@@ -73,11 +79,11 @@
       }
 
       window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
-        detail: { id, result }
+        detail: { uid, result }
       }));
     } catch (e) {
       window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
-        detail: { id, error: String(e?.message ?? e) }
+        detail: { uid, error: String(e?.message ?? e), result: false }
       }));
     }
   });
