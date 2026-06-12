@@ -29,10 +29,10 @@ export let preference: Preference | null = null;
 
 addListeners();
 
-init().then().catch(r => {
-  console.error(`[dual-sub] failed to init extension on ${location.href}`);
-  console.error(r);
-});
+// init().then().catch(r => {
+//   console.error(`[dual-sub] failed to init extension on ${location.href}`);
+//   console.error(r);
+// });
 
 export async function updateCuesAndRender(refresh = false) {
   if (refresh) {
@@ -68,7 +68,7 @@ export async function updateDropdownOptions() {
 
 async function init() {
   if (lastInit === location.href) {
-    log("skipping double init");
+    log("skipping double init, however, dropdown options will be updated:");
     await updateDropdownOptions();
     return false;
   }
