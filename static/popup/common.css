@@ -1,0 +1,71 @@
+:root {
+  --cr-orange: #f47521;
+  --bg: #111217;
+  --panel: #1a1c23;
+  --field: #272934;
+  --field-hover: #30333f;
+  --text: #f4f4f5;
+  --muted: #a9adb8;
+  --border: rgba(255, 255, 255, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #251c28 0, var(--bg) 45%);
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  min-width: 480px;
+}
+
+#loading-state {
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+#stream-limit-notice {
+  margin: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(244, 117, 33, 0.55);
+  border-radius: 12px;
+  background: rgba(244, 117, 33, 0.14);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+*[collapsed="true"] {
+  clip-path: inset(0 0 100% 0);
+  opacity: 0;
+  max-height: 0;
+  padding: 0!important;
+  overflow: hidden;
+
+  transition:
+          max-height 0.2s linear,
+          clip-path 0.3s ease-in-out,
+          opacity 0.2s ease-in-out,
+          padding 0.3s cubic-bezier(1,0,1,-0.08);
+}
+
+*[collapsed="false"] {
+  clip-path: inset(0 0 0 0);
+  opacity: 1;
+  max-height: 10000px;
+  overflow: hidden;
+
+  transition:
+          max-height 0.2s linear,
+          clip-path 0.3s ease-in-out,
+          opacity 0.2s ease-in-out,
+          padding 0.3s cubic-bezier(0,1.18,0,.96);
+}

@@ -1,17 +1,12 @@
-import type {Profile} from "./data/profiles";
 import browser from "webextension-polyfill";
-import type {Preference, PreferencePatch, PreferenceScope} from "./data/preferences";
-import type {SubtitleManifest, Subtitles} from "./data/subtitles";
+import type {Preference, PreferencePatch, PreferenceScope} from "../../data/preferences";
+import type {SubtitleManifest, Subtitles} from "../../data/subtitles";
+import {type ContextResponse, getActiveCrunchyrollTabId, grabManifest, send} from "./common";
 
 const lastScopeKey = "cr-dual-sub-last-scope";
 
 // GPT-5.3/5.5 might be goated
-
-type ContextResponse = {
-  seasonGuid?: string;
-  episodeGuid?: string;
-  currentProfile: Profile;
-};
+// rah but it sucks at commenting what the hell is going on here
 
 const profileDisplay = document.querySelector("#profile-select") as HTMLSelectElement;
 const scopeSelect = document.querySelector("#scope-select") as HTMLSelectElement;
@@ -19,31 +14,8 @@ const subtitleSelect = document.querySelector("#subtitle-select") as HTMLSelectE
 const primaryOffsetInput = document.querySelector("#primary-offset-input") as HTMLInputElement;
 const secondaryOffsetInput = document.querySelector("#secondary-offset-input") as HTMLInputElement;
 const resetPositionButton = document.querySelector("#reset-position-button") as HTMLButtonElement;
-const streamLimitNotice = document.querySelector("#stream-limit-notice") as HTMLDivElement;
 
-let manifest: SubtitleManifest | null = null;
-
-let tabId: number;
-let context: ContextResponse;
-
-const loadingState = document.querySelector("#loading-state") as HTMLDivElement;
-const settingsContent = document.querySelector("#cr-dual-subs-options") as HTMLDivElement;
-
-function setLoading(isLoading: boolean) {
-  loadingState.hidden = !isLoading;
-  settingsContent.hidden = isLoading;
-}
-
-async function send<T>(msg: Record<string, unknown>): Promise<T> {
-  return await browser.runtime.sendMessage({
-    ...msg,
-    tabId
-  });
-}
-
-async function grabManifest() {
-  return (await send({type: "GET_MANIFEST"}).catch(r => console.warn(r))) as SubtitleManifest;
-}
+export const settingsContent = document.querySelector("#cr-dual-subs-overlay-options") as HTMLDivElement;
 
 /*function formatLocale(locale: string) {
   try {
@@ -56,20 +28,9 @@ async function grabManifest() {
   }
 }*/
 
-async function getActiveCrunchyrollTabId(): Promise<number> {
-  const tabs = await browser.tabs.query({
-    active: true,
-    currentWindow: true
-  });
-
-  const tab = tabs[0];
-
-  if (!tab?.id || !tab.url?.includes("crunchyroll.com")) {
-    throw new Error("Open this popup on a Crunchyroll tab.");
-  }
-
-  return tab.id;
-}
+export let manifest: SubtitleManifest | null = null;
+export let tabId: number;
+export let context: ContextResponse;
 
 function renderProfileSelect() {
   const profile = context.currentProfile;
@@ -285,11 +246,27 @@ function attachListeners() {
       bottomPct: undefined
     });
   });
+
+  // collapsing the scope option section
+  document.querySelector(".profile-display")!.addEventListener("click", () => {
+    let s = document.querySelector('.scope-block');
+    if (!(s instanceof HTMLDivElement)) return;
+    s.setAttribute('collapsed', String(s.getAttribute('collapsed') === 'false'));
+    void s.offsetWidth;
+  })
+}
+
+const streamLimitNotice = document.querySelector("#stream-limit-notice") as HTMLDivElement;
+export const loadingState = document.querySelector("#loading-state") as HTMLDivElement;
+
+export function setLoading(isLoading: boolean) {
+  loadingState.hidden = !isLoading;
+  settingsContent.hidden = isLoading;
 }
 
 let cooldownTimer: number | undefined;
 
-function showStreamLimitNotice(blockedUntil: number) {
+export function showStreamLimitNotice(blockedUntil: number) {
   clearInterval(cooldownTimer);
   loadingState.hidden = true;
 
