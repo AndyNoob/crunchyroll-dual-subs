@@ -49,7 +49,13 @@
   s.remove()
 
   window.addEventListener("cr-dual-sub-request", async (event) => {
-    const { id, type, payload } = event["detail"];
+    let id, type, payload;
+    try {
+      ( { id, type, payload } = event[ "detail" ] );
+    } catch (e) {
+      console.error("[dual subs croptix] failed to grab event detail", event[ "detail" ], e);
+      return;
+    }
 
     try {
       let result;
