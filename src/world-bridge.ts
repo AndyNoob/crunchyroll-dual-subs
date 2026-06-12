@@ -1,5 +1,5 @@
 export function askMainWorld<T>(type: string, payload?: unknown, timeoutMs = 1000): Promise<T> {
-  const id = crypto.randomUUID();
+  const uid = crypto.randomUUID();
 
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
@@ -13,7 +13,7 @@ export function askMainWorld<T>(type: string, payload?: unknown, timeoutMs = 100
     }
 
     function onResponse(event: CustomEvent) {
-      if (event.detail?.id !== id) return;
+      if (event.detail?.uid !== uid) return;
 
       cleanup();
 
@@ -24,7 +24,7 @@ export function askMainWorld<T>(type: string, payload?: unknown, timeoutMs = 100
     window.addEventListener("cr-dual-sub-response", onResponse as EventListener);
 
     window.dispatchEvent(new CustomEvent("cr-dual-sub-request", {
-      detail: { id, type, payload }
+      detail: JSON.stringify({ uid, type, payload })
     }));
   });
 }
