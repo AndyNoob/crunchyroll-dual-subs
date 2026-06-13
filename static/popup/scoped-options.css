@@ -35,6 +35,7 @@ h1 {
   padding: 10px 24px;
   border-top: 0;
   border-radius: 0 0 18px 18px;
+  border-left: 3px solid rgba(244, 117, 33, 0.7);
 }
 
 .scope-block > label,
@@ -53,10 +54,6 @@ h1 {
 
 .field > label {
   margin-bottom: 10px;
-}
-
-.scope-block {
-  border-left: 3px solid rgba(244, 117, 33, 0.7);
 }
 
 .settings-block {
@@ -155,7 +152,7 @@ input[type="number"]:focus {
   padding: 11px 16px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--field);;
+  background: var(--field);
   color: var(--text);
   cursor: pointer;
   font-size: 15px;

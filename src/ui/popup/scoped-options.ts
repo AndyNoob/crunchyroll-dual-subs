@@ -253,7 +253,7 @@ function attachListeners() {
     if (!(s instanceof HTMLDivElement)) return;
     s.setAttribute('collapsed', String(s.getAttribute('collapsed') === 'false'));
     void s.offsetWidth;
-  })
+  });
 }
 
 const streamLimitNotice = document.querySelector("#stream-limit-notice") as HTMLDivElement;
