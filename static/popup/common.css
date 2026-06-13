@@ -69,3 +69,25 @@ body {
           opacity 0.2s ease-in-out,
           padding 0.3s cubic-bezier(0,1.18,0,.96);
 }
+
+
+.scroll-down-arrow {
+  position: relative;
+}
+
+.scroll-down-arrow::after {
+  content: "▼";
+  position: sticky;
+  transform: translateY(20px);
+  display: block;
+  user-select: none;
+  pointer-events: none;
+  animation: bob-the-arrow 2s ease-in-out infinite;
+  transition: opacity 0.2s ease-in-out;
+  text-align: center;
+  margin-top: -19px; /* remove extra space */
+}
+
+.scroll-down-arrow.at-bottom::after {
+  opacity: 0;
+}

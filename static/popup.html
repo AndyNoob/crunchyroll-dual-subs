@@ -5,17 +5,43 @@
     <meta charset="utf-8">
     <title>Change extension settings</title>
     <link rel="stylesheet" href="popup/common.css">
+    <link rel="stylesheet" href="popup/dev-notes.css">
     <link rel="stylesheet" href="popup/scoped-options.css">
 </head>
 
 <body>
+    <div id="cr-dual-subs-dev-notes">
+        <div class="dev-notes">
+            <span>Dev notes</span>
+            <span id="notes-count" data-notes="1">new notes</span>
+        </div>
+        <div class="side-by-side" collapsed="false">
+            <div class="notes-list scroll-down-arrow">
+                <div class="note" role="button">
+                    <span>Title</span>
+                    <p>Message that is very very very very very very very very very very very very very very very very very very very very long</p>
+                </div>
+                <div class="note" role="button">
+                    <span>Title</span>
+                    <p>Message...</p>
+                </div>
+                <div class="note" role="button">
+                    <span>Title</span>
+                    <p>Message...</p>
+                </div>
+            </div>
+            <div class="note-detail">
+            </div>
+        </div>
+<!--        <div class="scroll-arrow">▼</div>-->
+    </div>
     <div id="loading-state">Loading settings...</div>
     <div id="stream-limit-notice" hidden></div>
 
-    <div id="cr-dual-subs-overlay-options" hidden>
+    <div id="cr-dual-subs-overlay-options">
         <div class="profile-display">
             <span>Overlay options</span>
-            <span id="profile-select"></span>
+            <span id="profile-select">N/A</span>
         </div>
 
         <div class="scope-block" collapsed="true">
@@ -65,6 +91,22 @@
         <span>|</span>
         <a href="https://github.com/AndyNoob/crunchyroll-dual-subs/issues" target="_blank">ISSUES ↗</a>
     </footer>
+    <template id="note-template">
+        <div class="note" role="button">
+            <span>Title</span>
+            <p></p>
+        </div>
+    </template>
+    <template id="note-detail-template">
+        <div>
+            <div class="note-detail-header">
+                <button class="back-button">←</button>
+                <span class="note-detail-date">Jun 1, 2026</span>
+            </div>
+            <div class="note-detail-title">Sample dev note</div>
+            <div class="note-detail-body">VERY INTERSTING TEXT</div>
+        </div>
+    </template>
     <script src="../src/ui/popup/common.ts" type="module"></script>
     <script src="../src/ui/popup/scoped-options.ts" type="module"></script>
     <script src="../src/ui/popup/dev-note.ts" type="module"></script>
