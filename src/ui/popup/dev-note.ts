@@ -5,21 +5,26 @@ const devNoteUrl = "https://gist.githubusercontent.com/AndyNoob/49166e0f04f6a986
 
 const noteListEl = document.querySelector(".notes-list");
 const noteDetailEl = document.querySelector(".note-detail");
+const noteCountEl = document.querySelector("#notes-count");
 const noteTemplate = document.querySelector("#note-template");
 const container = document.querySelector(".side-by-side");
 const noteDetailTemplate = document.querySelector("#note-detail-template");
 
-async function loadDevNotes(): Promise<{ notes: DevNote[], date: number }> {
+async function loadDevNotes(): Promise<DevNoteCache> {
   const res = await browser.storage.local.get(devNoteKey);
-  return (res[devNoteKey] ?? { notes: [], date: Date.now() }) as { notes: DevNote[], date: number }
+  return (res[devNoteKey] ?? {notes: [], date: Date.now(), opened: [], enabled: true}) as DevNoteCache
 }
 
-async function saveDevNotes(notes: DevNote[]): Promise<{ notes: DevNote[], date: number }> {
-  const obj = {notes, date: Date.now()};
+async function saveDevNotes(notes: DevNote[], openedSlugs: string[], enabled: boolean): Promise<DevNoteCache> {
+  const obj: DevNoteCache = {notes, date: Date.now(), opened: [...new Set(openedSlugs)], enabled};
+  return saveDevNoteCache(obj);
+}
+
+async function saveDevNoteCache(cache: DevNoteCache): Promise<DevNoteCache> {
   await browser.storage.local.set({
-    [devNoteKey]: obj
+    [devNoteKey]: cache
   });
-  return obj;
+  return cache;
 }
 
 init().then().catch(e => {
@@ -28,17 +33,16 @@ init().then().catch(e => {
 
 async function init() {
   initScrollArrowThing();
-  let obj = await loadDevNotes();
-  if (obj.date - Date.now() < 5 * 60 * 60 * 1000) {
+  let cache = await loadDevNotes();
+  if (cache.enabled && cache.date - Date.now() < 5 * 60 * 60 * 1000) {
     const res = await fetch(devNoteUrl);
     if (!res.ok) {
       console.error("[dual sub dev notes] failed to grab dev notes", res);
       return;
     }
-    obj = await saveDevNotes(await res.json());
+    cache = await saveDevNotes(await res.json(), cache.opened, cache.enabled);
   }
-  if (!noteListEl
-    || !(noteTemplate instanceof HTMLTemplateElement)) return;
+  if (!noteListEl || !(noteTemplate instanceof HTMLTemplateElement)) return;
 
   // collapsing the scope option section
   document.querySelector(".dev-notes")!.addEventListener("click", () => {
@@ -48,10 +52,18 @@ async function init() {
     void s.offsetWidth;
   });
 
+  if (!cache.opened) {
+    cache.opened = [];
+  }
+  if (!(noteCountEl instanceof HTMLElement)) return;
+
+  noteCountEl.dataset.notes = String(cache.notes.length - cache.opened.length);
   noteListEl.replaceChildren();
-  for (let note of obj.notes) {
+
+  for (let note of cache.notes) {
     const fragment = noteTemplate.content.cloneNode(true) as DocumentFragment;
     const el = fragment.firstElementChild as HTMLElement;
+    el.dataset.new = String(!cache.opened.includes(note.slug));
     el.querySelector("span")!.textContent = note.title;
     el.querySelector("p")!.textContent = note.message;
     el.addEventListener("click", () => {
@@ -61,6 +73,10 @@ async function init() {
         behavior: "smooth",
       });
       handleNoteClicked(note);
+      if (!cache.opened.includes(note.slug)) cache.opened.push(note.slug);
+      saveDevNoteCache(cache);
+      el.dataset.new = "false";
+      noteCountEl.dataset.notes = String(cache.notes.length - cache.opened.length);
     });
     noteListEl.append(el);
   }
@@ -87,7 +103,7 @@ function handleNoteClicked(note: DevNote) {
   const fragment = noteDetailTemplate.content.cloneNode(true) as DocumentFragment;
   const el = fragment.firstElementChild as HTMLElement;
   el.querySelector(".note-detail-date")!.textContent = new Date(note.date)
-    .toLocaleDateString(undefined, { timeZone: "UTC" });
+    .toLocaleDateString(undefined, {timeZone: "UTC"});
   el.querySelector(".note-detail-title")!.textContent = note.title;
   el.querySelector(".note-detail-body")!.textContent = note.message;
   el.querySelector(".back-button")!.addEventListener("click", () => {
@@ -105,4 +121,11 @@ interface DevNote {
   title: string,
   message: string,
   date: string
+}
+
+interface DevNoteCache {
+  notes: DevNote[],
+  date: number,
+  opened: string[],
+  enabled: boolean
 }
