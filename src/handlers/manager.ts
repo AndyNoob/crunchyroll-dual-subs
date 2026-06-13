@@ -70,3 +70,21 @@ export function getPlaybackBlockedUntil() {
     ? playbackBlockedUntil
     : 0;
 }
+
+let cachedToken: string | null = null;
+const waiters: Array<(token: string) => void> = [];
+
+export async function getToken(tabId: number): Promise<string> {
+  try {
+    const s = "Bearer " + (await browser.tabs.sendMessage(tabId, {type: "SEND_TOKEN"}) as string);
+    if (s) return cachedToken = s;
+  } catch {}
+  if (cachedToken) return Promise.resolve(cachedToken);
+  return new Promise((resolve) => waiters.push(resolve));
+}
+
+// called when content script forwards a token
+export function receiveToken(token: string) {
+  cachedToken = token;
+  waiters.splice(0).forEach(fn => fn(token));
+}

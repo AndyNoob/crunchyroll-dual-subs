@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import {sleep} from "../utils";
+import {getToken} from "../handlers/manager";
 
 export async function getOrLoadHeaders(tabId: number, refresh = false) {
   let header = headersMap.get(tabId);
@@ -11,9 +11,11 @@ export async function getOrLoadHeaders(tabId: number, refresh = false) {
     } catch {
       return Promise.reject("hack failed");
     }
-    console.log(`[getOrLoadHeaders] hack on tab ${tabId} is complete, waiting 1.5s...`);
-    await sleep(1500);
-    header = headersMap.get(tabId);
+    header = [{
+      name: "authorization",
+      value: await getToken(tabId) // realistically this doesn't need to be split by tab id, maybe
+    }];
+    headersMap.set(tabId, header);
   }
   return header;
 }

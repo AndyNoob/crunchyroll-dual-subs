@@ -123,9 +123,13 @@ function addListeners() {
           console.error(r);
         });
         return true;
-      case "TRY_HACK":
+      case "TRY_HACK": // preceded SEND_TOKEN
         await tryHackToRefreshToken();
         return true;
+      case "SEND_TOKEN": {
+        log("SENT TOKEN! LES GO");
+        return (window as any).__dualSubsAuthorizeInterceptor.accessToken.token;
+      }
       case "TAB_ID":
         return sessionStorage.getItem("cx-tab-id");
       case "FETCH_SUBTITLE":
