@@ -76,6 +76,10 @@
           result = true;
           break;
         }
+        default: {
+          event.preventDefault();
+          return;
+        }
       }
 
       window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
