@@ -1,5 +1,5 @@
 import browser, {type Runtime, type Tabs, type WebRequest} from "webextension-polyfill";
-import {bundleCues, getPlaybackBlockedUntil, notifyCueRefresh, receiveToken} from "./handlers/manager";
+import {bundleCues, getPlaybackBlockedUntil, notifyCueRefresh} from "./handlers/manager";
 import {grabSelectedProfile, handleProfiles} from "./handlers/profiles";
 import {grabEpisodeManifest, handleEpisodeManifest} from "./handlers/episode";
 import {getScopedPreference, resolvePreference, setPreference} from "./handlers/preferences";
@@ -109,11 +109,6 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
             console.log("[receiveContentMsg] new profile applied");
           }
           addToAllProfiles(newProfile);
-          break;
-        }
-        case "token": {
-          const token = `${detail.payload.token_type} ${detail.payload.access_token}`;
-          receiveToken(token);
           break;
         }
       }

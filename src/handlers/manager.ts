@@ -71,31 +71,14 @@ export function getPlaybackBlockedUntil() {
     : 0;
 }
 
-let cachedToken: string | null = null;
-const waiters: Array<(token: string) => void> = [];
-
-export async function getToken(tabId: number): Promise<string> {
+export async function getToken(tabId: number): Promise<string | null> {
   try {
     const ss = await browser.tabs.sendMessage(tabId, {type: "SEND_TOKEN"}).catch(e => {
       console.warn(e);
-      return "";
+      return null;
     }) as string | null;
     const s = "Bearer " + ss;
-    if (ss) return cachedToken = s;
+    if (ss) return s;
   } catch {}
-  if (cachedToken) return Promise.resolve(cachedToken);
-  return new Promise((resolve, reject) => {
-    waiters.push(resolve);
-    setTimeout(() => {
-      if (waiters.length !== 0) {
-        reject();
-      }
-    }, 2500);
-  });
-}
-
-// called when content script forwards a token
-export function receiveToken(token: string) {
-  cachedToken = token;
-  waiters.splice(0).forEach(fn => fn(token));
+  return null;
 }
