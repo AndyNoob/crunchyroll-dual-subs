@@ -9,6 +9,7 @@ const noteCountEl = document.querySelector("#notes-count");
 const noteTemplate = document.querySelector("#note-template");
 const container = document.querySelector(".side-by-side");
 const noteDetailTemplate = document.querySelector("#note-detail-template");
+const enabledCheckbox = document.querySelector("#dev-notes-checkbox") as HTMLInputElement;
 
 async function loadDevNotes(): Promise<DevNoteCache> {
   const res = await browser.storage.local.get(devNoteKey);
@@ -31,34 +32,17 @@ init().then().catch(e => {
   console.error("[dual sub dev notes]", e);
 });
 
-async function init() {
-  initScrollArrowThing();
-  let cache = await loadDevNotes();
-  if (cache.enabled && cache.date - Date.now() < 5 * 60 * 60 * 1000) {
-    const res = await fetch(devNoteUrl);
-    if (!res.ok) {
-      console.error("[dual sub dev notes] failed to grab dev notes", res);
-      return;
-    }
-    cache = await saveDevNotes(await res.json(), cache.opened, cache.enabled);
-  }
+async function subInit(cache: DevNoteCache) {
   if (!noteListEl || !(noteTemplate instanceof HTMLTemplateElement)) return;
-
-  // collapsing the scope option section
-  document.querySelector(".dev-notes")!.addEventListener("click", () => {
-    let s = container;
-    if (!(s instanceof HTMLDivElement)) return;
-    s.setAttribute('collapsed', String(s.getAttribute('collapsed') === 'false'));
-    void s.offsetWidth;
-  });
-
   if (!cache.opened) {
     cache.opened = [];
   }
   if (!(noteCountEl instanceof HTMLElement)) return;
 
-  noteCountEl.dataset.notes = String(cache.notes.length - cache.opened.length);
+  noteCountEl.dataset.notes = cache.enabled ? String(cache.notes.length - cache.opened.length) : "0";
   noteListEl.replaceChildren();
+
+  if (!cache.enabled) return;
 
   for (let note of cache.notes) {
     const fragment = noteTemplate.content.cloneNode(true) as DocumentFragment;
@@ -82,17 +66,60 @@ async function init() {
   }
 }
 
+async function init() {
+  initScrollArrowThing();
+
+  let cache = await loadDevNotes();
+  const tryFetch = async () => {
+    if (cache.enabled && cache.date - Date.now() < 5 * 60 * 60 * 1000) {
+      const res = await fetch(devNoteUrl);
+      if (!res.ok) {
+        console.error("[dual sub dev notes] failed to grab dev notes", res);
+        return;
+      }
+      cache = await saveDevNotes(await res.json(), cache.opened, cache.enabled);
+    }
+  }
+  await tryFetch();
+
+  enabledCheckbox.checked = cache.enabled;
+
+  // collapsing the scope option section
+  document.querySelector(".dev-notes")!.addEventListener("click", (e) => {
+    if (e.target instanceof HTMLElement && e.target.id === enabledCheckbox.id) return;
+    let s = container;
+    if (!(s instanceof HTMLDivElement)) return;
+    s.setAttribute("collapsed", String(!cache.enabled || s.getAttribute("collapsed") === "false"));
+    void s.offsetWidth;
+  });
+
+  enabledCheckbox!.addEventListener("click", async () => {
+    cache.enabled = enabledCheckbox.checked;
+    if (cache.enabled) {
+      await tryFetch();
+    } else {
+      container?.setAttribute("collapsed", "true");
+    }
+    saveDevNoteCache(cache).then(subInit);
+  });
+
+  await subInit(cache);
+}
+
 function initScrollArrowThing() {
-  const all = document.querySelectorAll('.scroll-down-arrow');
+  const all = document.querySelectorAll(".scroll-down-arrow");
 
   for (let list of all) {
     const update = () => {
+      console.log(`${list.scrollHeight} - ${list.scrollTop} - ${list.clientHeight}`);
       const atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 10;
       if (atBottom) list.classList.add("at-bottom");
       else list.classList.remove("at-bottom");
     };
 
-    list.addEventListener('scroll', update);
+    list.addEventListener("scroll", update);
+    const observer = new ResizeObserver(() => update());
+    observer.observe(list);
     update(); // run once on load
   }
 }

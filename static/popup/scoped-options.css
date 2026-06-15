@@ -165,19 +165,6 @@ input[type="number"]:focus {
   box-shadow: 0 0 0 3px rgba(244, 117, 33, 0.22);
 }
 
-.checkbox-row {
-  display: flex !important;
-  align-items: center;
-  gap: 12px !important;
-  margin-bottom: 0 !important;
-}
-
-input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--cr-orange);
-}
-
 footer {
   margin: 26px 0;
   display: flex;
