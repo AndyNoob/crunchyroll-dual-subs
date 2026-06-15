@@ -1,14 +1,8 @@
-import browser from "webextension-polyfill";
 import {getToken} from "../handlers/manager";
 
 export async function getOrLoadHeaders(tabId: number, refresh = false) {
   let header = headersMap.get(tabId);
   if (refresh || !header) {
-    if (!refresh)
-      console.log(`[getOrLoadHeaders] headers not found for tab ${tabId}, messaging for content script to try hack.`);
-    await browser.tabs.sendMessage(tabId, {type: "TRY_HACK"}).catch(e => {
-      console.warn(e);
-    });
     const value = await getToken(tabId).catch(e => {
       console.warn(e);
       return null;

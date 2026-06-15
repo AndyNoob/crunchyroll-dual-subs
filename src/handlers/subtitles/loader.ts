@@ -90,6 +90,8 @@ export async function grabSubtitleManifest(tabId: number, refresh = false, isRet
   );
   if ((!response || !response.ok)) {
     if (response?.status === 420) {
+      logger.error("playback blocked!");
+      console.trace();
       markPlaybackBlocked();
 
       await browser.tabs.sendMessage(tabId, {

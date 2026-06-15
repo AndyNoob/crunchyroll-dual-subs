@@ -6,7 +6,7 @@ window.fetch = async function ( input, init ) {
   if (!res.ok) return res;
   const method = input instanceof Request
     ? input.method
-    : (init?.method ?? "GET");
+    : ( init?.method ?? "GET" );
 
   if (method !== "GET") return res;
 
@@ -21,14 +21,12 @@ window.fetch = async function ( input, init ) {
       const clone = res.clone();
       sendAuthHeaders(init);
       const data = await clone.json();
+      dispatchExtensionEvent("playback", data);
       if (typeof window.SubtitlesOctopus != "function") {
-        dispatchExtensionEvent("playback", data);
-        if (typeof window.SubtitlesOctopus != "function") {
-          for (let [ key, value ] of Object.entries(data[ "hardSubs" ])) {
-            if (key === data[ "audioLocale" ]) {
-              value.url = data[ "hardSubs" ][ "none" ].url;
-              console.log(`[dual-sub] changed hard sub url of ${ key }`);
-            }
+        for (let [ key, value ] of Object.entries(data[ "hardSubs" ])) {
+          if (key === data[ "audioLocale" ]) {
+            value.url = data[ "hardSubs" ][ "none" ].url;
+            console.log(`[dual-sub] changed hard sub url of ${ key }`);
           }
         }
         const cleanBlob = new Blob([ JSON.stringify(data) ], { type: 'application/json' });
