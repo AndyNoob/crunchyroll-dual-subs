@@ -111,7 +111,6 @@ function initScrollArrowThing() {
 
   for (let list of all) {
     const update = () => {
-      console.log(`${list.scrollHeight} - ${list.scrollTop} - ${list.clientHeight}`);
       const atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 10;
       if (atBottom) list.classList.add("at-bottom");
       else list.classList.remove("at-bottom");
