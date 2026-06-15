@@ -1,3 +1,20 @@
+# 0.11.0
+- Edit 5 files to fix one line to fix subtitle loading... (AndyNoob)
+- Fix black magic to yoink api session token. (AndyNoob)
+- Fix notes only refreshing within 5 hours... (AndyNoob)
+- Update README.md to include the url of the dev notes gist (AndyNoob)
+- Remove a debug log in dev-note.ts (AndyNoob)
+- Add a timeout to getToken (AndyNoob)
+- Add ability to toggle off dev notes (AndyNoob)
+- Conjure dark magic to probe Crunchy's code for API token (AndyNoob)
+- Maybe implemented rest of dev note. Minus disable button (AndyNoob)
+- Do not make background script trigger content script init (AndyNoob)
+- Base implementation of dev notes (AndyNoob)
+- Add collapsing to scope based options & re-org functions, css (AndyNoob)
+- Actually fix croptix-subtitle communication with iso world (AndyNoob)
+- Make background script trigger content script init (AndyNoob)
+
+
 # 0.10.6
 - Fix errors in firefox (AndyNoob)
 
