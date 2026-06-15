@@ -71,7 +71,7 @@ async function init() {
 
   let cache = await loadDevNotes();
   const tryFetch = async () => {
-    if (cache.enabled && cache.date - Date.now() < 5 * 60 * 60 * 1000) {
+    if (cache.enabled && cache.date - Date.now() > 60 * 60 * 1000) {
       const res = await fetch(devNoteUrl);
       if (!res.ok) {
         console.error("[dual sub dev notes] failed to grab dev notes", res);
