@@ -15,6 +15,8 @@ The extension adds a drop-down menu for you to select your desired secondary sub
 
 As of version `0.10.0`, the extension supports the rendering of non-CC subtitles.
 
+The dev notes feature of this extension loads dev notes from [here (Github Gist)](https://gist.githubusercontent.com/AndyNoob/49166e0f04f6a9863aed242e07bbcfe9/raw/ccef05b3185aaa820145eb48f89714271cf9fa31/cr-dual-subs-dev-notes.json).
+
 ## Privacy notice
 Everything stays on your computer/browser. The extension does not communicate with any external servers other than Crunchyroll's services.
 
