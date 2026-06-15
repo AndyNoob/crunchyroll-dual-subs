@@ -12,10 +12,13 @@
 <body>
     <div id="cr-dual-subs-dev-notes">
         <div class="dev-notes">
-            <span>Dev notes</span>
+            <div>
+                <input id="dev-notes-checkbox" type="checkbox" checked />
+                <label for="dev-notes-checkbox">Dev notes</label>
+            </div>
             <span id="notes-count" data-notes="1">new notes</span>
         </div>
-        <div class="side-by-side" collapsed="false">
+        <div class="side-by-side" collapsed="true">
             <div class="notes-list scroll-down-arrow">
                 <div class="note" role="button" data-new="true">
                     <span>Title</span>
@@ -77,11 +80,6 @@
                 </div>
 
                 <button id="reset-position-button">Reset subtitle position</button>
-
-<!--                <label class="checkbox-row">-->
-<!--                    <input id="debug-logs-checkbox" type="checkbox" />-->
-<!--                    Enable debug logs-->
-<!--                </label>-->
             </div>
         </div>
     </div>
