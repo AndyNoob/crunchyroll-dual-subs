@@ -10,6 +10,7 @@ import {
 import type {Preference} from "./data/preferences";
 import type {SubtitleManifest} from "./data/subtitles";
 import {grabVideo, shouldSkip, videoEl, beginRender, shutdownRender, updateOffsets} from "./ui/rendering";
+import {askMainWorld} from "./world-bridge";
 
 export type Format = "vtt" | "ass" | "none";
 
@@ -127,8 +128,10 @@ function addListeners() {
         await tryHackToRefreshToken();
         return true;
       case "SEND_TOKEN": {
-        log("SENT TOKEN! LES GO");
-        return (window as any).__dualSubsAuthorizeInterceptor.accessToken.token;
+        const token = await askMainWorld<boolean>("GRAB_TOKEN").catch(() => null) as string | null;
+        log(`sending token... (${token ? token.length : token})`);
+        if (token) return token;
+        else return null;
       }
       case "TAB_ID":
         return sessionStorage.getItem("cx-tab-id");

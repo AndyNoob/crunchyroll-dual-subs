@@ -6,14 +6,19 @@ export async function getOrLoadHeaders(tabId: number, refresh = false) {
   if (refresh || !header) {
     if (!refresh)
       console.log(`[getOrLoadHeaders] headers not found for tab ${tabId}, messaging for content script to try hack.`);
-    try {
-      await browser.tabs.sendMessage(tabId, {type: "TRY_HACK"});
-    } catch {
-      return Promise.reject("hack failed");
+    await browser.tabs.sendMessage(tabId, {type: "TRY_HACK"}).catch(e => {
+      console.warn(e);
+    });
+    const value = await getToken(tabId).catch(e => {
+      console.warn(e);
+      return null;
+    });
+    if (value === null) {
+      return null;
     }
     header = [{
       name: "authorization",
-      value: await getToken(tabId) // realistically this doesn't need to be split by tab id, maybe
+      value  // realistically this doesn't need to be split by tab id, maybe
     }];
     headersMap.set(tabId, header);
   }

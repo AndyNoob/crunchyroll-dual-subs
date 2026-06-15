@@ -74,4 +74,35 @@
       clearInterval(timer);
     }
   }, 50);
+
+  window.addEventListener("cr-dual-sub-request", async (event) => {
+    const detail = JSON.parse(event["detail"]);
+    const {uid, type} = { ...detail };
+    try {
+      let result;
+
+      switch (type) {
+        case "GRAB_TOKEN": {
+          if (__dualSubsAuthorizeInterceptor) {
+            console.warn("[dual sub auth] sending token...");
+          } else {
+            console.warn("[dual sub auth] not ready yet");
+          }
+          result = __dualSubsAuthorizeInterceptor.accessToken.token ?? null;
+          break;
+        }
+        default: {
+          return;
+        }
+      }
+
+      window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
+        detail: { uid, result }
+      }));
+    } catch (e) {
+      window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
+        detail: { uid, error: String(e?.message ?? e), result: false }
+      }));
+    }
+  });
 })();

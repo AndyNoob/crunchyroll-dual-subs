@@ -4,6 +4,7 @@ export function askMainWorld<T>(type: string, payload?: unknown, timeoutMs = 100
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
       cleanup();
+      console.error(`[dual sub bridge] timed out during ${type}`);
       reject(new Error(`Timed out waiting for ${type}`));
     }, timeoutMs);
 
@@ -13,6 +14,10 @@ export function askMainWorld<T>(type: string, payload?: unknown, timeoutMs = 100
     }
 
     function onResponse(event: CustomEvent) {
+      if (event.detail?.result === undefined) {
+        console.error(`[dual sub bridge] detail.result was undefined`, event);
+        return;
+      }
       if (event.detail?.uid !== uid) return;
 
       cleanup();

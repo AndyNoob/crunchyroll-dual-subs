@@ -76,8 +76,12 @@ const waiters: Array<(token: string) => void> = [];
 
 export async function getToken(tabId: number): Promise<string> {
   try {
-    const s = "Bearer " + (await browser.tabs.sendMessage(tabId, {type: "SEND_TOKEN"}) as string);
-    if (s) return cachedToken = s;
+    const ss = await browser.tabs.sendMessage(tabId, {type: "SEND_TOKEN"}).catch(e => {
+      console.warn(e);
+      return "";
+    }) as string | null;
+    const s = "Bearer " + ss;
+    if (ss) return cachedToken = s;
   } catch {}
   if (cachedToken) return Promise.resolve(cachedToken);
   return new Promise((resolve, reject) => {
