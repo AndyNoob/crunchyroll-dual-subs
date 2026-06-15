@@ -80,7 +80,14 @@ export async function getToken(tabId: number): Promise<string> {
     if (s) return cachedToken = s;
   } catch {}
   if (cachedToken) return Promise.resolve(cachedToken);
-  return new Promise((resolve) => waiters.push(resolve));
+  return new Promise((resolve, reject) => {
+    waiters.push(resolve);
+    setTimeout(() => {
+      if (waiters.length !== 0) {
+        reject();
+      }
+    }, 2500);
+  });
 }
 
 // called when content script forwards a token
