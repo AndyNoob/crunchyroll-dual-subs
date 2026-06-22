@@ -2,15 +2,18 @@
 // out of Crunchyroll website web pack... pls don't tell crunchy that though :wink:)
 (() => {
   const CHUNK_NAME = "webpackChunk_N_E";
-  const MODULE_ID = 37786;
 
   function tryPatch() {
     const req = window.__dualSubsNextRequire;
-    if (!req?.m?.[MODULE_ID]) return false;
-
-    const mod = req(MODULE_ID);
+    const query = findAuthModule(req);
+    if (query === null) return false;
+    let {id, mod} = query;
+    if (mod) window.__dualSubsApiClient = mod;
     const auth = mod?.AuthorizeInterceptor;
-    if (!auth || auth.__dualSubsPatched) return true;
+    if (!auth) return false;
+    if (auth.__dualSubsPatched) return true;
+
+    console.log(`[dual-sub auth] module id is ${id}`);
 
     auth.__dualSubsPatched = true;
     window.__dualSubsAuthorizeInterceptor = auth;
@@ -31,7 +34,7 @@
     };
 
     auth.refreshTokenIfNeeded = async function (...args) {
-      console.log("[dual-sub auth] refreshTokenIfNeeded", {
+      console.debug("[dual-sub auth] refreshTokenIfNeeded", {
         accessToken: this.accessToken,
         expired: this.accessToken?.isExpired?.()
       });
@@ -48,6 +51,17 @@
 
     console.log("[dual-sub auth] patched", auth);
     return true;
+  }
+
+  function findAuthModule(req) {
+    for (const id of Object.keys(req.m)) {
+      try {
+        const mod = req(id);
+        if (mod?.AuthorizeInterceptor)
+          return { id, mod };
+      } catch {}
+    }
+    return null;
   }
 
   function captureRequire() {
