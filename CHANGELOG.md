@@ -1,3 +1,8 @@
+# 0.11.1
+- Look for the module id instead of hard coding it (AndyNoob)
+- Add badges for the extension stores (AndyNoob)
+
+
 # 0.11.0
 - Edit 5 files to fix one line to fix subtitle loading... (AndyNoob)
 - Fix black magic to yoink api session token. (AndyNoob)
