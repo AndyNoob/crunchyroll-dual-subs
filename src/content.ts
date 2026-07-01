@@ -67,14 +67,23 @@ export async function updateDropdownOptions() {
   log("updated sub choices");
 }
 
+function getSlug(url: string) {
+  return url.match(/crunchyroll\.com\/watch\/([^\/]+)/)?.[1];
+}
+
 async function init() {
-  if (lastInit === location.href) {
+  const slug = getSlug(location.href);
+  if (!slug) {
+    log("not a watch page (probably)");
+    return Promise.reject("[dual-sub] skipping, not a watch page (probably)");
+  }
+  if (lastInit === slug) {
     log("skipping double init, however, dropdown options will be updated:");
     await updateDropdownOptions();
     return false;
   }
   log(`init begin on ${location.href}`);
-  lastInit = location.href;
+  lastInit = slug;
   if (await shouldSkip()) {
     log("not a watch page (probably)");
     return Promise.reject("[dual-sub] skipping, not a watch page (probably)");
@@ -177,8 +186,12 @@ function addListeners() {
   window.navigation.addEventListener("currententrychange", (event) => {
     const currentUrl = event.from.url;
     const newUrl = window.navigation.currentEntry?.url;
-    log("url changed");
-    if (currentUrl != newUrl) lastInit = null;
+    const curSlug = getSlug(currentUrl!);
+    const newSlug = getSlug(newUrl!);
+    if (!newSlug || curSlug !== newSlug) {
+      log("url changed");
+      lastInit = null;
+    }
   });
 }
 
