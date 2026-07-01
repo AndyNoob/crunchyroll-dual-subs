@@ -1,7 +1,7 @@
 import browser from "webextension-polyfill";
 
 const devNoteKey = "cr-dual-sub-dev-notes";
-const devNoteUrl = "https://gist.githubusercontent.com/AndyNoob/49166e0f04f6a9863aed242e07bbcfe9/raw/ccef05b3185aaa820145eb48f89714271cf9fa31/cr-dual-subs-dev-notes.json";
+const devNoteUrl = "https://gist.githubusercontent.com/AndyNoob/49166e0f04f6a9863aed242e07bbcfe9/raw/cr-dual-subs-dev-notes.json";
 
 const noteListEl = document.querySelector(".notes-list");
 const noteDetailEl = document.querySelector(".note-detail");
@@ -18,6 +18,7 @@ async function loadDevNotes(): Promise<DevNoteCache> {
 
 async function saveDevNotes(notes: DevNote[], openedSlugs: string[], enabled: boolean): Promise<DevNoteCache> {
   const obj: DevNoteCache = {notes, date: Date.now(), opened: [...new Set(openedSlugs)], enabled};
+  console.log("saved dev notes", obj);
   return saveDevNoteCache(obj);
 }
 
@@ -44,7 +45,7 @@ async function subInit(cache: DevNoteCache) {
 
   if (!cache.enabled) return;
 
-  for (let note of cache.notes) {
+  for (let note of cache.notes.reverse()) {
     const fragment = noteTemplate.content.cloneNode(true) as DocumentFragment;
     const el = fragment.firstElementChild as HTMLElement;
     el.dataset.new = String(!cache.opened.includes(note.slug));
@@ -70,9 +71,15 @@ async function init() {
   initScrollArrowThing();
 
   let cache = await loadDevNotes();
+  console.log(cache);
   const tryFetch = async () => {
-    if (cache.enabled && Date.now() - cache.date > 60 * 60 * 1000) {
-      const res = await fetch(devNoteUrl);
+    if (!cache.enabled) {
+      return;
+    }
+    const diff = Date.now() - cache.date;
+    console.log(diff);
+    if (diff > 60 * 60 * 1000) {
+      const res = await fetch(devNoteUrl, {cache: "no-store"});
       if (!res.ok) {
         console.error("[dual sub dev notes] failed to grab dev notes", res);
         return;
