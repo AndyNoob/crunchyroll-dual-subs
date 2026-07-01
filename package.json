@@ -1,11 +1,11 @@
 {
   "name": "cr-dual-subs",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "displayName": "Crunchyroll Dual Subs",
   "description": "Display English and English [CC] subtitles at the same time.",
   "type": "module",
   "scripts": {
-    "build": "vite build && echo -e \"\\a\"",
+    "build": "vite build && BROWSER=chrome vite build && echo -e \"\\a\"",
     "dev": "vite dev",
     "icons": "node scripts/build-icons.js"
   },
@@ -13,6 +13,7 @@
   "license": "MIT",
   "homepage": "https://github.com/AndyNoob/crunchyroll-dual-subs",
   "dependencies": {
+    "@andynoob/move-it": "^0.0.2",
     "@plussub/srt-vtt-parser": "^2.0.5",
     "assjs": "^0.1.7",
     "tslog": "^4.10.2",
