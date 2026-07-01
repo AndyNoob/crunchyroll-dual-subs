@@ -1,3 +1,11 @@
+# 0.11.2
+- Refactor episode.ts & loader.ts (AndyNoob)
+- Slug based url change detection (AndyNoob)
+- Make webpack.js search for module id instead (AndyNoob)
+- Fix dev notes url and order of rendered notes (AndyNoob)
+- Fix dev note fetch interval... again (AndyNoob)
+
+
 # 0.11.1
 - Look for the module id instead of hard coding it (AndyNoob)
 - Add badges for the extension stores (AndyNoob)
