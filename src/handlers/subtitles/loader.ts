@@ -14,6 +14,18 @@ const logger = new Logger({
   name: "subtitleLoader"
 });
 
+async function sendManifestRequest(contentId: string | undefined, deviceType: string, device: string, headers: Header[], crTabId: string) {
+  if (!contentId) return null;
+  console.log(`[grabAndHandleManifest] cr-tab-id is ${crTabId}`);
+  return await fetch(`https://www.crunchyroll.com/playback/v3/${contentId}/${deviceType}/${device}/play?dual_sub=676767`, {
+    headers: {
+      "Authorization": findHeaderValue(headers, "Authorization"),
+      "x-cr-tab-id": crTabId
+    } as Record<string, string>,
+    credentials: "omit"
+  });
+}
+
 export const grabCues = singleFlight(
   grabCues0,
   (tabId: number, preference: Preference, _ = false) =>
@@ -65,8 +77,8 @@ async function loadSubtitles(tabId: number, pref: Preference): Promise<CachedCue
   }
   return {content: await fetchAndParseSubtitle(tabId, subtitle.url), format: subtitle.format ?? "unknown"};
 }
-
 const device = __BROWSER_TYPE__; // apparently the allowed values are phone,tablet,android_tv,firefox,chrome
+
 const deviceType = "web";
 
 export async function grabSubtitleManifest(tabId: number, refresh = false, isRetry = false): Promise<SubtitleManifest> {
@@ -136,16 +148,4 @@ async function fetchAndParseSubtitle(tabId: number, url: string): Promise<string
     return "";
   }
   return raw;
-}
-
-async function sendManifestRequest(contentId: string | undefined, deviceType: string, device: string, headers: Header[], crTabId: string) {
-  if (!contentId) return null;
-  console.log(`[grabAndHandleManifest] cr-tab-id is ${crTabId}`);
-  return await fetch(`https://www.crunchyroll.com/playback/v3/${contentId}/${deviceType}/${device}/play?dual_sub=676767`, {
-    headers: {
-      "Authorization": findHeaderValue(headers, "Authorization"),
-      "x-cr-tab-id": crTabId
-    } as Record<string, string>,
-    credentials: "omit"
-  });
 }
