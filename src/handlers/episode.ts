@@ -15,6 +15,16 @@ const logger = new Logger({
   name: "episodeManifests"
 });
 
+export async function sendManifestRequest(contentId: string | undefined, headers: Header[]) {
+  if (!contentId) return null;
+  return await fetch(`https://www.crunchyroll.com/content/v2/cms/objects/${contentId}?dual_sub=676767`, {
+    headers: {
+      "Authorization": findHeaderValue(headers, "Authorization"),
+    } as Record<string, string>,
+    credentials: "omit"
+  });
+}
+
 export async function handleEpisodeManifest(tabId: number, response: any): Promise<EpisodeManifest> {
   const item = response?.data?.[0];
   const meta = item?.episode_metadata;
@@ -121,14 +131,4 @@ async function grabAndHandleManifest0(tabId: number, refresh: boolean = false) {
   }
 
   return await handleEpisodeManifest(tabId, await response.json());
-}
-
-export async function sendManifestRequest(contentId: string | undefined, headers: Header[]) {
-  if (!contentId) return null;
-  return await fetch(`https://www.crunchyroll.com/content/v2/cms/objects/${contentId}?dual_sub=676767`, {
-    headers: {
-      "Authorization": findHeaderValue(headers, "Authorization"),
-    } as Record<string, string>,
-    credentials: "omit"
-  });
 }
