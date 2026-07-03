@@ -76,6 +76,11 @@ async function grabAndHandleManifest0(tabId: number, refresh: boolean = false) {
       return manifest;
     }
   }
+  const rawManifest = await browser.tabs.sendMessage(tabId, {type: "RAW_MANIFEST"}).catch(() => null);
+  if (rawManifest) {
+    console.log("[grabAndHandleManifest0] grabbed raw manifest from content")
+    return handleEpisodeManifest(tabId, rawManifest);
+  }
   let headers = await getOrLoadHeaders(tabId);
   if (!headers) {
     l.error("headers not set")

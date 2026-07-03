@@ -11,6 +11,7 @@ import type {Preference} from "./data/preferences";
 import type {SubtitleManifest} from "./data/subtitles";
 import {grabVideo, shouldSkip, videoEl, beginRender, shutdownRender, updateOffsets} from "./ui/rendering";
 import {askMainWorld} from "./world-bridge";
+import type {RawProfile} from "./data/profiles";
 
 export type Format = "vtt" | "ass" | "none";
 
@@ -24,8 +25,12 @@ export interface Track {
   lang: string
 }
 
+const w = window as any;
+
 let tracks: Tracks | null = null;
 let lastInit: string | null = null;
+let rawProfiles: RawProfile[] = [];
+let currentManifest: any | null = null;
 export let preference: Preference | null = null;
 
 addListeners();
@@ -170,6 +175,13 @@ function addListeners() {
       }
       case "PLAYBACK_BLOCKED": {
         showStreamLimitNotice(msg.blockedUntil);
+        break;
+      }
+      case "RAW_PROFILES": {
+        return rawProfiles;
+      }
+      case "RAW_MANIFEST": {
+        return currentManifest;
       }
     }
   });
@@ -179,6 +191,14 @@ function addListeners() {
     async (e) => {
       const detail = (e as CustomEvent).detail;
       log("received communications", detail);
+      if (detail.type === "profiles") {
+        rawProfiles = detail.payload["profiles"];
+        w.__dualSubsProfiles = rawProfiles;
+      }
+      if (detail.type === "manifest") {
+        currentManifest = detail.payload;
+        w.__dualSubsManifest = currentManifest;
+      }
       await browser.runtime.sendMessage({type: "MONKEY_PATCH_UPDATE", detail});
     }
   );

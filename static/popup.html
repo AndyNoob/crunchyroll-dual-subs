@@ -22,7 +22,8 @@
             <div class="notes-list scroll-down-arrow">
                 <div class="note" role="button" data-new="true">
                     <span>Title</span>
-                    <p>Message that is very very very very very very very very very very very very very very very very very very very very long</p>
+                    <p>Message that is very very very very very very very very very very very very very very very very
+                        very very very very long</p>
                 </div>
                 <div class="note" role="button">
                     <span>Title</span>
@@ -36,7 +37,7 @@
             <div class="note-detail">
             </div>
         </div>
-<!--        <div class="scroll-arrow">▼</div>-->
+        <!--        <div class="scroll-arrow">▼</div>-->
     </div>
     <div id="loading-state">Loading settings...</div>
     <div id="stream-limit-notice" hidden></div>
@@ -47,7 +48,7 @@
             <span id="profile-select">N/A</span>
         </div>
 
-        <div class="scope-block" collapsed="true">
+        <div class="scope-block" collapsed="false">
             <label>
                 Applies to
                 <select id="scope-select">
@@ -80,6 +81,12 @@
                 </div>
 
                 <button id="reset-position-button">Reset subtitle position</button>
+
+                <div class="field">
+                    <div id="mask-container">
+
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -87,7 +94,7 @@
         Github:
         <a href="https://github.com/AndyNoob/crunchyroll-dual-subs/" target="_blank">SOURCE ↗</a>
         <span>|</span>
-        <a href="https://github.com/AndyNoob/crunchyroll-dual-subs/issues" target="_blank">ISSUES ↗</a>
+        <a href="https://github.com/AndyNoob/crunchyroll-dual-subs/issues" target="_blank">REPORT PROBLEMS ↗</a>
     </footer>
     <template id="note-template">
         <div class="note" role="button">
@@ -105,6 +112,9 @@
             <div class="note-detail-body">VERY INTERSTING TEXT</div>
         </div>
     </template>
+<!--    <div id="move-container" style="height: 400px; width: 400px; background-color: white; position: relative">-->
+<!--        <div style="height: 40px; width: 40px; background-color: black; position: absolute" id="move-me"></div>-->
+<!--    </div>-->
     <script src="../src/ui/popup/common.ts" type="module"></script>
     <script src="../src/ui/popup/scoped-options.ts" type="module"></script>
     <script src="../src/ui/popup/dev-note.ts" type="module"></script>

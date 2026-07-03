@@ -1,3 +1,5 @@
+import type {RectState} from "@andynoob/move-it";
+
 export interface StoredPreferences {
   global: Record<string, Preference>;
   seasons: Record<string, Record<string, Partial<Preference>>>;
@@ -14,6 +16,12 @@ export interface Preference {
   bottomPct?: number,
   primaryOffsetMs?: number,
   secondaryOffsetMs?: number,
+  subMasks?: SubMask[]
+}
+
+export interface SubMask {
+  inverted: boolean,
+  rects: RectState[]
 }
 
 export type PreferenceScope =
