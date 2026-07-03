@@ -9,6 +9,7 @@ import {
 } from "../data/profiles";
 import {findHeaderValue, getOrLoadHeaders} from "../data/headers";
 import {setNextRequestTime, singleFlight, sleep, waitUntil} from "../utils";
+import browser from "webextension-polyfill";
 
 export function handleProfiles(tabId: number, data: any): Profile {
   const profiles: Profile[] = (data?.["profiles"] as [RawProfile]).map(a => mapProfile(a));
@@ -40,6 +41,11 @@ async function grabAndHandleProfiles(tabId: number, refresh: boolean = false): P
       console.log("[grabAndHandleProfiles] profile already exists, not refreshing.");
       return profile;
     }
+  }
+  const rawProfiles = await browser.tabs.sendMessage(tabId, {type: "RAW_PROFILES"}).catch(() => null);
+  if (rawProfiles) {
+    console.log("[grabAndHandleProfiles] grabbed raw profiles from content")
+    return handleProfiles(tabId, {profiles: rawProfiles});
   }
   const headers = await getOrLoadHeaders(tabId);
   if (!headers) return Promise.reject("no auth");
