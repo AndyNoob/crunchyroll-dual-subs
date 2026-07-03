@@ -1,3 +1,7 @@
+# 0.11.3
+- Have content script cache raw profiles and manifests (AndyNoob)
+
+
 # 0.11.2
 - Refactor episode.ts & loader.ts (AndyNoob)
 - Slug based url change detection (AndyNoob)
