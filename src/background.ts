@@ -112,6 +112,11 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
           break;
         }
       }
+      break;
+    }
+    case "OPEN_POPUP": {
+      await browser.action.openPopup();
+      break;
     }
   }
 }

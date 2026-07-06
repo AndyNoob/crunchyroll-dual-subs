@@ -103,8 +103,10 @@ function ensureSubtitleListeners() {
   if (!subtitleTrigger.dataset.listenerAttached) {
     addTooltip(subtitleControl, "Select secondary subtitles");
 
-    subtitleTrigger.addEventListener("click", () => {
-      subtitleControl?.classList.toggle("open");
+    subtitleTrigger.addEventListener("click", async () => {
+      await browser.runtime.sendMessage({type: "OPEN_POPUP"}).catch(() => {
+        subtitleControl?.classList.toggle("open");
+      });
     });
     subtitleTrigger.dataset.listenerAttached = "true";
   }
