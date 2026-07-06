@@ -13,7 +13,7 @@ const enabledCheckbox = document.querySelector("#dev-notes-checkbox") as HTMLInp
 
 async function loadDevNotes(): Promise<DevNoteCache> {
   const res = await browser.storage.local.get(devNoteKey);
-  return (res[devNoteKey] ?? {notes: [], date: Date.now(), opened: [], enabled: true}) as DevNoteCache
+  return (res[devNoteKey] ?? {notes: [], date: 0, opened: [], enabled: true}) as DevNoteCache
 }
 
 async function saveDevNotes(notes: DevNote[], openedSlugs: string[], enabled: boolean): Promise<DevNoteCache> {
