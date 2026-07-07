@@ -1,3 +1,9 @@
+# 0.11.4
+- Fix weird issue with cues randomly not loading (AndyNoob)
+- In page control should open popup instead (AndyNoob)
+- Load dev notes on first init (AndyNoob)
+
+
 # 0.11.3
 - Have content script cache raw profiles and manifests (AndyNoob)
 
