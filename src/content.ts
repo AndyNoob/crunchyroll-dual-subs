@@ -31,6 +31,7 @@ let tracks: Tracks | null = null;
 let lastInit: string | null = null;
 let rawProfiles: RawProfile[] = [];
 let currentManifest: any | null = null;
+let currentPlayback: any | null = null;
 export let preference: Preference | null = null;
 
 addListeners();
@@ -183,6 +184,9 @@ function addListeners() {
       case "RAW_MANIFEST": {
         return currentManifest;
       }
+      case "RAW_PLAYBACK": {
+        return currentPlayback;
+      }
     }
   });
   log("added msg listener");
@@ -198,6 +202,10 @@ function addListeners() {
       if (detail.type === "manifest") {
         currentManifest = detail.payload;
         w.__dualSubsManifest = currentManifest;
+      }
+      if (detail.type === "playback") {
+        currentPlayback = detail.payload;
+        w.__dualSubsPlayback = currentPlayback;
       }
       await browser.runtime.sendMessage({type: "MONKEY_PATCH_UPDATE", detail});
     }

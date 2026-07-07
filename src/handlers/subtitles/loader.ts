@@ -93,6 +93,11 @@ export async function grabSubtitleManifest(tabId: number, refresh = false, isRet
   } else {
     logger.warn("manifest refresh requested...");
   }
+  const rawPlayback = await browser.tabs.sendMessage(tabId, {type: "RAW_PLAYBACK"}).catch(() => null);
+  if (rawPlayback) {
+    console.log("[grabSubtitleManifest] grabbed raw manifest from content")
+    return handleSubtitleManifest(manifest, rawPlayback);
+  }
   const response = await sendManifestRequest(
     (await grabEpisodeManifest(tabId)).episodeGuid,
     deviceType,
