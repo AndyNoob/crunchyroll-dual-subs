@@ -219,6 +219,7 @@ function addListeners() {
     if (!newSlug || curSlug !== newSlug) {
       log("url changed");
       lastInit = null;
+      if (!curSlug) init().then();
     }
   });
 }
