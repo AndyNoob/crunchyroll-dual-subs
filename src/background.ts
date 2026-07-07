@@ -229,7 +229,12 @@ async function refreshCues(tabId: number) {
 async function receiveTabUpdate(tabId: number, changeInfo: Tabs.OnUpdatedChangeInfoType, tab: Tabs.Tab) {
   if (!changeInfo.url || !tab.url) return;
   const url = changeInfo.url;
-  if (!url.includes("crunchyroll.com/watch/")) return;
+  if (!url.includes("crunchyroll.com/watch/")) {
+    manifestMap.delete(tabId);
+    console.log(`[dual-sub] removed manifest for tab ${tabId}`);
+    return;
+  }
+  console.log(`[dual-sub] old url is ${(await browser.tabs.get(tabId)).url}`);
   const manifest = await grabEpisodeManifest(tabId).catch(() => null);
   const oldGuid = manifest?.episodeGuid;
   const newGuid = getGuid(url);
