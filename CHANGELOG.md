@@ -1,3 +1,7 @@
+# 0.11.5
+- Fix series page -> watch page init (AndyNoob)
+
+
 # 0.11.4
 - Fix weird issue with cues randomly not loading (AndyNoob)
 - In page control should open popup instead (AndyNoob)
