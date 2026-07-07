@@ -11,9 +11,9 @@ import {
   type RawProfile,
   setProfile
 } from "./data/profiles";
-import {setNextRequestTime, shortenUrl, sleep} from "./utils";
+import {getGuid, setNextRequestTime, shortenUrl, sleep} from "./utils";
 import type {PreferencePatch, PreferenceScope} from "./data/preferences";
-import {findEpisodeGuid, findSeasonGuid, getEpisodeManifest} from "./data/episode";
+import {findEpisodeGuid, findSeasonGuid, getEpisodeManifest, manifestMap} from "./data/episode";
 import {grabSubtitleManifest, handleSubtitleManifest} from "./handlers/subtitles/loader";
 import {getCachedSubtitleManifest} from "./handlers/subtitles/cacher";
 
@@ -226,11 +226,17 @@ async function refreshCues(tabId: number) {
   notifyCueRefresh(tabId, await bundleCues(tabId));
 }
 
-async function receiveTabUpdate(tabId: number, changeInfo: Tabs.OnUpdatedChangeInfoType, _: Tabs.Tab) {
-  if (!changeInfo.url) return;
+async function receiveTabUpdate(tabId: number, changeInfo: Tabs.OnUpdatedChangeInfoType, tab: Tabs.Tab) {
+  if (!changeInfo.url || !tab.url) return;
   const url = changeInfo.url;
   if (!url.includes("crunchyroll.com/watch/")) return;
+  const manifest = await grabEpisodeManifest(tabId).catch(() => null);
+  const oldGuid = manifest?.episodeGuid;
+  const newGuid = getGuid(url);
+  console.log(`[dual-sub] ${oldGuid} -> ${newGuid}`);
+  if (newGuid === oldGuid) return;
   console.log(`[dual-sub] new tab url for tab ${tabId} is ${shortenUrl(url)}`);
+  manifestMap.delete(tabId);
   try {
     await clearCues(tabId);
   } catch (e) {

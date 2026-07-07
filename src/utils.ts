@@ -85,3 +85,7 @@ export function msToTime(s: number) {
   const hrs = (s - mins) / 60;
   return `${Math.round(hrs / 24)}d ${hrs % 24}h ${mins}m ${secs}s`;
 }
+
+export function getGuid(url: string) {
+  return url.match(/crunchyroll\.com\/watch\/([^\/]+)/)?.[1];
+}
