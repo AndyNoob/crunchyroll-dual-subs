@@ -16,7 +16,7 @@
                 <input id="dev-notes-checkbox" type="checkbox" checked />
                 <label for="dev-notes-checkbox">Dev notes</label>
             </div>
-            <span id="notes-count" data-notes="1">new notes</span>
+            <span id="notes-count" data-notes="0">new notes</span>
         </div>
         <div class="side-by-side" collapsed="true">
             <div class="notes-list scroll-down-arrow">
@@ -37,7 +37,6 @@
             <div class="note-detail">
             </div>
         </div>
-        <!--        <div class="scroll-arrow">▼</div>-->
     </div>
     <div id="loading-state">Loading settings...</div>
     <div id="stream-limit-notice" hidden></div>
@@ -49,14 +48,16 @@
         </div>
 
         <div class="scope-block" collapsed="false">
-            <label>
-                Applies to
-                <select id="scope-select">
-                    <option value="global">Global (overridden by season)</option>
-                    <option value="season">Current Season (overridden by episode)</option>
-                    <option value="episode">Current Episode</option>
-                </select>
-            </label>
+            <fieldset id="scope-select" class="segmented-control">
+                <input type="radio" name="scope" id="scope-global" value="global" checked>
+                <label for="scope-global">Global<span class="hint">(overridden by season)</span></label>
+
+                <input type="radio" name="scope" id="scope-season" value="season">
+                <label for="scope-season">Current Season<span class="hint">(overridden by episode)</span></label>
+
+                <input type="radio" name="scope" id="scope-episode" value="episode">
+                <label for="scope-episode">Current Episode</label>
+            </fieldset>
 
             <div class="settings-block">
                 <label>
@@ -81,17 +82,10 @@
                 </div>
 
                 <button id="reset-position-button">Reset subtitle position</button>
-
-<!--                <div class="field">-->
-<!--                    <div id="mask-container">-->
-
-<!--                    </div>-->
-<!--                </div>-->
             </div>
         </div>
     </div>
     <footer>
-        Github:
         <a href="https://github.com/AndyNoob/crunchyroll-dual-subs/" target="_blank">SOURCE ↗</a>
         <span>|</span>
         <a href="https://github.com/AndyNoob/crunchyroll-dual-subs/issues" target="_blank">REPORT PROBLEMS ↗</a>
@@ -112,9 +106,6 @@
             <div class="note-detail-body">VERY INTERSTING TEXT</div>
         </div>
     </template>
-<!--    <div id="move-container" style="height: 400px; width: 400px; background-color: white; position: relative">-->
-<!--        <div style="height: 40px; width: 40px; background-color: black; position: absolute" id="move-me"></div>-->
-<!--    </div>-->
     <script src="../src/ui/popup/common.ts" type="module"></script>
     <script src="../src/ui/popup/scoped-options.ts" type="module"></script>
     <script src="../src/ui/popup/dev-note.ts" type="module"></script>
