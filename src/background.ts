@@ -232,6 +232,7 @@ async function receiveTabUpdate(tabId: number, changeInfo: Tabs.OnUpdatedChangeI
   if (!url.includes("crunchyroll.com/watch/")) {
     manifestMap.delete(tabId);
     console.log(`[dual-sub] removed manifest for tab ${tabId}`);
+    browser.extension.getViews({type: "popup"}).forEach(p => p.close());
     return;
   }
   console.log(`[dual-sub] old url is ${(await browser.tabs.get(tabId)).url}`);

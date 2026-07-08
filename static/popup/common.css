@@ -1,5 +1,7 @@
 :root {
   --cr-orange: #f47521;
+  --muted-orange: rgba(244, 117, 33, 0.7);
+  --blend-orange: #ffb04a;
   --bg: #111217;
   --panel: #1a1c23;
   --field: #272934;

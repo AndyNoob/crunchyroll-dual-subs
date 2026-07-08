@@ -9,13 +9,15 @@ const lastScopeKey = "cr-dual-sub-last-scope";
 // rah but it sucks at commenting what the hell is going on here
 
 const profileDisplay = document.querySelector("#profile-select") as HTMLSelectElement;
-const scopeSelect = document.querySelector("#scope-select") as HTMLSelectElement;
+const scopeSelect = document.querySelector("#scope-select") as HTMLFieldSetElement;
 const subtitleSelect = document.querySelector("#subtitle-select") as HTMLSelectElement;
 const primaryOffsetInput = document.querySelector("#primary-offset-input") as HTMLInputElement;
 const secondaryOffsetInput = document.querySelector("#secondary-offset-input") as HTMLInputElement;
 const resetPositionButton = document.querySelector("#reset-position-button") as HTMLButtonElement;
 
 export const settingsContent = document.querySelector("#cr-dual-subs-overlay-options") as HTMLDivElement;
+
+const scopeOptions: PreferenceScope[] = ["global", "season", "episode"];
 
 /*function formatLocale(locale: string) {
   try {
@@ -38,18 +40,19 @@ function renderProfileSelect() {
 }
 
 async function renderScopeSelect() {
-  const seasonOption = scopeSelect.querySelector('option[value="season"]') as HTMLOptionElement | null;
-  const episodeOption = scopeSelect.querySelector('option[value="episode"]') as HTMLOptionElement | null;
+  const globalOption = scopeSelect.querySelector('input[value="global"]') as HTMLInputElement;
+  const seasonOption = scopeSelect.querySelector('input[value="season"]') as HTMLInputElement;
+  const episodeOption = scopeSelect.querySelector('input[value="episode"]') as HTMLInputElement;
 
-  if (seasonOption) {
-    seasonOption.disabled = !context.seasonGuid;
-    seasonOption.textContent = context.seasonGuid ? "Current Season" : "Current Season (Unavailable)";
-  }
+  globalOption.checked = false;
 
-  if (episodeOption) {
-    episodeOption.disabled = !context.episodeGuid;
-    episodeOption.textContent = context.episodeGuid ? "Current Episode" : "Current Episode (Unavailable)";
-  }
+  seasonOption.checked = false;
+  seasonOption.disabled = !context.seasonGuid;
+  seasonOption.textContent = context.seasonGuid ? "Current Season" : "Current Season (Unavailable)";
+
+  episodeOption.checked = false;
+  episodeOption.disabled = !context.episodeGuid;
+  episodeOption.textContent = context.episodeGuid ? "Current Episode" : "Current Episode (Unavailable)";
 
   let scope = await loadLastScope();
 
@@ -62,7 +65,11 @@ async function renderScopeSelect() {
     scope = "global";
   }
 
-  scopeSelect.value = scope;
+  const index = scopeOptions.indexOf(scope);
+
+  scopeSelect.dataset.scopeValue = scope;
+  [globalOption, seasonOption, episodeOption][index]!.checked = true;
+  scopeSelect.style.setProperty("--segment-position", `${index * 100}%`);
 }
 
 function renderSubtitleSelect(pref: Partial<Preference>) {
@@ -125,7 +132,7 @@ async function loadScopedPreference(): Promise<Partial<Preference>> {
   return await send<Partial<Preference>>({
     type: "GET_SCOPED_PREFERENCE",
     profileId: context.currentProfile.profileId,
-    scope: scopeSelect.value as PreferenceScope,
+    scope: scopeSelect.dataset.scopeValue as PreferenceScope,
     seasonGuid: context.seasonGuid,
     episodeGuid: context.episodeGuid
   });
@@ -135,7 +142,7 @@ async function saveScopedPreference(pref: PreferencePatch) {
   await send({
     type: "SET_SCOPED_PREFERENCE",
     profileId: context.currentProfile.profileId,
-    scope: scopeSelect.value as PreferenceScope,
+    scope: scopeSelect.dataset.scopeValue as PreferenceScope,
     seasonGuid: context.seasonGuid,
     episodeGuid: context.episodeGuid,
     pref
@@ -173,8 +180,12 @@ async function refreshForm() {
 }
 
 function attachListeners() {
-  scopeSelect.addEventListener("change", async () => {
-    await saveLastScope(scopeSelect.value as PreferenceScope);
+  scopeSelect.addEventListener("change", async (e) => {
+    if (!(e.target instanceof HTMLInputElement)) return;
+    const newScope = e.target.value as PreferenceScope;
+    scopeSelect.style.setProperty("--segment-position", `${scopeOptions.indexOf(newScope) * 100}%`);
+    scopeSelect.dataset.scopeValue = newScope;
+    await saveLastScope(scopeSelect.dataset.scopeValue as PreferenceScope);
     await refreshForm();
   });
 
