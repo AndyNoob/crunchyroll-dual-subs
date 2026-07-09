@@ -16,7 +16,7 @@ export interface Preference {
   bottomPct?: number,
   primaryOffsetMs?: number,
   secondaryOffsetMs?: number,
-  subMasks?: SubMask[]
+  subMask?: SubMask
 }
 
 export interface SubMask {

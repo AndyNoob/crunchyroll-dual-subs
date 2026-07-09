@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.8",
+    "@types/chrome": "^0.2.2",
     "@types/node": "^25.7.0",
     "@types/psd": "^3.4.3",
     "@types/webextension-polyfill": "^0.12.5",

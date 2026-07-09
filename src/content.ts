@@ -69,7 +69,7 @@ export async function updateDropdownOptions() {
   preference = await grabPreference();
   log("pref is", preference);
   log("manifest is", manifest);
-  updateSubtitleDropdownOptions(manifest, preference);
+  await updateSubtitleDropdownOptions(manifest, preference);
   log("updated sub choices");
 }
 
@@ -117,7 +117,7 @@ async function ensurePageInjections() {
   await grabVideo();
   ensureSubtitleOverlay(videoEl);
   log("injected overlay");
-  ensureSubtitleControlShell();
+  await ensureSubtitleControlShell();
   log("injected subtitle control");
 }
 

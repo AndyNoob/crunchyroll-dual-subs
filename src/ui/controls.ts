@@ -3,6 +3,7 @@ import {updateCuesAndRender, updateDropdownOptions} from "../content";
 
 import type {Preference} from "../data/preferences";
 import type {SubtitleManifest} from "../data/subtitles";
+import {editorMenu, getEditorMenu} from "./editing";
 
 // I love when GPT-5.2 does 90% of the work :muscles:
 
@@ -12,11 +13,13 @@ let subtitleMenu: HTMLDivElement | null = null;
 let subtitleLabelNode: Text | null = null;
 let casing: HTMLDivElement | null = null;
 let refreshButton: HTMLButtonElement | null = null;
+let editContainer: HTMLDivElement | null = null;
+let editButton: HTMLButtonElement | null = null;
 export let updateNotice: HTMLDivElement | null = null;
 
 // casing -> [refresh button, [[trigger -> label], menu]]
 
-export function ensureSubtitleControlShell() {
+export async function ensureSubtitleControlShell() {
   const episodeActions = document.querySelector(".episode-actions");
   if (!episodeActions) return;
 
@@ -38,11 +41,30 @@ export function ensureSubtitleControlShell() {
     subtitleControl.querySelector("#cr-dual-subs-sub-menu") ??
     document.createElement("div");
   subtitleMenu.id = "cr-dual-subs-sub-menu";
+  if (!subtitleMenu.classList.contains("cr-dual-subs-menu"))
+    subtitleMenu.classList.add("cr-dual-subs-menu");
 
   refreshButton =
     casing.querySelector("#cr-dual-subs-refresh") ??
     document.createElement("button");
   refreshButton.id = "cr-dual-subs-refresh";
+  if (!refreshButton.classList.contains("cr-dual-subs-button"))
+    refreshButton.classList.add("cr-dual-subs-button");
+
+  editContainer =
+    casing.querySelector("#cr-dual-subs-edit-container") ??
+    document.createElement("div");
+  editContainer.id = "cr-dual-subs-edit-container";
+
+  if (!editContainer.hasChildNodes())
+    editContainer.appendChild(await getEditorMenu());
+
+  editButton =
+    casing.querySelector("#cr-dual-subs-edit") ??
+    editContainer.appendChild(document.createElement("button"));
+  editButton.id = "cr-dual-subs-edit";
+  if (!editButton.classList.contains("cr-dual-subs-button"))
+    editButton.classList.add("cr-dual-subs-button");
 
   if (!refreshButton.hasChildNodes())
     refreshButton.innerHTML = refreshSvg;
@@ -59,10 +81,15 @@ export function ensureSubtitleControlShell() {
     subtitleLabelNode = subtitleTrigger.firstChild as Text;
   }
 
+  if (!editButton.hasChildNodes())
+    editButton.innerHTML = editSvg;
+
+  editButton.style.display = "none";
+
   ensureSubtitleListeners();
 
   subtitleControl.append(subtitleTrigger, subtitleMenu);
-  casing.append(refreshButton, subtitleControl);
+  casing.append(refreshButton, editContainer, subtitleControl);
   episodeActions.appendChild(casing);
 
   ensureUpdateNotice().then(() => console.log("[dual-sub] updated update notice"));
@@ -70,11 +97,11 @@ export function ensureSubtitleControlShell() {
 
 export function markAsLoading() {
   if (subtitleLabelNode)
-    subtitleLabelNode.textContent = "Subtitles loading... ";
+    subtitleLabelNode.textContent = "Loading... ";
 }
 
 function ensureSubtitleListeners() {
-  if (!subtitleTrigger || !subtitleMenu || !subtitleControl || !refreshButton) return;
+  if (!subtitleTrigger || !subtitleMenu || !subtitleControl || !refreshButton || !editButton) return;
 
   if (!refreshButton.dataset.listenerAttached) {
     addTooltip(refreshButton, "Refresh secondary subtitles (shift to hard refresh)");
@@ -87,6 +114,7 @@ function ensureSubtitleListeners() {
       refreshButton.style.opacity = "0.4";
 
       try {
+        await updateDropdownOptions();
         await updateCuesAndRender(e.shiftKey);
       } catch (e) {
         console.error(e);
@@ -100,11 +128,20 @@ function ensureSubtitleListeners() {
     refreshButton.dataset.listenerAttached = "true";
   }
 
+  if (!editButton.dataset.listenerAttached) {
+    addTooltip(editButton, "Edit overlays");
+    editButton.dataset.listenerAttached = "true";
+    editButton.addEventListener("click", () => {
+      editorMenu?.classList.toggle("open");
+    });
+  }
+
   if (!subtitleTrigger.dataset.listenerAttached) {
     addTooltip(subtitleControl, "Select secondary subtitles");
 
     subtitleTrigger.addEventListener("click", async () => {
-      await browser.runtime.sendMessage({type: "OPEN_POPUP"}).catch(() => {
+      await browser.runtime.sendMessage({type: "OPEN_POPUP"}).catch((e) => {
+        console.log(e);
         subtitleControl?.classList.toggle("open");
       });
     });
@@ -137,8 +174,8 @@ async function ensureUpdateNotice() {
   casing.insertBefore(updateNotice, refreshButton);
 }
 
-export function updateSubtitleDropdownOptions(manifest: SubtitleManifest, pref: Preference) {
-  if (!subtitleControl || !subtitleMenu || !subtitleLabelNode) ensureSubtitleControlShell();
+export async function updateSubtitleDropdownOptions(manifest: SubtitleManifest, pref: Preference) {
+  if (!subtitleControl || !subtitleMenu || !subtitleLabelNode) await ensureSubtitleControlShell();
   if (!subtitleMenu || !subtitleLabelNode) return;
 
   subtitleMenu.innerHTML = "";
@@ -282,3 +319,4 @@ export function showStreamLimitNotice(blockedUntil: number) {
 
 const refreshSvg = `<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#e3e3e3"><path d="M480-192q-120 0-204-84t-84-204q0-120 84-204t204-84q65 0 120.5 27t95.5 72v-99h72v240H528v-72h131q-29-44-76-70t-103-26q-90 0-153 63t-63 153q0 90 63 153t153 63q84 0 144-55.5T693-456h74q-9 112-91 188t-196 76Z"/></svg>`
 const downloadSvg = `<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#e3e3e3"><path d="M384-357 192-549l51-51 141 141 333-333 51 51-384 384ZM240-192v-72h480v72H240Z"/></svg>`;
+const editSvg = `<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#e3e3e3"><path d="M216-216h51l375-375-51-51-375 375v51Zm-72 72v-153l498-498q11-11 23.84-16 12.83-5 27-5 14.16 0 27.16 5t24 16l51 51q11 11 16 24t5 26.54q0 14.45-5.02 27.54T795-642L297-144H144Zm600-549-51-51 51 51Zm-127.95 76.95L591-642l51 51-25.95-25.05Z"/></svg>`;

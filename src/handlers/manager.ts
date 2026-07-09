@@ -18,7 +18,10 @@ export function notifyCueRefresh(tabId: number, cues: Tracks, attemptsLeft = 3) 
     setTimeout(() => {
       notifyCueRefresh(tabId, cues, --attemptsLeft);
     }, 5000);
-  }).then(() => console.log(`[notifyCueRefresh] sent refresh cue to tab ${tabId}`));
+  }).then(() => {
+    console.log(`[notifyCueRefresh] sent refresh cue to tab ${tabId}`);
+    browser.runtime.sendMessage({type: "REFRESH_POPUP"}).catch(e => console.error(e));
+  });
 }
 
 export async function bundleCues(tabId: number, refresh = false) {
