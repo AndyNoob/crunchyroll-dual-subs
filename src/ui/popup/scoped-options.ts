@@ -40,6 +40,7 @@ function renderProfileSelect() {
 }
 
 async function renderScopeSelect() {
+  console.log("[dual sub popup] scope select loading", context);
   const globalOption = scopeSelect.querySelector('input[value="global"]') as HTMLInputElement;
   const seasonOption = scopeSelect.querySelector('input[value="season"]') as HTMLInputElement;
   const episodeOption = scopeSelect.querySelector('input[value="episode"]') as HTMLInputElement;
@@ -52,7 +53,12 @@ async function renderScopeSelect() {
 
   episodeOption.checked = false;
   episodeOption.disabled = !context.episodeGuid;
-  episodeOption.textContent = context.episodeGuid ? "Current Episode" : "Current Episode (Unavailable)";
+  const episodeLabel = scopeSelect.querySelector(`label[for="scope-episode"]`)!;
+  if (context.episodeGuid) {
+    episodeLabel.innerHTML = `Current Episode<span class="hint">(${context.episodeGuid})</span>`;
+  } else {
+    episodeLabel.innerHTML = "Current Episode (Unavailable)";
+  }
 
   let scope = await loadLastScope();
 
@@ -321,6 +327,13 @@ async function init() {
 
   setLoading(true);
 
+  const [currentTab] = await browser.tabs.query({currentWindow: true, active: true});
+  console.log(currentTab);
+  if (!currentTab!.url?.includes("/watch/")) {
+    loadingState.textContent = "Open this on a Crunchyroll episode page.";
+    return;
+  }
+
   try {
     tabId = await getActiveCrunchyrollTabId();
     context = await send<ContextResponse>({type: "GET_CONTEXT"});
@@ -353,3 +366,16 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("[dual-sub popup] failed to init", err);
   });
 });
+
+browser.tabs.onActivated.addListener(() => {init().then()}); // switched tabs
+browser.tabs.onUpdated.addListener((_, info, tab) => {
+  if (info.url && tab.active) init().then(); // navigated in same tab
+});
+browser.runtime.onMessage.addListener((msg: any, _: any) => {
+  if (msg?.type === "REFRESH_POPUP") {
+    return handleRefresh();
+  }
+});
+async function handleRefresh() {
+  await init();
+}

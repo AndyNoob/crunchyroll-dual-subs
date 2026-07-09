@@ -2,10 +2,11 @@
 
 #cr-dual-subs-sub-control {
   position: relative;
-  min-width: 180px;
+  min-width: 150px;
   font-size: 14px;
   color: #f8f8f8;
   z-index: 999;
+  margin-left: 4px;
 }
 
 #cr-dual-subs-sub-trigger {
@@ -28,7 +29,7 @@
   border-color: rgba(244, 117, 33, 0.6);
 }
 
-#cr-dual-subs-sub-menu {
+.cr-dual-subs-menu {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
@@ -75,7 +76,7 @@
   display: flex;
 }
 
-#cr-dual-subs-refresh {
+.cr-dual-subs-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -122,6 +123,16 @@
   }
 }
 
+#cr-dual-subs-edit:hover {
+  background: rgba(255,255,255,.14);
+}
+
+#cr-dual-subs-edit svg {
+  width: 18px;
+  height: 18px;
+}
+
+/*<editor-fold desc="Tooltip">*/
 .cr-dual-subs-tooltip {
   position: relative;
 }
@@ -168,7 +179,9 @@
   width: 22px;
   height: 22px;
 }
+/*</editor-fold>*/
 
+/*<editor-fold desc="Update notice">*/
 #cr-dual-subs-update-notice {
   display: none;
   align-items: center;
@@ -199,4 +212,37 @@
 #cr-dual-subs-update-notice svg {
   width: 18px;
   height: 18px;
+}
+/*</editor-fold>*/
+
+#cr-dual-sub-editor-menu.open {
+  opacity: 1;
+}
+
+#cr-dual-sub-editor-menu {
+  max-height: 300px;
+  min-width: 240px;
+  padding: 15px;
+  z-index: 999;
+  pointer-events: all;
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+
+    select {
+      margin-left: 8px;
+      font-size: 14px;
+      width: 70px;
+    }
+
+    input {
+      margin-left: 10px;
+    }
+  }
+}
+
+#cr-dual-subs-edit-container {
+  position: relative;
 }

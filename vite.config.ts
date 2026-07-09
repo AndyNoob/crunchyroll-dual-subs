@@ -50,6 +50,7 @@ function makeManifest() {
     permissions: [
       "storage",
       "webRequest",
+      "sidePanel"
     ],
     host_permissions: ["*://*.crunchyroll.com/*"],
     content_scripts: [
@@ -91,8 +92,13 @@ function makeManifest() {
       }
     ],
     action: {
-      default_title: "Change extension settings",
-      default_popup: "static/popup.html"
+      default_title: "Open Sidebar Panel"
+    },
+    sidebar_action: {
+      default_panel: "static/popup.html",
+    },
+    side_panel: {
+      default_path: "static/popup.html"
     }
   }
 }

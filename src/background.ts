@@ -27,6 +27,19 @@ browser.webRequest.onBeforeRequest.addListener(receiveMiscReqs, {urls: ["*://www
 browser.tabs.onUpdated.addListener(receiveTabUpdate);
 browser.runtime.onUpdateAvailable.addListener(receiveUpdateNotif);
 
+browser.action.onClicked.addListener(async (tab) => {
+  await openSidebar(tab);
+});
+
+async function openSidebar(tab: Tabs.Tab) {
+  if (browser.sidebarAction) {
+    await browser.sidebarAction.open();
+  } else {
+    // @ts-ignore
+    await chrome.sidePanel.open({tabId: tab.id});
+  }
+}
+
 async function resolveSubManifest(tabId: number) {
   let manifest = getEpisodeManifest(tabId);
   if (!manifest) {
@@ -115,7 +128,7 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
       break;
     }
     case "OPEN_POPUP": {
-      await browser.action.openPopup();
+      await openSidebar(sender.tab!);
       break;
     }
   }
