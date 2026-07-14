@@ -1,14 +1,15 @@
 import type {SubMask} from "../data/preferences";
-import {overlayCanvasContainer} from "./overlay";
+import {overlayRoot} from "./overlay";
 import {convertToPercent, convertToPixels, createMoveMe, type Moving} from "@andynoob/move-it";
 
 const movingList: Moving[] = [];
 
 export function clearMoving() {
-  const removing = overlayCanvasContainer.querySelectorAll("[data-move-it-id]");
+  const removing = overlayRoot.querySelectorAll("[data-move-it-id]");
   for (const moving of movingList) {
     moving.destroy();
   }
+  movingList.splice(0, movingList.length);
   for (const element of removing) {
     element.remove();
   }
@@ -17,14 +18,14 @@ export function clearMoving() {
 export function makeMoving(subMask: SubMask, callback: (newMask: SubMask) => void) {
   for (let i = 0; i < subMask.rects.length; i++){
     let rect = subMask.rects[i]!;
-    const element = overlayCanvasContainer.appendChild(document.createElement("div"));
+    const element = overlayRoot.appendChild(document.createElement("div"));
     movingList.push(createMoveMe(
       element,
       {
-        initialState: convertToPixels(overlayCanvasContainer, rect),
-        controlRoot: overlayCanvasContainer,
+        initialState: convertToPixels(overlayRoot, rect),
+        controlRoot: overlayRoot,
         onChange: (state) => {
-          subMask.rects[i] = {...rect, ...convertToPercent(overlayCanvasContainer, state)};
+          subMask.rects[i] = {...rect, ...convertToPercent(overlayRoot, state)};
           callback(subMask);
         },
         doResize: true,
