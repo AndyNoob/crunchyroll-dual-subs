@@ -30,6 +30,13 @@ export function makeMoving(subMask: SubMask, callback: (newMask: SubMask) => voi
         doResize: true,
         disableFeatures: {
           rotate: true
+        },
+        snapping: {
+          grid: {
+            threshold: 4,
+            displayThreshold: 8,
+            verticalX: [0.5]
+          }
         }
       }
     ));
