@@ -21,7 +21,7 @@ export interface Preference {
 
 export interface SubMask {
   inverted: boolean,
-  rects: RectState[]
+  rects: ({name: string, id: number} & RectState)[]
 }
 
 export type PreferenceScope =

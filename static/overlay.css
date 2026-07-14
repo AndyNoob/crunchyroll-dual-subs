@@ -39,3 +39,7 @@
   z-index: 999;
   position: absolute;
 }
+
+.ASS-dialogue {
+  box-sizing: content-box;
+}

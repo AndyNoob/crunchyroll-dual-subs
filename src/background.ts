@@ -26,6 +26,17 @@ browser.runtime.onMessage.addListener(async (msg: any, sender: Runtime.MessageSe
 browser.webRequest.onBeforeRequest.addListener(receiveMiscReqs, {urls: ["*://www.crunchyroll.com/*"]});
 browser.tabs.onUpdated.addListener(receiveTabUpdate);
 browser.runtime.onUpdateAvailable.addListener(receiveUpdateNotif);
+if (__BROWSER_TYPE__ === "chrome") {
+  // @ts-ignore
+  chrome.sidePanel.onClosed.addListener(() => {
+    browser.tabs.query({url: "https://*.crunchyroll.com/watch/*"}).then((tabs) => {
+      for (const tab of tabs) {
+        browser.tabs.sendMessage(tab.id!, {type: "CLEAR_MOVING"})
+          .catch(e => console.error("[dual sub pop-up] failed to clear moving on chrome side panel close", tab, e));
+      }
+    });
+  })
+}
 
 browser.action.onClicked.addListener(async (tab) => {
   await openSidebar(tab);
@@ -248,12 +259,12 @@ async function receiveTabUpdate(tabId: number, changeInfo: Tabs.OnUpdatedChangeI
     browser.extension.getViews({type: "popup"}).forEach(p => p.close());
     return;
   }
-  console.log(`[dual-sub] old url is ${(await browser.tabs.get(tabId)).url}`);
+  // console.log(`[dual-sub] old url is ${(await browser.tabs.get(tabId)).url}`);
   const manifest = await grabEpisodeManifest(tabId).catch(() => null);
   const oldGuid = manifest?.episodeGuid;
   const newGuid = getGuid(url);
-  console.log(`[dual-sub] ${oldGuid} -> ${newGuid}`);
   if (newGuid === oldGuid) return;
+  console.log(`[dual-sub] ${oldGuid} -> ${newGuid}`);
   console.log(`[dual-sub] new tab url for tab ${tabId} is ${shortenUrl(url)}`);
   manifestMap.delete(tabId);
   try {

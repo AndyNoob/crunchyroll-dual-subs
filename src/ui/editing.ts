@@ -1,69 +1,44 @@
-import {grabPreference} from "../content";
 import type {SubMask} from "../data/preferences";
+import {overlayCanvasContainer} from "./overlay";
+import {convertToPercent, convertToPixels, createMoveMe, type Moving} from "@andynoob/move-it";
 
-export let editorMenu: HTMLElement | null = null;
-export let invertButtonLabel: HTMLLabelElement | null = null;
-export let invertButton: HTMLInputElement | null = null;
-export let scopeLabel: HTMLLabelElement | null = null;
-export let scopeSelect: HTMLSelectElement | null = null;
-export let rectSpan: HTMLSpanElement | null = null;
+const movingList: Moving[] = [];
 
-export async function getEditorMenu(): Promise<HTMLElement> {
-  editorMenu = document.querySelector("#cr-dual-sub-editor-menu")
-    || document.createElement("div");
-  editorMenu.id = "cr-dual-sub-editor-menu";
-
-  scopeLabel = editorMenu.querySelector("#cr-dual-subs-scope-label")
-    || editorMenu.appendChild(document.createElement("label"));
-  scopeLabel.id = "cr-dual-subs-scope-label";
-  scopeLabel.textContent = "Current scope";
-
-  scopeSelect = editorMenu.querySelector("#cr-dual-subs-scope-select")
-    || scopeLabel.appendChild(document.createElement("select"));
-  scopeSelect.id = "cr-dual-subs-scope-select";
-  scopeLabel.htmlFor = scopeSelect.id;
-
-  scopeSelect.innerHTML = `<option value="global">Global</option><option value="season">Season</option><option value="episode">Episode</option>`;
-  scopeSelect.value = "season";
-
-  if (!editorMenu.classList.contains("cr-dual-subs-menu"))
-    editorMenu.classList.add("cr-dual-subs-menu");
-
-  invertButtonLabel = editorMenu.querySelector("#cr-dual-subs-invert-label")
-    || editorMenu.appendChild(document.createElement("label"));
-  invertButtonLabel.textContent = "Invert masks";
-  invertButtonLabel.id = "cr-dual-subs-invert-label";
-
-  invertButton = editorMenu.querySelector("input")
-    || invertButtonLabel.appendChild(document.createElement("input"));
-  invertButton.id = "cr-dual-subs-invert-button";
-  invertButton.type = "checkbox";
-  invertButtonLabel.htmlFor = invertButton.id;
-
-  rectSpan = editorMenu.querySelector("span")
-    || editorMenu.appendChild(document.createElement("span"));
-  rectSpan.textContent = "Current masks";
-
-  const preference = await grabPreference();
-  const mask = preference.subMask;
-
-  if (mask) handleMask(mask);
-
-  return editorMenu;
+export function clearMoving() {
+  const removing = overlayCanvasContainer.querySelectorAll("[data-move-it-id]");
+  for (const moving of movingList) {
+    moving.destroy();
+  }
+  for (const element of removing) {
+    element.remove();
+  }
 }
 
-function handleMask(mask: SubMask) {
-  if (!invertButton) return;
-  invertButton.checked = mask.inverted;
-
-}
-
-function ensureListeners() {
-  if (!invertButton) return;
-  if (!invertButton.dataset.listenerAdded) {
-    invertButton.addEventListener("click", () => {
-
-    });
-    invertButton.dataset.listenerAdded = "true";
+export function makeMoving(subMask: SubMask, callback: (newMask: SubMask) => void) {
+  for (let i = 0; i < subMask.rects.length; i++){
+    let rect = subMask.rects[i]!;
+    const element = overlayCanvasContainer.appendChild(document.createElement("div"));
+    movingList.push(createMoveMe(
+      element,
+      {
+        initialState: convertToPixels(overlayCanvasContainer, rect),
+        controlRoot: overlayCanvasContainer,
+        onChange: (state) => {
+          subMask.rects[i] = {...rect, ...convertToPercent(overlayCanvasContainer, state)};
+          callback(subMask);
+        },
+        doResize: true,
+        disableFeatures: {
+          rotate: true
+        }
+      }
+    ));
+    element.style.backgroundColor = subMask.inverted ? "green" : "red";
+    element.style.opacity = "0.75";
+    element.style.border = "3px solid black";
+    element.style.outline = "3px solid white";
+    element.style.zIndex = "9999999999";
+    element.style.pointerEvents = "all";
+    element.style.position = "absolute";
   }
 }

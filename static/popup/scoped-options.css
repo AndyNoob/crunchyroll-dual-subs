@@ -147,7 +147,7 @@ input[type="number"]:focus {
   font-weight: 700;
 }
 
-#reset-position-button {
+button {
   margin: 4px 0 14px;
   padding: 11px 16px;
   border: 1px solid var(--border);
@@ -159,7 +159,7 @@ input[type="number"]:focus {
   font-weight: 700;
 }
 
-#reset-position-button:hover {
+button:hover {
   background: rgba(244, 117, 33, 0.24);
   border: 1px solid rgba(244, 117, 33, 0.55);
   box-shadow: 0 0 0 3px rgba(244, 117, 33, 0.22);
@@ -252,4 +252,60 @@ footer a:hover {
   font-size: 0.75em;
   opacity: 0.8;
   font-weight: 500;
+}
+
+.checkbox-row {
+  display: flex !important;
+  align-items: center;
+
+  input[type="checkbox"] {
+    display: inline-block;
+  }
+}
+
+#sub-editor {
+  padding: 1em;
+  background-color: var(--bg);
+  border-radius: 10px;
+  min-width: 50%;
+}
+
+button.small-button {
+  margin: 4px 0 14px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: normal;
+}
+
+.mask-item {
+  width: 80%;
+  border-radius: 10px;
+  background-color: #1a1c23;
+  display: flex;
+  padding: 4px 8px;
+  justify-content: space-between;
+  align-items: center;
+
+  button {
+    margin: 0;
+    padding: 4px 6px;
+  }
+
+  input {
+    background-color: transparent;
+    border: 0;
+    color: var(--text);
+    font: inherit;
+  }
+
+  input:focus{
+    outline: none;
+  }
+}
+
+.mask-item:hover {
+  /*background: rgba(244, 117, 33, 0.24);*/
+  /*border: 1px solid rgba(244, 117, 33, 0.55);*/
+  box-shadow: 0 0 0 3px rgb(165 75 14);
 }

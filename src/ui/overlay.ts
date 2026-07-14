@@ -40,7 +40,7 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
   ensureDragListeners();
 }
 
-function setTextPos(left?: number, bottom?: number) {
+export function setTextPos(left?: number, bottom?: number) {
   if (!overlayText) return;
 
   if (left == null || bottom == null) {
