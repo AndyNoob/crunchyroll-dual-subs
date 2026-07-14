@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import {ensureSubtitleOverlay} from "./ui/overlay";
+import {ensureSubtitleOverlay, setTextPos} from "./ui/overlay";
 import {
   ensureSubtitleControlShell, markAsLoading,
   setTooltipText,
@@ -12,6 +12,7 @@ import type {SubtitleManifest} from "./data/subtitles";
 import {grabVideo, shouldSkip, videoEl, beginRender, shutdownRender, updateOffsets} from "./ui/rendering";
 import {askMainWorld} from "./world-bridge";
 import type {RawProfile} from "./data/profiles";
+import {clearMoving, makeMoving} from "./ui/editing";
 
 export type Format = "vtt" | "ass" | "none";
 
@@ -169,6 +170,14 @@ function addListeners() {
         break;
       case "UPDATE_PREFERENCE": {
         log("updating preferences from popup");
+        const old = {...preference};
+        preference = await grabPreference();
+        setTextPos(preference.leftPct, preference.bottomPct);
+        if (old.doCc === preference.doCc
+          && old.subLanguage === preference.subLanguage
+          && old.primaryOffsetMs === preference.primaryOffsetMs
+          && old.secondaryOffsetMs === preference.secondaryOffsetMs
+        ) return;
         await updateDropdownOptions();
         await updateCuesAndRender();
         await updateOffsets(preference!);
@@ -186,6 +195,14 @@ function addListeners() {
       }
       case "RAW_PLAYBACK": {
         return currentPlayback;
+      }
+      case "CLEAR_MOVING": {
+        return clearMoving();
+      }
+      case "CREATE_MOVING": {
+        return makeMoving(msg.subMask, (mask) => {
+          browser.runtime.sendMessage({type: "UPDATE_MOVING", subMask: mask});
+        });
       }
     }
   });
