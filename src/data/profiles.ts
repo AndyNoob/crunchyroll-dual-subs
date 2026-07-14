@@ -27,9 +27,10 @@ export interface RawProfile {
   is_selected: boolean,
   preferred_content_subtitle_language: string,
   preferred_communication_language: string,
+  preferred_content_audio_language: string
   prefer_closed_captions: boolean,
   profile_id: string,
-  profile_name: string
+  profile_name: string,
 }
 
 export function mapProfile(raw: RawProfile): Profile {
@@ -44,14 +45,16 @@ export function mapProfile(raw: RawProfile): Profile {
     })(),
     doCc: raw.prefer_closed_captions,
     profileId: raw.profile_id,
-    profileName: raw.profile_name
+    profileName: raw.profile_name,
+    audioLanguage: raw.preferred_content_audio_language
   };
 }
 
 export interface Profile {
-  isSelected: boolean;
-  subLanguage: string;
-  doCc: boolean;
-  profileId: string;
-  profileName: string;
+  isSelected: boolean,
+  subLanguage: string,
+  doCc: boolean,
+  profileId: string,
+  profileName: string,
+  audioLanguage: string
 }
