@@ -159,7 +159,8 @@ function renderMaskList(pref: Partial<Preference>) {
     const deleteBtn = el.querySelector(".small-button")!;
     deleteBtn.addEventListener("click", (e) => {
       e.stopImmediatePropagation();
-      delete mask.rects[i];
+      // @ts-ignore
+      mask.rects[i] = null;
       el.remove();
       saveScopedPreference({
         subMask: mask
