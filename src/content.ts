@@ -9,7 +9,15 @@ import {
 } from "./ui/controls";
 import type {Preference} from "./data/preferences";
 import type {SubtitleManifest} from "./data/subtitles";
-import {grabVideo, shouldSkip, videoEl, beginRender, shutdownRender, updateOffsets} from "./ui/rendering";
+import {
+  grabVideo,
+  shouldSkip,
+  videoEl,
+  beginRender,
+  shutdownRender,
+  updateOffsets,
+  updateEraser
+} from "./ui/rendering";
 import {askMainWorld} from "./world-bridge";
 import type {RawProfile} from "./data/profiles";
 import {clearMoving, makeMoving} from "./ui/editing";
@@ -200,8 +208,13 @@ function addListeners() {
         return clearMoving();
       }
       case "CREATE_MOVING": {
+        updateEraser().then();
         return makeMoving(msg.subMask, (mask) => {
           browser.runtime.sendMessage({type: "UPDATE_MOVING", subMask: mask});
+          if (preference) {
+            preference.subMask = mask;
+            updateEraser();
+          }
         });
       }
     }
