@@ -23,11 +23,10 @@ window.fetch = async function ( input, init ) {
       const data = await clone.json();
       dispatchExtensionEvent("playback", data);
       if (typeof window.SubtitlesOctopus != "function") {
+        const noSub = data[ "hardSubs" ][ "none" ].url;
         for (let [ key, value ] of Object.entries(data[ "hardSubs" ])) {
-          if (key === data[ "audioLocale" ]) {
-            value.url = data[ "hardSubs" ][ "none" ].url;
-            console.log(`[dual-sub] changed hard sub url of ${ key }`);
-          }
+          value.url = noSub;
+          console.log(`[dual sub soft sub] changed hard sub url of ${ key }`);
         }
         const cleanBlob = new Blob([ JSON.stringify(data) ], { type: 'application/json' });
         return new Response(cleanBlob, {

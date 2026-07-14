@@ -27,17 +27,17 @@ export function notifyCueRefresh(tabId: number, cues: Tracks, attemptsLeft = 3) 
 export async function bundleCues(tabId: number, refresh = false) {
   const profile = await grabSelectedProfile(tabId);
   const tracks: Tracks = {};
-  if (profile.subLanguage != "none" && !profile.doCc) {
-    console.log("[receiveContentMsg] GET_CUES: grabbing both cues");
-    const trackSecondary = await resolveCues(tabId, refresh);
-    if (profile.subLanguage === (await grabEpisodeManifest(tabId)).audioLocale) {
-      const trackInPlayer = await resolveCues(tabId, refresh, profile);
-      tracks[trackInPlayer.lang] = trackInPlayer;
-    }
-    tracks[trackSecondary.lang] = trackSecondary;
-  } else {
+  if (profile.doCc) {
+    // no need to force soft subbing
+    console.log("[receiveContentMsg] GET_CUES: only grabbing CC");
     const track = await resolveCues(tabId, refresh);
     tracks[track.lang] = track;
+  } else {
+    console.log("[receiveContentMsg] GET_CUES: forcing soft sub");
+    const trackSecondary = await resolveCues(tabId, refresh);
+    const trackInPlayer = await resolveCues(tabId, refresh, profile);
+    tracks[trackInPlayer.lang] = trackInPlayer;
+    tracks[trackSecondary.lang] = trackSecondary;
   }
   return tracks;
 }
@@ -59,7 +59,11 @@ export async function resolveCues(tabId: number, refresh = false, pref: Preferen
   if (!cues) {
     return {format: "none", lang: "none", content: ""};
   }
-  return {format: cues.format as Format, lang: `${preference.subLanguage}-${preference.doCc ? "cc" : ""}`, content: cues.content};
+  return {
+    format: cues.format as Format,
+    lang: `${preference.subLanguage}-${preference.doCc ? "cc" : ""}`,
+    content: cues.content
+  };
 }
 
 let playbackBlockedUntil = 0;
@@ -82,6 +86,7 @@ export async function getToken(tabId: number): Promise<string | null> {
     }) as string | null;
     const s = "Bearer " + ss;
     if (ss) return s;
-  } catch {}
+  } catch {
+  }
   return null;
 }

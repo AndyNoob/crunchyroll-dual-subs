@@ -109,10 +109,15 @@ function ensureSubtitleListeners() {
     addTooltip(subtitleControl, "Select secondary subtitles");
 
     subtitleTrigger.addEventListener("click", async () => {
-      await browser.runtime.sendMessage({type: "OPEN_POPUP"}).catch((e) => {
-        console.log(e);
-        subtitleControl?.classList.toggle("open");
-      });
+      try {
+        await browser.sidebarAction.open();
+      } catch {
+        await browser.runtime.sendMessage({type: "OPEN_POPUP"})
+          .catch((e) => {
+            console.error("[dual subs controls] couldn't open the side bar", e);
+            subtitleControl?.classList.toggle("open");
+          });
+      }
     });
     subtitleTrigger.dataset.listenerAttached = "true";
   }
