@@ -230,7 +230,7 @@ function refreshMoving() {
       .catch(e => console.error("[dual sub pop-up] failed to clear moving on refresh", e))
       .then(() => {
         browser.tabs.sendMessage(tabId, {type: "CREATE_MOVING", subMask: pref.subMask})
-          .catch(e => console.error("[dual sub pop-up] failed to create moving on collapsing", e));
+          .catch(e => console.error("[dual sub pop-up] failed to create moving on refresh", e));
       });
   });
 }

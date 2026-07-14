@@ -205,9 +205,11 @@ function addListeners() {
         return currentPlayback;
       }
       case "CLEAR_MOVING": {
+        updateEraser().then();
         return clearMoving();
       }
       case "CREATE_MOVING": {
+        preference = null;
         updateEraser().then();
         return makeMoving(msg.subMask, (mask) => {
           browser.runtime.sendMessage({type: "UPDATE_MOVING", subMask: mask});
