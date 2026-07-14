@@ -60,7 +60,7 @@
       try {
         mod = req(id);
       } catch {
-        console.warn(`[dual sub webpack] module ${ id } errored when being required`);
+        console.debug(`[dual sub webpack] module ${ id } errored when being required`);
         continue;
       }
       if (mod?.AuthorizeInterceptor)
@@ -103,7 +103,7 @@
       switch (type) {
         case "GRAB_TOKEN": {
           if (__dualSubsAuthorizeInterceptor) {
-            console.warn("[dual sub auth] sending token...");
+            console.log("[dual sub auth] sending token...");
           } else {
             console.warn("[dual sub auth] not ready yet");
           }
