@@ -7,36 +7,40 @@ Web extension created to fix the annoying issue of not being able to use `Englis
 
 ## Terminologies
 
-| Term                          | Meaning                                                                                                                                                                                                                                                                                                                                   |
-|-------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Hard-subbing                  | Crunchyroll's default subtitle "rendering" method where they burn the subtitles directly onto the video of the current episode. This is only applicable to on-screen translation subtitles.                                                                                                                                               |
-| Soft-subbing                  | Contrary to the hard-subbing method, where subtitles are rendered on the fly as you watch the current episode on your device. This is the behavior introduced by this extension and the [Croptix](https://github.com/stratumadev/croptix) extension.                                                                                      |
-| Closed-caption (CC) subtitles | Subtitle intended to supplement the viewing experience by providing text for the ongoing dialogues. This kind of subtitles is typically provided in files with these extensions: `.vtt` or `.srt`. Crunchyroll distinguishes these by appending `[CC]` at the end of the subtitle name. For example, `English [CC]`.                      |
-| Non-CC subtitles              | Subtitles intended to translate on-screen text, such as signs, that are in the original language. This kind of subtitles typically have so called "typesetting," with elegant font styles. These subtitles are typically delivered in the `.ass` file format. On Crunchyroll, these are subtitles without the `[CC]` appended at the end. |
-| Crunchyroll profile data      | Your profile includes your preference information for preferred audio and subtitle language.                                                                                                                                                                                                                                              |
-| Crunchyroll subtitle data     | This data is loaded by the Crunchyroll player when you begin watching an episode. It includes URL's to the current episode's subtitle files, which this extension downloads and displays for you automatically.                                                                                                                           |
+| Term                          | Meaning                                                                                                                                                                                                                                                                                                                                  |
+|-------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Hard-subbing                  | Crunchyroll's default subtitle "rendering" method where they burn the subtitles directly onto the video of the current episode. This method is only done for on-screen translation subtitles.                                                                                                                                            |
+| Soft-subbing                  | Contrary to the hard-subbing method, where subtitles are rendered on the fly as you watch the current episode on your device. This is the behavior introduced by this extension and the [Croptix](https://github.com/stratumadev/croptix) extension.                                                                                     |
+| Closed-caption (CC) subtitles | Subtitle intended to supplement the viewing experience by providing text for the ongoing dialogues. This kind of subtitles is typically provided in a `.vtt` or `.srt` file format. Crunchyroll distinguishes these by appending `[CC]` at the end of the subtitle name. For example, `English [CC]`.                                    |
+| Non-CC subtitles              | Subtitles intended to translate on-screen text, such as signs, that are in the original language. This kind of subtitles typically have so called "typesetting" with elegant font styles. These subtitles are typically delivered in the `.ass` file format. On Crunchyroll, these are subtitles without the `[CC]` appended at the end. |
+| Crunchyroll profile data      | Your profile, loaded and stored by the Crunchyroll webpage, includes your preference information for preferred audio and subtitle language.                                                                                                                                                                                              |
+| Crunchyroll subtitle data     | This data is loaded by the Crunchyroll player when you begin watching an episode. It includes URL's to the current episode's subtitle files, which this extension downloads and displays for you automatically.                                                                                                                          |
 
 
 ## Features
 
 ### Secondary subtitles
-When the Crunchyroll watch page is loaded, the extension reads your profile for your preferred/selected subtitle language and type. The extension retrieves the episode's subtitle data in the same manner. The alternate subtitle will then be loaded and rendered accordingly by the extension.
+When the Crunchyroll watch page is loaded, the extension reads your Crunchyroll profile data for your preferred/selected subtitle language and type. The extension retrieves the episode's subtitle data in the same manner. The alternate subtitle will then be loaded and rendered accordingly by the extension.
 
 ### Scoped options
 
 A pop-up/sidebar menu is provided by the extension for scoped preference control. With it, you can apply desired options per season, per episode, or globally. 
 
-In the menu, there are a few things that you can do: apply timing offset for the primary subtitles (i.e. the one selected in the Crunchyroll player), apply timing offset for the secondary subtitles (loaded by this extension), and apply subtitle masks to erase portions of the primary subtitle. 
+In the menu, there are a few things that you can do: 
+
+1. Apply timing offset for the primary subtitles (i.e. the one selected in the Crunchyroll player). 
+2. Apply timing offset for the secondary subtitles (which is loaded by this extension). 
+3. Apply subtitle masks to "erase"/hide portions of the primary subtitle.
 
 ### Subtitle masking
 
-This feature allows you to "erase" portions of non-CC subtitles. This is intended for if, say the current primary subtitle includes dialogues and is displaying them at the same time as the secondary subtitle's dialogues. 
+This feature allows you to "erase" portions of non-CC subtitles. This is intended for if, say, the current primary subtitle contains dialogues and is displaying them at the same time as the secondary subtitle's dialogues. 
 
 ## Caveats
 
 ### Primary subtitles soft-subbing
 
-This extension, by default, soft-subs the primary subtitles (that is, unless Croptix is installed). The reason being both the timing offset and subtitle masking features require the primary subtitles (if it is not CC subtitles) to be rendered locally in order to interact with them.   
+This extension, by default, soft-subs non-CC primary subtitles (that is, unless Croptix is installed). The reason being both the timing offset and subtitle masking features require the primary subtitles (if it is not CC subtitles) to be rendered locally in order to interact with them. 
 
 ### Dev notes
 
