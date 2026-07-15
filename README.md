@@ -1,6 +1,9 @@
 # Crunchyroll Dual Sub
 ![](https://hackatime.hackclub.com/api/v1/badge/U07A64GBPV1/AndyNoob/crunchyroll-dual-subs) [![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/mahcmkjllaabldhminilhldfiickigmi?logo=chromewebstore&logoColor=white&label=Chrome%20Webstore%20Users&color=red)](https://chromewebstore.google.com/detail/crunchyroll-dual-subs/mahcmkjllaabldhminilhldfiickigmi) [![Mozilla Add-on Users](https://img.shields.io/amo/users/crunchyroll-dual-subs?logo=firefoxbrowser&logoColor=white&label=Firefox%20Add-on%20Users&color=orange)](https://addons.mozilla.org/en-US/firefox/addon/crunchyroll-dual-subs/)
 
+> [!IMPORTANT]
+> The Firefox distribution of this extension is _extremely_ outdated due to long review time on Firefox's end. Sorry about that. 
+
 Web extension created to fix the annoying issue of not being able to use `English` and `English [CC]` subtitles at the same time[^1]. The extension works best on shows like Frieren: Beyond Journey's End where there are both types of subtitles. This extension supports [Croptix](https://github.com/stratumadev/croptix) and [Improve Crunchyroll](https://github.com/ThomasTavernier/Improve-Crunchyroll).
 
 ![demo gif](assets/cr-dual-sub-demo.gif)
