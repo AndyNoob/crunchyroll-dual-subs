@@ -339,8 +339,8 @@ function attachListeners() {
       name: "Subtitle Mask",
       x: 0.5 + offsetter(),
       y: 0.5 + offsetter(),
-      width: 0.025,
-      height: 0.025,
+      width: 0.1,
+      height: 0.17777777778, // to make square in 640x360 aspect ratio
       rotation: 0,
       usePercent: true
     });
