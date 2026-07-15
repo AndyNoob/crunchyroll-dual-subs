@@ -178,10 +178,12 @@ function addListeners() {
         break;
       case "UPDATE_PREFERENCE": {
         log("updating preferences from popup");
-        const old = {...preference};
+        const old = preference ? {...preference} : null;
+        preference = null;
         preference = await grabPreference();
         setTextPos(preference.leftPct, preference.bottomPct);
-        if (old.doCc === preference.doCc
+        if (old
+          && old.doCc === preference.doCc
           && old.subLanguage === preference.subLanguage
           && old.primaryOffsetMs === preference.primaryOffsetMs
           && old.secondaryOffsetMs === preference.secondaryOffsetMs

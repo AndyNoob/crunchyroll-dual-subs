@@ -16,6 +16,7 @@
     "@andynoob/move-it": "^0.3.1",
     "@plussub/srt-vtt-parser": "^2.0.5",
     "assjs": "^0.1.8",
+    "bottleneck": "^2.19.5",
     "tslog": "^4.10.2",
     "webextension-polyfill": "^0.12.0"
   },

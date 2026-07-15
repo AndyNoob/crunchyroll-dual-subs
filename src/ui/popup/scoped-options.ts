@@ -34,15 +34,17 @@ const scopeOptions: PreferenceScope[] = ["global", "season", "episode"];
 }*/
 
 export let manifest: SubtitleManifest | null = null;
-export let tabId: number;
-export let context: ContextResponse;
+export let tabId: number | null;
+export let context: ContextResponse | null;
 
 function renderProfileSelect() {
+  if (!context) throw new Error("context is null");
   const profile = context.currentProfile;
   profileDisplay.textContent = `${profile.profileName}`;
 }
 
 async function renderScopeSelect() {
+  if (!context) throw new Error("context is null");
   console.log("[dual sub popup] scope select loading", context);
   const globalOption = scopeSelect.querySelector('input[value="global"]') as HTMLInputElement;
   const seasonOption = scopeSelect.querySelector('input[value="season"]') as HTMLInputElement;
@@ -173,6 +175,7 @@ function renderMaskList(pref: Partial<Preference>) {
 }
 
 async function loadScopedPreference(): Promise<Partial<Preference>> {
+  if (!context) throw new Error("context is null");
   return await send<Partial<Preference>>({
     type: "GET_SCOPED_PREFERENCE",
     profileId: context.currentProfile.profileId,
@@ -183,6 +186,8 @@ async function loadScopedPreference(): Promise<Partial<Preference>> {
 }
 
 async function saveScopedPreference(pref: PreferencePatch) {
+  if (!tabId) throw new Error("tab id is null");
+  if (!context) throw new Error("context is null");
   if (pref.subMask) pref.subMask.rects = pref.subMask.rects.filter(o => o != null);
   await send({
     type: "SET_SCOPED_PREFERENCE",
@@ -226,11 +231,12 @@ async function refreshForm() {
 }
 
 function refreshMoving() {
+  if (!tabId) throw new Error("tab id is null");
   loadScopedPreference().then(pref => {
-    browser.tabs.sendMessage(tabId, {type: "CLEAR_MOVING"})
+    browser.tabs.sendMessage(tabId!, {type: "CLEAR_MOVING"})
       .catch(e => console.error("[dual sub pop-up] failed to clear moving on refresh", e))
       .then(() => {
-        browser.tabs.sendMessage(tabId, {type: "CREATE_MOVING", subMask: pref.subMask})
+        browser.tabs.sendMessage(tabId!, {type: "CREATE_MOVING", subMask: pref.subMask})
           .catch(e => console.error("[dual sub pop-up] failed to create moving on refresh", e));
       });
   });
@@ -309,6 +315,7 @@ function attachListeners() {
   });
 
   resetPositionButton.addEventListener("click", async (e) => {
+    if (!tabId) throw new Error("tab id is null");
     e.stopImmediatePropagation();
     const newCollapse = subEditContainer.getAttribute("collapsed") === "false";
     subEditContainer.setAttribute(
@@ -414,6 +421,9 @@ async function init() {
   console.log(currentTab);
   if (!currentTab || !currentTab!.url?.includes("/watch/")) {
     loadingState.textContent = "Open this on a Crunchyroll episode page.";
+    tabId = null;
+    context = null;
+    manifest = null;
     return;
   }
 
@@ -456,7 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
 browser.tabs.onActivated.addListener(() => {init().then()}); // switched tabs
 browser.tabs.onUpdated.addListener((_, info, tab) => {
   if (info.url
-    && (!context.episodeGuid || !info.url.includes(context.episodeGuid)) // don't re-init
+    && (!context || !context.episodeGuid || !info.url.includes(context.episodeGuid)) // don't re-init
     && tab.active) {
     init().then(); // navigated in same tab
   }
@@ -472,6 +482,7 @@ browser.runtime.onMessage.addListener((msg: any, _: any) => {
   }
 });
 window.addEventListener("beforeunload", () => {
+  if (!tabId) return;
   browser.tabs.sendMessage(tabId, {type: "CLEAR_MOVING"})
     .catch(e => console.error("[dual sub pop-up] failed to clear moving on unload", e));
 });
