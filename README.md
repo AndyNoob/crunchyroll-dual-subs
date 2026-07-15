@@ -1,31 +1,52 @@
 # Crunchyroll Dual Sub
 ![](https://hackatime.hackclub.com/api/v1/badge/U07A64GBPV1/AndyNoob/crunchyroll-dual-subs) [![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/mahcmkjllaabldhminilhldfiickigmi?logo=chromewebstore&logoColor=white&label=Chrome%20Webstore%20Users&color=red)](https://chromewebstore.google.com/detail/crunchyroll-dual-subs/mahcmkjllaabldhminilhldfiickigmi) [![Mozilla Add-on Users](https://img.shields.io/amo/users/crunchyroll-dual-subs?logo=firefoxbrowser&logoColor=white&label=Firefox%20Add-on%20Users&color=orange)](https://addons.mozilla.org/en-US/firefox/addon/crunchyroll-dual-subs/)
 
-
-Web extension created to fix the annoying issue of not being able to use `English` and `English [CC]` subtitles at the same time[^1]. The extension is still in development but is guaranteed to work on shows such as One Piece where there are both types of subtitles. This extension supports [Croptix](https://github.com/stratumadev/croptix) and [Improve Crunchyroll](https://github.com/ThomasTavernier/Improve-Crunchyroll).
+Web extension created to fix the annoying issue of not being able to use `English` and `English [CC]` subtitles at the same time[^1]. The extension works best on shows like Frieren: Beyond Journey's End where there are both types of subtitles. This extension supports [Croptix](https://github.com/stratumadev/croptix) and [Improve Crunchyroll](https://github.com/ThomasTavernier/Improve-Crunchyroll).
 
 ![demo gif](assets/cr-dual-sub-demo.gif)
 
-## How it works
-When the Crunchyroll watch page is loaded, the extension intercepts and reads your profile for your preferred/selected subtitle language and type (if you don't have one set via the drop-down or unless you use Chrome... see below). The extension retrieves the episode's subtitle data in the same manner. The alternate subtitle will then be loaded and rendered accordingly by the extension.
+## Terminologies
 
-> ~~Because of Chrome's recent efforts to fight ad blockers, the extension can't intercept information being loaded by the watch page. Instead, it will fetch the information (redundantly) from Crunchyroll. Don't worry, this won't affect your normal watch experience.~~ <br>
-> Fixed as of `0.10.0`.
+| Term                          | Meaning                                                                                                                                                                                                                                                                                                                                   |
+|-------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Hard-subbing                  | Crunchyroll's default subtitle "rendering" method where they burn the subtitles directly onto the video of the current episode. This is only applicable to on-screen translation subtitles.                                                                                                                                               |
+| Soft-subbing                  | Contrary to the hard-subbing method, where subtitles are rendered on the fly as you watch the current episode on your device. This is the behavior introduced by this extension and the [Croptix](https://github.com/stratumadev/croptix) extension.                                                                                      |
+| Closed-caption (CC) subtitles | Subtitle intended to supplement the viewing experience by providing text for the ongoing dialogues. This kind of subtitles is typically provided in files with these extensions: `.vtt` or `.srt`. Crunchyroll distinguishes these by appending `[CC]` at the end of the subtitle name. For example, `English [CC]`.                      |
+| Non-CC subtitles              | Subtitles intended to translate on-screen text, such as signs, that are in the original language. This kind of subtitles typically have so called "typesetting," with elegant font styles. These subtitles are typically delivered in the `.ass` file format. On Crunchyroll, these are subtitles without the `[CC]` appended at the end. |
+| Crunchyroll profile data      | Your profile includes your preference information for preferred audio and subtitle language.                                                                                                                                                                                                                                              |
+| Crunchyroll subtitle data     | This data is loaded by the Crunchyroll player when you begin watching an episode. It includes URL's to the current episode's subtitle files, which this extension downloads and displays for you automatically.                                                                                                                           |
 
-The extension adds a drop-down menu for you to select your desired secondary subtitle. The choice is saved for your selected profile to the sync-ed storage (if it is enabled). As of `0.10.0`, a pop-up menu is provided by the extension for scoped preference control (per season, per episode, global). In the menu, you can apply an offset to the timing of both primary and secondary subtitles. 
+
+## Features
+
+### Secondary subtitles
+When the Crunchyroll watch page is loaded, the extension reads your profile for your preferred/selected subtitle language and type. The extension retrieves the episode's subtitle data in the same manner. The alternate subtitle will then be loaded and rendered accordingly by the extension.
+
+### Scoped options
+
+A pop-up/sidebar menu is provided by the extension for scoped preference control. With it, you can apply desired options per season, per episode, or globally. 
+
+In the menu, there are a few things that you can do: apply timing offset for the primary subtitles (i.e. the one selected in the Crunchyroll player), apply timing offset for the secondary subtitles (loaded by this extension), and apply subtitle masks to erase portions of the primary subtitle. 
+
+### Subtitle masking
+
+This feature allows you to "erase" portions of non-CC subtitles. This is intended for if, say the current primary subtitle includes dialogues and is displaying them at the same time as the secondary subtitle's dialogues. 
 
 ## Caveats
-~~While the extension is able to process most types of subtitle formats (Crunchyroll doesn't use a unified type of subtitle file), the rendering system is very limited. As such, it is recommended that you **choose the none-CC version** as your preferred/selected subtitle in the player. That way, the extension's renderer won't struggle displaying the more complicated typesettings (and trust me, it's not pretty).~~
 
-As of version `0.10.0`, the extension supports the rendering of non-CC subtitles.
+### Primary subtitles soft-subbing
 
-The dev notes feature of this extension loads dev notes from [here (Github Gist)](https://gist.githubusercontent.com/AndyNoob/49166e0f04f6a9863aed242e07bbcfe9/raw/ccef05b3185aaa820145eb48f89714271cf9fa31/cr-dual-subs-dev-notes.json).
+This extension, by default, soft-subs the primary subtitles (that is, unless Croptix is installed). The reason being both the timing offset and subtitle masking features require the primary subtitles (if it is not CC subtitles) to be rendered locally in order to interact with them.   
+
+### Dev notes
+
+The dev notes feature of this extension loads dev notes from [here (Github Gist)](https://gist.githubusercontent.com/AndyNoob/49166e0f04f6a9863aed242e07bbcfe9/raw/ccef05b3185aaa820145eb48f89714271cf9fa31/cr-dual-subs-dev-notes.json). The purpose of this feature is to inform you of any changes/information regarding the future updates of this extension. 
 
 ## Privacy notice
-Everything stays on your computer/browser. The extension does not communicate with any external servers other than Crunchyroll's services.
+**Everything stays on your computer/browser.** The extension does not communicate with any external servers other than Crunchyroll's services. Your browser may say that this extension "can read and change your data on sites." That is because this extension adds control elements (such as the subtitle reload button) onto the Crunchyroll webpage, and also reads some of the data loaded by the Crunchyroll player in order to process subtitles. 
 
 ## Credits
-While not completely vibe-coded, this project was made with the help of GPT-5.3/5.5. Prior to version `0.10.0`, this project used [frazy-parser](https://github.com/ApayRus/frazy-parser) by [ApayRus](https://github.com/ApayRus) to parse subtitle files. As of version `0.10.0`, [ASSJS](https://github.com/weizhenye/ASS) by [weizhenye](https://github.com/weizhenye) is used to render ASS subtitles, and [srt-vtt-parser](https://github.com/plussub/srt-vtt-parser) by [plussub](https://github.com/plussub) is used to parse VTT subtitle files. 
+While not completely vibe-coded, this project was made with the help of generative AI (Google Gemini, Claude Sonnet, GPT). Prior to version `0.10.0`, this project used [frazy-parser](https://github.com/ApayRus/frazy-parser) by [ApayRus](https://github.com/ApayRus) to parse subtitle files. As of version `0.10.0`, [ASSJS](https://github.com/weizhenye/ASS) by [weizhenye](https://github.com/weizhenye) is used to render ASS subtitles, and [srt-vtt-parser](https://github.com/plussub/srt-vtt-parser) by [plussub](https://github.com/plussub) is used to parse VTT subtitle files. 
 
 ## How to build
 1. `npm install`
