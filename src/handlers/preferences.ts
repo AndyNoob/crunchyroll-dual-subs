@@ -1,14 +1,24 @@
 import type {Preference, PreferencePatch, PreferenceScope, StoredPreferences} from "../data/preferences";
 import {type Profile} from "../data/profiles";
 import browser from "webextension-polyfill";
+import Bottleneck from "bottleneck";
 
-export const prefKey = "cr-dual-sub-prefs";
+const prefKey = "cr-dual-sub-prefs";
 
 // courtesy of GPT5.3/5.5
 
+let localCachedPreference: StoredPreferences | null = null;
+
 export async function loadStoredPreferences(): Promise<StoredPreferences> {
-  const result = await browser.storage.sync.get(prefKey);
-  const stored = (result[prefKey] ?? {}) as StoredPreferences;
+  let stored: StoredPreferences;
+  if (localCachedPreference != null) {
+    console.log("[loadStoredPreferences] returning locally cached pref");
+    stored = structuredClone(localCachedPreference);
+  } else {
+    console.log("[loadStoredPreferences] querying sync pref");
+    const result = await browser.storage.sync.get(prefKey);
+    stored = (result[prefKey] ?? {}) as StoredPreferences;
+  }
 
   return {
     global: stored.global ?? {},
@@ -17,11 +27,17 @@ export async function loadStoredPreferences(): Promise<StoredPreferences> {
   };
 }
 
-export async function saveStoredPreferences(prefs: StoredPreferences) {
-  await browser.storage.sync.set({
-    [prefKey]: prefs
-  });
-  console.log("[saveStoredPreferences] saved prefs", prefs);
+const limiter = new Bottleneck({
+  minTime: 500
+});
+
+export function saveStoredPreferences(prefs: StoredPreferences) {
+  localCachedPreference = structuredClone(prefs);
+  limiter.schedule(async () => {
+    await browser.storage.sync.set({
+      [prefKey]: prefs
+    });
+  }).then(() => console.log("[saveStoredPreferences] saved prefs", prefs));
 }
 
 export function getDefaultPreference(profile: Profile): Preference {
@@ -102,7 +118,7 @@ export async function setPreference(
 
     prefs.global[profileId] = applyPreferencePatch(existing, partial) as Preference;
 
-    await saveStoredPreferences(prefs);
+    saveStoredPreferences(prefs);
     return prefs.global[profileId];
   }
 
@@ -115,7 +131,7 @@ export async function setPreference(
     const existing = prefs.seasons[profileId][seasonGuid] ?? {};
     prefs.seasons[profileId][seasonGuid] = applyPreferencePatch(existing, partial);
 
-    await saveStoredPreferences(prefs);
+    saveStoredPreferences(prefs);
     return prefs.seasons[profileId][seasonGuid];
   }
 
@@ -130,7 +146,7 @@ export async function setPreference(
 
     prefs.episodes[profileId][episodeGuid] = applyPreferencePatch(existing, partial);
 
-    await saveStoredPreferences(prefs);
+    saveStoredPreferences(prefs);
     return prefs.episodes[profileId][episodeGuid];
   }
 
@@ -173,5 +189,5 @@ export async function resetPreference(
     delete prefs.episodes[profileId]?.[episodeGuid];
   }
 
-  await saveStoredPreferences(prefs);
+  saveStoredPreferences(prefs);
 }
