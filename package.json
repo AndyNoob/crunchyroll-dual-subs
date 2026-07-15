@@ -13,7 +13,7 @@
   "license": "MIT",
   "homepage": "https://github.com/AndyNoob/crunchyroll-dual-subs",
   "dependencies": {
-    "@andynoob/move-it": "^0.3.1",
+    "@andynoob/move-it": "^0.3.2",
     "@plussub/srt-vtt-parser": "^2.0.5",
     "assjs": "^0.1.8",
     "bottleneck": "^2.19.5",
