@@ -5,9 +5,10 @@
   "description": "Display English and English [CC] subtitles at the same time.",
   "type": "module",
   "scripts": {
-    "build": "vite build && BROWSER=chrome vite build && echo -e \"\\a\"",
+    "build": "BROWSER=firefox vite build && BROWSER=chrome vite build && echo -e \"\\a\"",
     "dev": "vite dev",
-    "icons": "node scripts/build-icons.js"
+    "icons": "node scripts/build-icons.js",
+    "build-for-amo": "BROWSER=firefox vite build"
   },
   "author": "AndyNoob",
   "license": "MIT",
