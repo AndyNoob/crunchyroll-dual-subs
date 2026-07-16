@@ -250,6 +250,7 @@ function attachListeners() {
     scopeSelect.dataset.scopeValue = newScope;
     await saveLastScope(scopeSelect.dataset.scopeValue as PreferenceScope);
     await refreshForm();
+    refreshMoving();
   });
 
   subtitleSelect.addEventListener("change", async () => {
