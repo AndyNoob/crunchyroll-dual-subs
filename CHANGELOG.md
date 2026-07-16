@@ -1,3 +1,5 @@
+> Last commit: 04beffd2
+
 # 0.12.0
 - Fix scope-select overflow & mask render not re-rendering (AndyNoob)
 - Add warning for outdated firefox builds in README.md (AndyNoob)
