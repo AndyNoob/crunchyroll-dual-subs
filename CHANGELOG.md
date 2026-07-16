@@ -1,3 +1,24 @@
+# 0.12.0
+- Fix scope-select overflow & mask render not re-rendering (AndyNoob)
+- Add warning for outdated firefox builds in README.md (AndyNoob)
+- Add build-for-amo script (AndyNoob)
+- Increase clarity & fix grammar in README.md (AndyNoob)
+- Update README to reflect the latest features & add clarity (AndyNoob)
+- Add a demo GIF (AndyNoob)
+- Update move-it & make initial mask size bigger (AndyNoob)
+- Fix preference sync storage write op limit (AndyNoob)
+- Always do soft-subbing (AndyNoob)
+- Fix weird mask de-sync issues (AndyNoob)
+- Capture preferred audio language in profiles (AndyNoob)
+- Observe style mutation on ASS-box (AndyNoob)
+- Fix deleting subtitle mask not resetting clip-path (AndyNoob)
+- Add snapping grids to dragging masks (AndyNoob)
+- Add use clip-path for masking (AndyNoob)
+- Implement subtitle mask editor function (AndyNoob)
+- Switch from popup to sidebar (chrome only atm) (AndyNoob)
+- Restyle scoped option selector (AndyNoob)
+
+
 # 0.11.5
 - Fix series page -> watch page init (AndyNoob)
 
