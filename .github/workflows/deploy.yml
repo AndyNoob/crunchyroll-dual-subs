@@ -70,24 +70,16 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           workflow-id: 'deploy.yml'
 
-      # courtesy of GPT-5.3 (or .2?)
       - name: Generate release notes
         id: notes
         run: |
-          {
-            echo "markdown<<EOF"
-            echo "# ${{ steps.version.outputs.version }}"
-            git log ${{ steps.last_success.outputs.commit-sha }}..HEAD --pretty=format:'- %s (%an)' |
-              grep -v 'github-actions\[bot\]' |
-              grep -v 'Bump ' || true
-            echo
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+          echo "markdown<<EOF" >> $GITHUB_OUTPUT
+          node scripts/generate-release-notes.js >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Throw stuff in the summary
         run: |
           echo "## The stuff we grabbed" >> $GITHUB_STEP_SUMMARY
-          echo "> Last commit hash: ${{ steps.last_success.outputs.commit-sha }}" >> $GITHUB_STEP_SUMMARY
           echo "##${{ steps.notes.outputs.markdown }}" >> $GITHUB_STEP_SUMMARY
     outputs:
       notes: ${{ steps.notes.outputs.markdown }}
