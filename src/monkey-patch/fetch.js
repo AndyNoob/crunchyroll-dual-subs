@@ -25,8 +25,9 @@ window.fetch = async function ( input, init ) {
       if (typeof window.SubtitlesOctopus != "function") {
         const noSub = data[ "hardSubs" ][ "none" ].url;
         for (let [ key, value ] of Object.entries(data[ "hardSubs" ])) {
+          if (key === "none") continue;
           value.url = noSub;
-          console.log(`[dual sub soft sub] changed hard sub url of ${ key }`);
+          console.log("[dual sub soft sub] changed hard sub url", key, noSub);
         }
         const cleanBlob = new Blob([ JSON.stringify(data) ], { type: 'application/json' });
         return new Response(cleanBlob, {
