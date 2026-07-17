@@ -250,7 +250,8 @@ function attachListeners() {
     scopeSelect.dataset.scopeValue = newScope;
     await saveLastScope(scopeSelect.dataset.scopeValue as PreferenceScope);
     await refreshForm();
-    refreshMoving();
+    await browser.tabs.sendMessage(tabId!, {type: "CLEAR_MOVING"})
+      .catch(e => console.error("[dual sub pop-up] failed to clear moving on scope change", e));
   });
 
   subtitleSelect.addEventListener("change", async () => {
