@@ -321,8 +321,9 @@ class VTTRender {
       overlayText.style.display = "block";
       overlayText.textContent = "(right click to reset)";
     } else {
-      overlayText.textContent = nextText || "";
-      overlayText.style.display = nextText && nextText.length > 0 ? "block" : "none";
+      overlayText.style.display = nextText.length > 0 ? "block" : "none";
+      if (overlayText.textContent !== nextText)
+        overlayText.textContent = nextText;
     }
 
     this.render = requestAnimationFrame(() => this.renderLoop0(renderer));

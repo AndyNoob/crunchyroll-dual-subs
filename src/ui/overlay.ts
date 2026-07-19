@@ -1,8 +1,10 @@
 import {grabPreference} from "../content";
 import browser from "webextension-polyfill";
 import {convertToCentered, convertToPercent, createMoveMe, type Moving} from "@andynoob/move-it";
+import {DEFAULT_SECONDARY_STATE} from "../shared";
 
 export let overlayRoot: HTMLDivElement;
+export let overlayTextContainer: HTMLDivElement;
 export let overlayText: HTMLDivElement;
 export let overlayTextMoving: Moving;
 export let overlayCanvasContainer: HTMLDivElement;
@@ -23,10 +25,20 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
   overlayText = document.querySelector("#cr-dual-subs-secondary") ?? document.createElement("div");
   overlayText.id = "cr-dual-subs-secondary";
 
+  overlayTextContainer = document.querySelector("#cr-dual-subs-secondary-container") ?? document.createElement("div");
+  overlayTextContainer.id = "cr-dual-subs-secondary-container";
+
+  if (!overlayTextContainer.hasChildNodes()) {
+    overlayTextContainer.appendChild(overlayText);
+    new ResizeObserver(() => {
+      overlayTextContainer.style.transform = `translateY(${overlayText.offsetHeight / 2}px)`;
+    }).observe(overlayText);
+  }
+
   overlayCanvasContainer = document.querySelector("#cr-dual-subs-canvas-container") ?? document.createElement("div");
   overlayCanvasContainer.id = "cr-dual-subs-canvas-container";
 
-  overlayRoot.append(overlayText, overlayCanvasContainer);
+  overlayRoot.append(overlayTextContainer, overlayCanvasContainer);
   container.appendChild(overlayRoot);
 
   grabPreference().then(pref => {
@@ -35,8 +47,8 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
       return;
     }
     overlayTextMoving = createMoveMe(overlayText, {
-      controlRoot: overlayRoot,
-      initialState: pref.subtitlePos,
+      controlRoot: overlayTextContainer,
+      initialState: pref.subtitlePos || {...DEFAULT_SECONDARY_STATE},
       doResize: true,
       autoSize: true,
       disableFeatures: {
@@ -47,7 +59,8 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
         grid: {
           threshold: 4,
           displayThreshold: 8,
-          verticalX: [0.5]
+          verticalX: [0.5],
+          horizontalY: [0.95]
         }
       },
       onChange: (next) => {
@@ -64,7 +77,7 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
     overlayText.addEventListener("contextmenu", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      overlayTextMoving.updateState({x: 0.5, y: 0.9, centered: true, usePercent: true});
+      overlayTextMoving.updateState({...DEFAULT_SECONDARY_STATE});
     }, {capture: true});
   });
 }

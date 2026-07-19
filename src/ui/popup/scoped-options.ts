@@ -2,6 +2,7 @@ import browser from "webextension-polyfill";
 import type {Preference, PreferencePatch, PreferenceScope} from "../../data/preferences";
 import type {SubtitleManifest, Subtitles} from "../../data/subtitles";
 import {type ContextResponse, getActiveCrunchyrollTabId, grabManifest, send} from "./common";
+import {DEFAULT_SECONDARY_STATE} from "../../shared";
 
 const lastScopeKey = "cr-dual-sub-last-scope";
 
@@ -335,7 +336,7 @@ function attachListeners() {
 
   resetSubtitleButton.addEventListener("click", async () => {
     await saveScopedPreference({
-      subtitlePos: {x: 0.5, y: 0.9, centered: true, usePercent: true, width: 0, height: 0, rotation: 0}
+      subtitlePos: {...DEFAULT_SECONDARY_STATE}
     }, "global");
     console.log("[dual sub pop-up] reset subtitle position");
   });
