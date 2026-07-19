@@ -37,6 +37,16 @@
   outline: solid 2px white;
 }
 
+#cr-dual-subs-secondary-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+
+  .container[data-move-it-target] {
+    opacity: 0;
+  }
+}
+
 #cr-dual-subs-canvas-container {
   width: 100%;
   height: 100%;
