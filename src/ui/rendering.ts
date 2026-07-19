@@ -1,4 +1,4 @@
-import {dragging, overlayCanvasContainer, overlayText} from "./overlay";
+import {overlayCanvasContainer, overlayText, overlayTextMoving} from "./overlay";
 import {sleep} from "../utils";
 import {grabPreference, log, type Tracks} from "../content";
 import type {Preference, SubMask} from "../data/preferences";
@@ -7,6 +7,7 @@ import {parse} from "@plussub/srt-vtt-parser";
 import type {Entry} from "@plussub/srt-vtt-parser/dist/types";
 import {askMainWorld} from "../world-bridge";
 import {convertToPixels} from "@andynoob/move-it";
+import {editingMasks} from "./editing";
 
 export let videoEl: HTMLVideoElement;
 
@@ -17,8 +18,6 @@ let videoResizeObs: ResizeObserver | null;
 let assMutateObs: MutationObserver | null;
 let croptixCanvas: HTMLCanvasElement | null = null;
 let vttRender: VTTRender | null = null;
-
-let lastRendered = "";
 
 export async function grabVideo() {
   let vid = getVideo();
@@ -314,12 +313,16 @@ class VTTRender {
     const time = videoEl.currentTime;
 
     const secondaryCue = getActiveCue(renderer.track, time + Number(renderer.offsetMs ?? 0) / 1000);
-    const nextText = dragging ? "(right click to reset)" : (secondaryCue?.text || "");
+    const nextText = secondaryCue?.text || "";
 
-    if (!nextText || nextText !== lastRendered) {
+    const isEditing = overlayTextMoving.isSelected() || editingMasks;
+
+    if (isEditing) {
+      overlayText.style.display = "block";
+      overlayText.textContent = "(right click to reset)";
+    } else {
       overlayText.textContent = nextText || "";
       overlayText.style.display = nextText && nextText.length > 0 ? "block" : "none";
-      lastRendered = nextText;
     }
 
     this.render = requestAnimationFrame(() => this.renderLoop0(renderer));

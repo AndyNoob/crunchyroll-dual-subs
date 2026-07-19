@@ -12,8 +12,7 @@ export interface Preference {
    */
   doCc: boolean,
   subLanguage: string,
-  leftPct?: number,
-  bottomPct?: number,
+  subtitlePos?: RectState,
   primaryOffsetMs?: number,
   secondaryOffsetMs?: number,
   subMask?: SubMask

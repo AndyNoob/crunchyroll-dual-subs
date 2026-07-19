@@ -3,6 +3,8 @@
   inset: 0;
   pointer-events: none;
   z-index: 999;
+
+  container-type: size;
 }
 
 #cr-dual-subs-secondary {
@@ -12,9 +14,7 @@
   box-sizing: content-box;
 
   position: absolute;
-  left: 50%;
-  bottom: 10%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%) translate(50cqw, 90cqh);
   max-width: 80%;
   text-align: center;
   white-space: pre-wrap;
@@ -30,6 +30,11 @@
 
   padding: 4px 8px;
   background-color: #0000004f;
+}
+
+#cr-dual-subs-secondary.editing {
+  border: 2px dodgerblue solid;
+  outline: solid 2px white;
 }
 
 #cr-dual-subs-canvas-container {

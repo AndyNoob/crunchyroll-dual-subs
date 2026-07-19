@@ -1,8 +1,10 @@
 import {grabPreference} from "../content";
 import browser from "webextension-polyfill";
+import {convertToCentered, convertToPercent, createMoveMe, type Moving} from "@andynoob/move-it";
 
 export let overlayRoot: HTMLDivElement;
 export let overlayText: HTMLDivElement;
+export let overlayTextMoving: Moving;
 export let overlayCanvasContainer: HTMLDivElement;
 
 export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
@@ -29,104 +31,41 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
 
   grabPreference().then(pref => {
     if (pref == null) {
-      console.error("[dual-sub] could not load preference");
+      console.error("[dual sub overlay] could not load preference");
       return;
     }
-    if (pref.leftPct != null && pref.bottomPct != null) {
-      setTextPos(pref.leftPct, pref.bottomPct);
-    }
-  })
-
-  ensureDragListeners();
-}
-
-export function setTextPos(left?: number, bottom?: number) {
-  if (!overlayText) return;
-
-  if (left == null || bottom == null) {
-    overlayText.style.left = "50%";
-    overlayText.style.bottom = "10%";
-    overlayText.style.transform = "translateX(-50%)";
-    overlayText.style.top = "auto";
-    return;
-  }
-
-  overlayText.style.left = `${left}%`;
-  overlayText.style.bottom = `${bottom}%`;
-  overlayText.style.transform = "translateX(-50%)";
-  overlayText.style.top = "auto";
-}
-
-async function savePref(xPct?: number, yPct?: number) {
-  const pref = await grabPreference();
-  if (!pref) {
-    console.error("[dual-subs] couldn't grab preference when saving subtitle location");
-    return;
-  }
-  pref.leftPct = xPct ?? 50;
-  pref.bottomPct = yPct ?? 10;
-  await browser.runtime.sendMessage({type: "SET_PREFERENCE", pref});
-  console.log("[dual-subs] new pref set", pref);
-}
-
-export let dragging = false;
-
-function ensureDragListeners() {
-  if (!overlayText || !overlayRoot) return;
-  if (overlayText.dataset.listenerAttached) return;
-
-  overlayText.draggable = true;
-  overlayText.dataset.listenerAttached = "true";
-
-  let offsetX = 0;
-  let offsetY = 0;
-  let leftPct: number | undefined;
-  let bottomPct: number | undefined;
-
-  overlayText.addEventListener("contextmenu", async (e) => {
-    e.preventDefault();
-    leftPct = 50;
-    bottomPct = 10;
-    await savePref(undefined, undefined);
-    setTextPos(undefined, undefined);
-  });
-
-  overlayText.addEventListener("pointerdown", e => {
-    if (e.button !== 0) return;
-    dragging = true;
-
-    const textRect = overlayText!.getBoundingClientRect();
-
-    offsetX = e.clientX - textRect.left;
-    offsetY = e.clientY - textRect.top;
-
-    overlayText!.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  });
-
-  overlayText.addEventListener("pointermove", e => {
-    if (!dragging) return;
-
-    const rootRect = overlayRoot!.getBoundingClientRect();
-    const textRect = overlayText!.getBoundingClientRect();
-
-    const renderedLeftPx = e.clientX - rootRect.left - offsetX;
-    const centeredLeftPx = renderedLeftPx + textRect.width / 2;
-
-    leftPct = (centeredLeftPx / rootRect.width) * 100;
-
-    const topPx = e.clientY - rootRect.top - offsetY;
-    const bottomPx = rootRect.height - topPx - textRect.height;
-
-    bottomPct = (bottomPx / rootRect.height) * 100;
-
-    setTextPos(leftPct, bottomPct);
-  });
-
-  overlayText.addEventListener("pointerup", async e => {
-    dragging = false;
-    overlayText!.releasePointerCapture(e.pointerId);
-    await savePref(leftPct, bottomPct);
+    overlayTextMoving = createMoveMe(overlayText, {
+      controlRoot: overlayRoot,
+      initialState: pref.subtitlePos,
+      doResize: true,
+      autoSize: true,
+      disableFeatures: {
+        rotate: true,
+        resize: true
+      },
+      snapping: {
+        grid: {
+          threshold: 4,
+          displayThreshold: 8,
+          verticalX: [0.5]
+        }
+      },
+      onChange: (next) => {
+        const pos = convertToPercent(overlayRoot, convertToCentered(next));
+        grabPreference().then(pref => {
+          pref.subtitlePos = pos;
+          browser.runtime.sendMessage({type: "SET_PREFERENCE", pref})
+            .then(() => console.log("[dual sub editor] new subtitle pos set", pref, pos))
+            .catch((e) => console.error("[dual sub editor] failed to set subtitle pos", pref, pos, e));
+        });
+      }
+    });
+    overlayTextMoving.render();
+    overlayText.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      overlayTextMoving.updateState({x: 0.5, y: 0.9, centered: true, usePercent: true});
+    }, {capture: true});
   });
 }
 
@@ -141,33 +80,6 @@ export class VideoLogger {
   constructor(videoElement: HTMLVideoElement) {
     this.video = videoElement;
     this._initContainer();
-  }
-
-  private _initContainer(): void {
-    const wrapper = this.video.parentElement;
-    if (!wrapper) {
-      throw new Error('VideoLogger requires the video element to have a parent container.');
-    }
-
-    if (window.getComputedStyle(wrapper).position === 'static') {
-      wrapper.style.position = 'relative';
-    }
-
-    this.container = document.createElement('div');
-    this.container.id = 'video-log-overlay';
-
-    Object.assign(this.container.style, {
-      position: 'absolute',
-      top: '10px',
-      left: '10px',
-      zIndex: '2147483647',
-      pointerEvents: 'none',
-      fontFamily: 'monospace',
-      fontSize: '12px',
-      maxWidth: '300px'
-    });
-
-    wrapper.appendChild(this.container);
   }
 
   public log(message: string, type: LogType = 'info'): void {
@@ -206,5 +118,32 @@ export class VideoLogger {
     logItem.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
     this.container.appendChild(logItem);
     this.activeLog = logItem;
+  }
+
+  private _initContainer(): void {
+    const wrapper = this.video.parentElement;
+    if (!wrapper) {
+      throw new Error('VideoLogger requires the video element to have a parent container.');
+    }
+
+    if (window.getComputedStyle(wrapper).position === 'static') {
+      wrapper.style.position = 'relative';
+    }
+
+    this.container = document.createElement('div');
+    this.container.id = 'video-log-overlay';
+
+    Object.assign(this.container.style, {
+      position: 'absolute',
+      top: '10px',
+      left: '10px',
+      zIndex: '2147483647',
+      pointerEvents: 'none',
+      fontFamily: 'monospace',
+      fontSize: '12px',
+      maxWidth: '300px'
+    });
+
+    wrapper.appendChild(this.container);
   }
 }
