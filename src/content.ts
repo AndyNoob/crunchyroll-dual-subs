@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import {ensureSubtitleOverlay, setTextPos} from "./ui/overlay";
+import {ensureSubtitleOverlay, overlayTextMoving} from "./ui/overlay";
 import {
   ensureSubtitleControlShell, markAsLoading,
   setTooltipText,
@@ -181,7 +181,7 @@ function addListeners() {
         const old = preference ? {...preference} : null;
         preference = null;
         preference = await grabPreference();
-        setTextPos(preference.leftPct, preference.bottomPct);
+        if (preference.subtitlePos) overlayTextMoving.updateState(preference.subtitlePos);
         if (old
           && old.doCc === preference.doCc
           && old.subLanguage === preference.subLanguage

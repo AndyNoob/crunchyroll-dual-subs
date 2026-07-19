@@ -1,11 +1,20 @@
 import type {SubMask} from "../data/preferences";
-import {overlayRoot} from "./overlay";
-import {convertToPercent, convertToPixels, createMoveMe, type Moving} from "@andynoob/move-it";
+import {overlayRoot, overlayText} from "./overlay";
+import {
+  convertToPercent,
+  convertToPixels,
+  createMoveMe,
+  type Moving,
+} from "@andynoob/move-it";
 
 const movingList: Moving[] = [];
 
+export let editingMasks = false;
+
 export function clearMoving() {
-  const removing = overlayRoot.querySelectorAll("[data-move-it-id]");
+  editingMasks = false;
+  const removing = [...overlayRoot.querySelectorAll("[data-move-it-id]")]
+    .filter(e => e.id !== overlayText.id);
   for (const moving of movingList) {
     moving.destroy();
   }
@@ -13,9 +22,12 @@ export function clearMoving() {
   for (const element of removing) {
     element.remove();
   }
+  overlayText.classList.remove("editing");
 }
 
 export function makeMoving(subMask: SubMask, callback: (newMask: SubMask) => void) {
+  editingMasks = true;
+  overlayText.classList.add("editing");
   for (let i = 0; i < subMask.rects.length; i++){
     let rect = subMask.rects[i]!;
     const element = overlayRoot.appendChild(document.createElement("div"));

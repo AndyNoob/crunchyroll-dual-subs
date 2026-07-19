@@ -13,7 +13,8 @@ const scopeSelect = document.querySelector("#scope-select") as HTMLFieldSetEleme
 const subtitleSelect = document.querySelector("#subtitle-select") as HTMLSelectElement;
 const primaryOffsetInput = document.querySelector("#primary-offset-input") as HTMLInputElement;
 const secondaryOffsetInput = document.querySelector("#secondary-offset-input") as HTMLInputElement;
-const resetPositionButton = document.querySelector("#reset-position-button") as HTMLButtonElement;
+const editorOpenButton = document.querySelector("#reset-position-button") as HTMLButtonElement;
+const resetSubtitleButton = document.querySelector("#reset-subtitle") as HTMLButtonElement;
 const subEditContainer = document.querySelector("#sub-editor") as HTMLDivElement;
 const addMaskButton = document.querySelector("#add-mask-button") as HTMLButtonElement;
 // const invertMaskCheckbox = document.querySelector("#invert-masks") as HTMLInputElement;
@@ -185,14 +186,14 @@ async function loadScopedPreference(): Promise<Partial<Preference>> {
   });
 }
 
-async function saveScopedPreference(pref: PreferencePatch) {
+async function saveScopedPreference(pref: PreferencePatch, scope?: PreferenceScope) {
   if (!tabId) throw new Error("tab id is null");
   if (!context) throw new Error("context is null");
   if (pref.subMask) pref.subMask.rects = pref.subMask.rects.filter(o => o != null);
   await send({
     type: "SET_SCOPED_PREFERENCE",
     profileId: context.currentProfile.profileId,
-    scope: scopeSelect.dataset.scopeValue as PreferenceScope,
+    scope: scope || scopeSelect.dataset.scopeValue as PreferenceScope,
     seasonGuid: context.seasonGuid,
     episodeGuid: context.episodeGuid,
     pref
@@ -316,7 +317,7 @@ function attachListeners() {
     });
   });
 
-  resetPositionButton.addEventListener("click", async (e) => {
+  editorOpenButton.addEventListener("click", async (e) => {
     if (!tabId) throw new Error("tab id is null");
     e.stopImmediatePropagation();
     const newCollapse = subEditContainer.getAttribute("collapsed") === "false";
@@ -330,6 +331,13 @@ function attachListeners() {
         .catch(e => console.error("[dual sub pop-up] failed to clear moving on collapsing", e));
       return;
     } else refreshMoving();
+  });
+
+  resetSubtitleButton.addEventListener("click", async () => {
+    await saveScopedPreference({
+      subtitlePos: {x: 0.5, y: 0.9, centered: true, usePercent: true, width: 0, height: 0, rotation: 0}
+    }, "global");
+    console.log("[dual sub pop-up] reset subtitle position");
   });
 
   addMaskButton.addEventListener("click", async () => {
