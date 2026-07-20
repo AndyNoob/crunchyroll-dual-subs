@@ -318,10 +318,14 @@ class VTTRender {
     const isEditing = overlayTextMoving.isSelected() || editingMasks;
 
     if (isEditing) {
-      overlayText.style.display = "block";
-      overlayText.textContent = "(right click to reset)";
+      if (overlayText.style.display !== "block")
+        overlayText.style.display = "block";
+      if (overlayText.style.textRendering !== "(right click to reset)")
+        overlayText.textContent = "(right click to reset)";
     } else {
-      overlayText.style.display = nextText.length > 0 ? "block" : "none";
+      const display = nextText.length > 0 ? "block" : "none";
+      if (overlayText.style.display !== display)
+        overlayText.style.display = display;
       if (overlayText.textContent !== nextText)
         overlayText.textContent = nextText;
     }

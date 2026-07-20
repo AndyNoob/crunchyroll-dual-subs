@@ -30,9 +30,6 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
 
   if (!overlayTextContainer.hasChildNodes()) {
     overlayTextContainer.appendChild(overlayText);
-    new ResizeObserver(() => {
-      overlayTextContainer.style.transform = `translateY(${overlayText.offsetHeight / 2}px)`;
-    }).observe(overlayText);
   }
 
   overlayCanvasContainer = document.querySelector("#cr-dual-subs-canvas-container") ?? document.createElement("div");
@@ -62,6 +59,10 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
           verticalX: [0.5],
           horizontalY: [0.95]
         }
+      },
+      pivotOffset: {
+        x: 0,
+        y: 0.5
       },
       onChange: (next) => {
         const pos = convertToPercent(overlayRoot, convertToCentered(next));
