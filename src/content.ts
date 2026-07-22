@@ -13,7 +13,7 @@ import type {SubtitleManifest} from "./data/subtitles";
 import {
   beginRender,
   grabVideo,
-  setFontProperty,
+  setFont,
   shouldSkip,
   shutdownRender,
   updateEraser,
@@ -197,7 +197,7 @@ function addListeners() {
           preference = await grabPreference();
           if (preference.subtitlePos)
             overlayTextMoving.updateState(preference.subtitlePos);
-          setFontProperty(preference.fontProperty);
+          setFont(preference.fontProperty, preference.fontSize);
           if (old) log({
             doCC: old.doCc === preference.doCc,
             subLang: old.subLanguage === preference.subLanguage,

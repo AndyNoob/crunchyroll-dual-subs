@@ -20,6 +20,7 @@ const editorOpenButton = document.querySelector("#reset-position-button") as HTM
 const resetSubtitleButton = document.querySelector("#reset-subtitle") as HTMLButtonElement;
 const subEditContainer = document.querySelector("#sub-editor") as HTMLDivElement;
 const addMaskButton = document.querySelector("#add-mask-button") as HTMLButtonElement;
+const fontSizeInput = document.querySelector("#font-size") as HTMLInputElement;
 // const invertMaskCheckbox = document.querySelector("#invert-masks") as HTMLInputElement;
 let fontPicker: FontPicker;
 
@@ -220,6 +221,7 @@ async function renderFontPicker(pref: Partial<Preference>) {
     }
   }
   console.log(`[font picker] set up complete`, fontPicker.getActiveFont());
+  fontSizeInput.value = String(pref.fontSize || 26);
 }
 
 async function loadScopedPreference(): Promise<Partial<Preference>> {
@@ -422,6 +424,17 @@ function attachListeners() {
     void s.offsetWidth;
   });
 
+  fontSizeInput.addEventListener("change", async () => {
+    let fontSize = Number(fontSizeInput.value);
+    if (isNaN(fontSize) || fontSize <= 0) {
+      fontSize = 26;
+      fontSizeInput.value = String(fontSize);
+      return;
+    }
+    await saveScopedPreference({
+      fontSize
+    });
+  });
 }
 
 const streamLimitNotice = document.querySelector("#stream-limit-notice") as HTMLDivElement;
