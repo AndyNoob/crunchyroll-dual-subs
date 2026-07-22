@@ -3,6 +3,8 @@ import type {Preference, PreferencePatch, PreferenceScope} from "../../data/pref
 import type {SubtitleManifest, Subtitles} from "../../data/subtitles";
 import {type ContextResponse, getActiveCrunchyrollTabId, grabManifest, send} from "./common";
 import {DEFAULT_SECONDARY_STATE} from "../../shared";
+import FontPicker from "font-picker";
+import {sleep} from "../../utils";
 
 const lastScopeKey = "cr-dual-sub-last-scope";
 
@@ -19,6 +21,7 @@ const resetSubtitleButton = document.querySelector("#reset-subtitle") as HTMLBut
 const subEditContainer = document.querySelector("#sub-editor") as HTMLDivElement;
 const addMaskButton = document.querySelector("#add-mask-button") as HTMLButtonElement;
 // const invertMaskCheckbox = document.querySelector("#invert-masks") as HTMLInputElement;
+let fontPicker: FontPicker;
 
 export const settingsContent = document.querySelector("#cr-dual-subs-overlay-options") as HTMLDivElement;
 
@@ -147,7 +150,7 @@ function renderMaskList(pref: Partial<Preference>) {
   console.log("[dual sub pop up] rendering mask list", mask);
   subEditContainer.querySelectorAll(".mask-item").forEach(e => e.remove());
   const template = document.querySelector("#mask-item-template") as HTMLTemplateElement;
-  for (let i = 0; i < mask.rects.length; i++){
+  for (let i = 0; i < mask.rects.length; i++) {
     const rect = mask.rects[i]!;
     const fragment = template.content.cloneNode(true) as DocumentFragment;
     const el = fragment.firstElementChild as HTMLElement;
@@ -163,8 +166,13 @@ function renderMaskList(pref: Partial<Preference>) {
     const deleteBtn = el.querySelector(".small-button")!;
     deleteBtn.addEventListener("click", (e) => {
       e.stopImmediatePropagation();
-      // @ts-ignore
-      mask.rects[i] = null;
+      for (let i1 = 0; i1 < mask.rects.length; i1++){
+        let r = mask.rects[i1];
+        if (r?.id === rect.id) {
+          // @ts-ignore
+          mask.rects[i1] = null;
+        }
+      }
       el.remove();
       saveScopedPreference({
         subMask: mask
@@ -174,6 +182,44 @@ function renderMaskList(pref: Partial<Preference>) {
     subEditContainer.appendChild(el);
   }
   // invertMaskCheckbox.checked = mask.inverted;
+}
+
+async function renderFontPicker(pref: Partial<Preference>) {
+  fontPicker = fontPicker || new FontPicker(FONT_API_KEY,
+    "DM Sans",
+    {limit: 15, scripts: ["latin"], filter: (font) => !(["Noto Sans JP", "Material Icons"].includes(font.family))},
+    (font) => {
+      if (font.family === pref.fontProperty) return;
+      saveScopedPreference({
+        fontProperty: `"${font.family}", ${font.category}`
+      })
+        .then(() => console.log(`[font picker] updated font to ${font.family}`))
+        .catch((e) => {
+          console.error(`[font picker] failed to pick font`, font, e);
+        });
+    }
+  );
+  if (pref.fontProperty) {
+    await sleep(1500);
+    try {
+      const fonts = fontPicker.getFonts();
+      (window as any).fonts = fonts;
+      console.log(
+        `[font picker] fonts (setting "${pref.fontProperty}" from ${fonts.size} fonts)`,
+        fonts,
+        fonts.get(pref.fontProperty)
+      );
+      for (let [str, font] of fonts.entries()) {
+        if (`"${font.family}", ${font.category}` === pref.fontProperty) {
+          fontPicker.setActiveFont(str);
+        }
+      }
+    } catch (e) {
+      console.warn(e);
+      pref.fontProperty = fontPicker.getActiveFont().family;
+    }
+  }
+  console.log(`[font picker] set up complete`, fontPicker.getActiveFont());
 }
 
 async function loadScopedPreference(): Promise<Partial<Preference>> {
@@ -230,21 +276,22 @@ async function refreshForm() {
   renderSubtitleSelect(pref);
   renderOffset(pref);
   renderMaskList(pref);
+  await renderFontPicker(pref);
 }
 
 function refreshMoving() {
   if (!tabId) throw new Error("tab id is null");
   loadScopedPreference().then(pref => {
-    browser.tabs.sendMessage(tabId!, {type: "CLEAR_MOVING"})
-      .catch(e => console.error("[dual sub pop-up] failed to clear moving on refresh", e))
-      .then(() => {
-        browser.tabs.sendMessage(tabId!, {type: "CREATE_MOVING", subMask: pref.subMask})
-          .catch(e => console.error("[dual sub pop-up] failed to create moving on refresh", e));
-      });
+    browser.tabs.sendMessage(tabId!, {type: "CREATE_MOVING", subMask: pref.subMask})
+      .catch(e => console.error("[dual sub pop-up] failed to create moving on refresh", e))
+      .then(() => console.log(`[refresh moving] done! (sent ${pref.subMask?.rects.length} masks)`));
   });
 }
 
 function attachListeners() {
+  if (document.body.dataset.listenerAttached) return;
+  document.body.dataset.listenerAttached = "true";
+
   scopeSelect.addEventListener("change", async (e) => {
     if (!(e.target instanceof HTMLInputElement)) return;
     const newScope = e.target.value as PreferenceScope;
@@ -253,7 +300,8 @@ function attachListeners() {
     await saveLastScope(scopeSelect.dataset.scopeValue as PreferenceScope);
     await refreshForm();
     await browser.tabs.sendMessage(tabId!, {type: "CLEAR_MOVING"})
-      .catch(e => console.error("[dual sub pop-up] failed to clear moving on scope change", e));
+      .catch(e => console.error("[dual sub pop-up] failed to clear moving on scope change", e))
+      .then(() => console.log("[scope select] cleared moving"));
   });
 
   subtitleSelect.addEventListener("change", async () => {
@@ -329,7 +377,8 @@ function attachListeners() {
     console.log("[dual sub pop-up] editor state", newCollapse);
     if (newCollapse) {
       await browser.tabs.sendMessage(tabId, {type: "CLEAR_MOVING"})
-        .catch(e => console.error("[dual sub pop-up] failed to clear moving on collapsing", e));
+        .catch(e => console.error("[editor open] failed to clear moving on collapsing", e))
+        .then(() => console.log("[editor open] cleared moving"));
       return;
     } else refreshMoving();
   });
@@ -361,6 +410,7 @@ function attachListeners() {
     }).then(async () => {
       renderMaskList(pref);
       refreshMoving();
+      console.log("[add mask] done!");
     }).catch(e => console.error("[dual sub pop-up] failed to save on create new mask", e));
   });
 
@@ -440,10 +490,18 @@ async function init() {
   try {
     tabId = await getActiveCrunchyrollTabId();
     console.log(`[dual sub popup] active tab id is ${tabId}`);
+
+    const oldContext = context || null;
+    context = await send<ContextResponse>({type: "GET_CONTEXT"});
+    if (oldContext && oldContext.episodeGuid === context?.episodeGuid) {
+      console.log("[init] skipping re-init bruh");
+      return;
+    }
+
     subEditContainer.setAttribute("collapsed", "true");
     browser.tabs.sendMessage(tabId, {type: "CLEAR_MOVING"})
-      .catch(e => console.error("[dual sub pop-up] failed to clear moving on init", e));
-    context = await send<ContextResponse>({type: "GET_CONTEXT"});
+      .catch(e => console.error("[dual sub pop-up] failed to clear moving on init", e))
+      .then(() => console.log("[init] cleared moving"));
     console.log("[dual sub popup] context is", context);
     manifest = await grabManifest();
     console.log("manifest is", manifest);
@@ -475,7 +533,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-browser.tabs.onActivated.addListener(() => {init().then()}); // switched tabs
+browser.tabs.onActivated.addListener(() => {
+  init().then()
+}); // switched tabs
 browser.tabs.onUpdated.addListener((_, info, tab) => {
   if (info.url
     && (!context || !context.episodeGuid || !info.url.includes(context.episodeGuid)) // don't re-init
@@ -498,6 +558,9 @@ window.addEventListener("beforeunload", () => {
   browser.tabs.sendMessage(tabId, {type: "CLEAR_MOVING"})
     .catch(e => console.error("[dual sub pop-up] failed to clear moving on unload", e));
 });
+
 async function handleRefresh() {
   await init();
 }
+
+const FONT_API_KEY = "AIzaSyD8ER9NwPVq_gfBtkOYXgMxVvfO-QtR1Q0";

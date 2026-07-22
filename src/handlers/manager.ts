@@ -4,7 +4,7 @@ import {grabSelectedProfile} from "./profiles";
 import {resolvePreference} from "./preferences";
 import {grabEpisodeManifest} from "./episode";
 import {getProfile} from "../data/profiles";
-import {findEpisodeGuid, findSeasonGuid} from "../data/episode";
+import {findEpisodeGuid, findSeasonGuid, getEpisodeManifest} from "../data/episode";
 import {grabCues} from "./subtitles/loader";
 import type {Preference} from "../data/preferences";
 
@@ -12,7 +12,8 @@ export function notifyCueRefresh(tabId: number, cues: Tracks, attemptsLeft = 3) 
   if (attemptsLeft <= 0) return;
   browser.tabs.sendMessage(tabId, {
     type: "REFRESH_CUES",
-    cues: cues
+    cues: cues,
+    guid: getEpisodeManifest(tabId)?.episodeGuid
   }).catch(e => {
     console.warn("[notifyCueRefresh] failed to notify cue refresh", e);
     setTimeout(() => {
