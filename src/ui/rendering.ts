@@ -19,6 +19,20 @@ let videoResizeObs: ResizeObserver | null;
 let assMutateObs: MutationObserver | null;
 let croptixCanvas: HTMLCanvasElement | null = null;
 let vttRender: VTTRender | null = null;
+let fontFamily = "";
+
+export function setFontProperty(str?: string) {
+  if (!document.head.dataset.addedFonts) {
+    document.head.dataset.addedFonts = "true";
+    document.head.innerHTML += FONTS_CODE;
+  }
+  if (str) {
+    fontFamily = str
+  } else {
+    fontFamily = `"DM Sans", sans-serif`;
+  }
+  overlayText.style.fontFamily = fontFamily;
+}
 
 export async function grabVideo() {
   let vid = getVideo();
@@ -64,7 +78,7 @@ export async function beginRender(tracks: Tracks) {
       videoEl.dispatchEvent(new Event("playing"));
     }
   }
-  await updateOffsets(await grabPreference());
+  await updateOffsetsAndFont(await grabPreference());
   if (!videoResizeObs) videoResizeObs = new ResizeObserver(() => updateEraser());
   if (assRender) {
     if (!assMutateObs) assMutateObs = new MutationObserver(() => updateEraser());
@@ -82,7 +96,7 @@ export async function beginRender(tracks: Tracks) {
   });
 }
 
-export async function updateOffsets(pref: Preference) {
+export async function updateOffsetsAndFont(pref: Preference) {
   if (isCroptix) {
     const offset = ((pref.subLanguage === "none" || pref.doCc ? pref.primaryOffsetMs : pref.secondaryOffsetMs) ?? 0) / 1000;
     if (await askMainWorld<boolean>("SET_CROPTIX_OFFSET", {offset: -offset})) { // croptix is inverted (shrug)
@@ -101,6 +115,7 @@ export async function updateOffsets(pref: Preference) {
     vttRender.setOffsetMs((pref.doCc ? pref.secondaryOffsetMs : pref.primaryOffsetMs) ?? 0);
     log(`changed offset of VTT rendering to ${vttRender.getOffsetMs() / 1000}sec`);
   }
+  setFontProperty(pref.fontProperty);
 }
 
 export async function shutdownRender() {
@@ -337,3 +352,9 @@ class VTTRender {
   }
 
 }
+
+const FONTS_CODE = `
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Oswald:wght@200..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+`;

@@ -28,7 +28,7 @@ export async function loadStoredPreferences(): Promise<StoredPreferences> {
 }
 
 const limiter = new Bottleneck({
-  minTime: 500
+  minTime: 750
 });
 
 export function saveStoredPreferences(prefs: StoredPreferences) {
@@ -37,7 +37,7 @@ export function saveStoredPreferences(prefs: StoredPreferences) {
     await browser.storage.sync.set({
       [prefKey]: prefs
     });
-  }).then(() => console.log("[saveStoredPreferences] saved prefs", prefs));
+  }).then(() => console.debug("[saveStoredPreferences] saved prefs", prefs));
 }
 
 export function getDefaultPreference(profile: Profile): Preference {

@@ -15,7 +15,8 @@ export interface Preference {
   subtitlePos?: RectState,
   primaryOffsetMs?: number,
   secondaryOffsetMs?: number,
-  subMask?: SubMask
+  subMask?: SubMask,
+  fontProperty?: string
 }
 
 export interface SubMask {

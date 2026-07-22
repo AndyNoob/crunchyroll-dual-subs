@@ -10,7 +10,16 @@ import {
 } from "./ui/controls";
 import type {Preference} from "./data/preferences";
 import type {SubtitleManifest} from "./data/subtitles";
-import {beginRender, grabVideo, shouldSkip, shutdownRender, updateEraser, updateOffsets, videoEl} from "./ui/rendering";
+import {
+  beginRender,
+  grabVideo,
+  setFontProperty,
+  shouldSkip,
+  shutdownRender,
+  updateEraser,
+  updateOffsetsAndFont,
+  videoEl
+} from "./ui/rendering";
 import {askMainWorld} from "./world-bridge";
 import type {RawProfile} from "./data/profiles";
 import {clearMoving, makeMoving} from "./ui/editing";
@@ -60,8 +69,12 @@ async function grabSubManifest() {
   return (await browser.runtime.sendMessage({type: "GET_CHOICES"}).catch(r => console.warn(r))) as SubtitleManifest;
 }
 
-export async function grabPreference(): Promise<Preference> {
-  return preference ?? (await browser.runtime.sendMessage({type: "GET_PREFERENCE"})) as Preference
+export async function grabPreference(refresh = true): Promise<Preference> {
+  if (refresh || !preference) {
+    return preference = (await browser.runtime.sendMessage({type: "GET_PREFERENCE"})) as Preference;
+  } else {
+    return preference;
+  }
 }
 
 export async function updateDropdownOptions() {
@@ -127,6 +140,10 @@ function addListeners() {
   browser.runtime.onMessage.addListener((msg: any) => {
     switch (msg?.type) {
       case "REFRESH_CUES":
+        if (msg.guid === getSlug(location.href)) {
+          log("skipping refresh, guid is the same");
+          return false;
+        }
         tracks = msg.cues;
         log(`refreshed cues`);
         init().then(async (r) => {
@@ -173,13 +190,20 @@ function addListeners() {
           log("received clear cues message from background.");
         });
       case "UPDATE_PREFERENCE": {
-        log("updating preferences from popup");
+        log("updating preferences from popup", preference);
         return (async () => {
           const old = preference ? {...preference} : null;
           preference = null;
           preference = await grabPreference();
           if (preference.subtitlePos)
             overlayTextMoving.updateState(preference.subtitlePos);
+          setFontProperty(preference.fontProperty);
+          if (old) log({
+            doCC: old.doCc === preference.doCc,
+            subLang: old.subLanguage === preference.subLanguage,
+            primary: old.primaryOffsetMs === preference.primaryOffsetMs,
+            secondary: old.secondaryOffsetMs === preference.secondaryOffsetMs,
+          });
           if (old
             && old.doCc === preference.doCc
             && old.subLanguage === preference.subLanguage
@@ -188,7 +212,7 @@ function addListeners() {
           ) return;
           await updateDropdownOptions();
           await updateCuesAndRender();
-          await updateOffsets(preference!);
+          await updateOffsetsAndFont(preference!);
         })();
       }
       case "PLAYBACK_BLOCKED": {
@@ -209,10 +233,12 @@ function addListeners() {
         return grabPreference().then(() => {
           updateEraser().then(() => {
             clearMoving();
+            log("CLEAR_MOVING complete");
           })
         });
       }
       case "CREATE_MOVING": {
+        clearMoving();
         updateEraser().then();
         return makeMoving(msg.subMask, (mask) => {
           browser.runtime.sendMessage({type: "UPDATE_MOVING", subMask: mask}).then(() => {

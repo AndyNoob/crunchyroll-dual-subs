@@ -80,7 +80,7 @@ jobs:
       - name: Throw stuff in the summary
         run: |
           echo "## The stuff we grabbed" >> $GITHUB_STEP_SUMMARY
-          echo "##${{ steps.notes.outputs.markdown }}" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.notes.outputs.markdown }}" >> $GITHUB_STEP_SUMMARY
     outputs:
       notes: ${{ steps.notes.outputs.markdown }}
       version: ${{ steps.version.outputs.version }}

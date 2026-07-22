@@ -6,6 +6,7 @@ import {
   createMoveMe,
   type Moving,
 } from "@andynoob/move-it";
+import {log} from "../content";
 
 const movingList: Moving[] = [];
 
@@ -13,6 +14,7 @@ export let editingMasks = false;
 
 export function clearMoving() {
   editingMasks = false;
+  log("clearing masks!");
   const removing = [...overlayRoot.querySelectorAll("[data-move-it-id]")]
     .filter(e => e.id !== overlayText.id);
   for (const moving of movingList) {
@@ -27,6 +29,7 @@ export function clearMoving() {
 
 export function makeMoving(subMask: SubMask, callback: (newMask: SubMask) => void) {
   editingMasks = true;
+  log("editing masks!");
   overlayText.classList.add("editing");
   for (let i = 0; i < subMask.rects.length; i++){
     let rect = subMask.rects[i]!;
