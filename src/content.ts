@@ -1,7 +1,8 @@
 import browser from "webextension-polyfill";
 import {ensureSubtitleOverlay, overlayTextMoving} from "./ui/overlay";
 import {
-  ensureSubtitleControlShell, markAsLoading,
+  ensureSubtitleControlShell,
+  markAsLoading,
   setTooltipText,
   showStreamLimitNotice,
   updateNotice,
@@ -9,15 +10,7 @@ import {
 } from "./ui/controls";
 import type {Preference} from "./data/preferences";
 import type {SubtitleManifest} from "./data/subtitles";
-import {
-  grabVideo,
-  shouldSkip,
-  videoEl,
-  beginRender,
-  shutdownRender,
-  updateOffsets,
-  updateEraser
-} from "./ui/rendering";
+import {beginRender, grabVideo, shouldSkip, shutdownRender, updateEraser, updateOffsets, videoEl} from "./ui/rendering";
 import {askMainWorld} from "./world-bridge";
 import type {RawProfile} from "./data/profiles";
 import {clearMoving, makeMoving} from "./ui/editing";
@@ -131,7 +124,7 @@ async function ensurePageInjections() {
 }
 
 function addListeners() {
-  browser.runtime.onMessage.addListener(async (msg: any) => {
+  browser.runtime.onMessage.addListener((msg: any) => {
     switch (msg?.type) {
       case "REFRESH_CUES":
         tracks = msg.cues;
@@ -149,21 +142,24 @@ function addListeners() {
         });
         return true;
       case "TRY_HACK": // preceded SEND_TOKEN
-        await tryHackToRefreshToken();
-        return true;
+        return tryHackToRefreshToken().then(() => true).catch(() => false);
       case "SEND_TOKEN": {
-        const token = await askMainWorld<boolean>("GRAB_TOKEN").catch(() => null) as string | null;
-        log(`sending token... (${token ? token.length : token})`);
-        if (token) return token;
-        else return null;
+        return (async () => {
+          const token = await askMainWorld<boolean>("GRAB_TOKEN").catch(() => null) as string | null;
+          log(`sending token... (${token ? token.length : token})`);
+          if (token) return token;
+          else return null;
+        })();
       }
       case "TAB_ID":
         return sessionStorage.getItem("cx-tab-id");
       case "FETCH_SUBTITLE":
         log("fetching subtitle in content script");
-        const response = await fetch(msg.url);
-        if (!response || !response.ok) return "";
-        return await response.text();
+        return (async () => {
+          const response = await fetch(msg.url);
+          if (!response || !response.ok) return "";
+          return await response.text();
+        })();
       case "UPDATE_AVAILABLE":
         if (updateNotice) {
           updateNotice.classList.add("visible");
@@ -173,25 +169,27 @@ function addListeners() {
       case "CLEAR_CUES":
         tracks = null;
         markAsLoading();
-        await shutdownRender();
-        log("received clear cues message from background.");
-        break;
+        return shutdownRender().then(() => {
+          log("received clear cues message from background.");
+        });
       case "UPDATE_PREFERENCE": {
         log("updating preferences from popup");
-        const old = preference ? {...preference} : null;
-        preference = null;
-        preference = await grabPreference();
-        if (preference.subtitlePos) overlayTextMoving.updateState(preference.subtitlePos);
-        if (old
-          && old.doCc === preference.doCc
-          && old.subLanguage === preference.subLanguage
-          && old.primaryOffsetMs === preference.primaryOffsetMs
-          && old.secondaryOffsetMs === preference.secondaryOffsetMs
-        ) return;
-        await updateDropdownOptions();
-        await updateCuesAndRender();
-        await updateOffsets(preference!);
-        break;
+        return (async () => {
+          const old = preference ? {...preference} : null;
+          preference = null;
+          preference = await grabPreference();
+          if (preference.subtitlePos)
+            overlayTextMoving.updateState(preference.subtitlePos);
+          if (old
+            && old.doCc === preference.doCc
+            && old.subLanguage === preference.subLanguage
+            && old.primaryOffsetMs === preference.primaryOffsetMs
+            && old.secondaryOffsetMs === preference.secondaryOffsetMs
+          ) return;
+          await updateDropdownOptions();
+          await updateCuesAndRender();
+          await updateOffsets(preference!);
+        })();
       }
       case "PLAYBACK_BLOCKED": {
         showStreamLimitNotice(msg.blockedUntil);
@@ -208,18 +206,21 @@ function addListeners() {
       }
       case "CLEAR_MOVING": {
         preference = null;
-        await grabPreference();
-        updateEraser().then();
-        return clearMoving();
+        return grabPreference().then(() => {
+          updateEraser().then(() => {
+            clearMoving();
+          })
+        });
       }
       case "CREATE_MOVING": {
         updateEraser().then();
         return makeMoving(msg.subMask, (mask) => {
-          browser.runtime.sendMessage({type: "UPDATE_MOVING", subMask: mask});
-          if (preference) {
-            preference.subMask = mask;
-            updateEraser();
-          }
+          browser.runtime.sendMessage({type: "UPDATE_MOVING", subMask: mask}).then(() => {
+            if (preference) {
+              preference.subMask = mask;
+              updateEraser().then(() => log("eraser updated on mask move"));
+            }
+          });
         });
       }
     }

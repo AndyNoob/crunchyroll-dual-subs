@@ -8,6 +8,7 @@ import type {Entry} from "@plussub/srt-vtt-parser/dist/types";
 import {askMainWorld} from "../world-bridge";
 import {convertToPixels} from "@andynoob/move-it";
 import {editingMasks} from "./editing";
+import {DEFAULT_SECONDARY_STATE} from "../shared";
 
 export let videoEl: HTMLVideoElement;
 
@@ -326,8 +327,10 @@ class VTTRender {
       const display = nextText.length > 0 ? "block" : "none";
       if (overlayText.style.display !== display)
         overlayText.style.display = display;
-      if (overlayText.textContent !== nextText)
+      if (overlayText.textContent !== nextText) {
+        overlayTextMoving.updateState({...DEFAULT_SECONDARY_STATE});
         overlayText.textContent = nextText;
+      }
     }
 
     this.render = requestAnimationFrame(() => this.renderLoop0(renderer));

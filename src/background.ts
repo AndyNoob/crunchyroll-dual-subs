@@ -20,7 +20,10 @@ import {getCachedSubtitleManifest} from "./handlers/subtitles/cacher";
 console.log("[dual-sub] background loaded");
 
 browser.runtime.onMessage.addListener(async (msg: any, sender: Runtime.MessageSender) => {
-  if (sender.tab == null) return await receivePopupMsg(msg, sender);
+  const tab = sender.tab;
+  const isPopup = tab == null || tab?.url?.includes("chrome-extension://");
+  console.log("incoming message from", tab?.url, {isPopup});
+  if (isPopup) return await receivePopupMsg(msg);
   else return await receiveContentMsg(msg, sender);
 });
 browser.webRequest.onBeforeRequest.addListener(receiveMiscReqs, {urls: ["*://www.crunchyroll.com/*"]});
@@ -28,14 +31,16 @@ browser.tabs.onUpdated.addListener(receiveTabUpdate);
 browser.runtime.onUpdateAvailable.addListener(receiveUpdateNotif);
 if (__BROWSER_TYPE__ === "chrome") {
   // @ts-ignore
-  chrome.sidePanel.onClosed.addListener(() => {
-    browser.tabs.query({url: "https://*.crunchyroll.com/watch/*"}).then((tabs) => {
-      for (const tab of tabs) {
-        browser.tabs.sendMessage(tab.id!, {type: "CLEAR_MOVING"})
-          .catch(e => console.error("[dual sub pop-up] failed to clear moving on chrome side panel close", tab, e));
-      }
+  const onClosed = chrome.sidePanel ? chrome.sidePanel.onClosed : null;
+  if (onClosed != null)
+    onClosed.addListener(() => {
+      browser.tabs.query({url: "https://*.crunchyroll.com/watch/*"}).then((tabs) => {
+        for (const tab of tabs) {
+          browser.tabs.sendMessage(tab.id!, {type: "CLEAR_MOVING"})
+            .catch(e => console.error("[dual sub pop-up] failed to clear moving on chrome side panel close", tab, e));
+        }
+      });
     });
-  })
 }
 
 browser.action.onClicked.addListener(async (tab) => {
@@ -142,11 +147,13 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
       await openSidebar(sender.tab!);
       break;
     }
+    default: {
+      console.error("[receiveContentMsg] unknown message received", msg);
+    }
   }
 }
 
-async function receivePopupMsg(msg: any, sender: Runtime.MessageSender) {
-  if (sender.tab != null) return;
+async function receivePopupMsg(msg: any) {
   const tabId: number = msg.tabId;
   try {
     switch (msg.type) {
@@ -220,6 +227,9 @@ async function receivePopupMsg(msg: any, sender: Runtime.MessageSender) {
           blockedUntil: getPlaybackBlockedUntil()
         };
       }
+      default: {
+        console.error("[receivePopupMsg] unknown message received", msg);
+      }
     }
   } finally {
     console.groupEnd();
@@ -255,17 +265,16 @@ async function receiveTabUpdate(tabId: number, changeInfo: Tabs.OnUpdatedChangeI
   const url = changeInfo.url;
   if (!url.includes("crunchyroll.com/watch/")) {
     manifestMap.delete(tabId);
-    console.log(`[dual-sub] removed manifest for tab ${tabId}`);
+    console.log(`[tab update] removed manifest for tab ${tabId}`);
     browser.extension.getViews({type: "popup"}).forEach(p => p.close());
     return;
   }
-  // console.log(`[dual-sub] old url is ${(await browser.tabs.get(tabId)).url}`);
-  const manifest = await grabEpisodeManifest(tabId).catch(() => null);
+  const manifest = manifestMap.get(tabId);
   const oldGuid = manifest?.episodeGuid;
   const newGuid = getGuid(url);
+  console.log(`[tab update] ${oldGuid} -> ${newGuid}`);
   if (newGuid === oldGuid) return;
-  console.log(`[dual-sub] ${oldGuid} -> ${newGuid}`);
-  console.log(`[dual-sub] new tab url for tab ${tabId} is ${shortenUrl(url)}`);
+  console.log(`[tab update] new tab url for tab ${tabId} is ${shortenUrl(url)}`);
   manifestMap.delete(tabId);
   try {
     await clearCues(tabId);
