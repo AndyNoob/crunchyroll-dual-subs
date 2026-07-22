@@ -184,7 +184,7 @@ async function loadScopedPreference(): Promise<Partial<Preference>> {
     scope: scopeSelect.dataset.scopeValue as PreferenceScope,
     seasonGuid: context.seasonGuid,
     episodeGuid: context.episodeGuid
-  });
+  }) || {};
 }
 
 async function saveScopedPreference(pref: PreferencePatch, scope?: PreferenceScope) {
@@ -421,7 +421,7 @@ async function init() {
     type: "GET_PLAYBACK_BLOCK_STATUS"
   });
 
-  if (status.blockedUntil) {
+  if (status && status.blockedUntil) {
     showStreamLimitNotice(status.blockedUntil);
     return;
   }
@@ -429,7 +429,6 @@ async function init() {
   setLoading(true);
 
   const [currentTab] = await browser.tabs.query({currentWindow: true, active: true});
-  console.log(currentTab);
   if (!currentTab || !currentTab!.url?.includes("/watch/")) {
     loadingState.textContent = "Open this on a Crunchyroll episode page.";
     tabId = null;
@@ -440,11 +439,12 @@ async function init() {
 
   try {
     tabId = await getActiveCrunchyrollTabId();
+    console.log(`[dual sub popup] active tab id is ${tabId}`);
     subEditContainer.setAttribute("collapsed", "true");
     browser.tabs.sendMessage(tabId, {type: "CLEAR_MOVING"})
       .catch(e => console.error("[dual sub pop-up] failed to clear moving on init", e));
     context = await send<ContextResponse>({type: "GET_CONTEXT"});
-    console.log("context is", context);
+    console.log("[dual sub popup] context is", context);
     manifest = await grabManifest();
     console.log("manifest is", manifest);
 
@@ -458,7 +458,8 @@ async function init() {
   } catch (err) {
     console.error("[dual-sub popup] failed to init");
     console.error(err);
-    loadingState.textContent = "Could not load settings. Open this on a Crunchyroll episode page.";
+    // @ts-ignore
+    loadingState.textContent = `Could not load settings. Open this on a Crunchyroll episode page.\n${err.toString()}`;
   }
 }
 

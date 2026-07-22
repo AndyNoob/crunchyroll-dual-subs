@@ -9,11 +9,14 @@ export type ContextResponse = {
   currentProfile: Profile;
 };
 
-export async function send<T>(msg: Record<string, unknown>): Promise<T> {
+export async function send<T>(msg: Record<string, unknown>): Promise<T | null> {
   return await browser.runtime.sendMessage({
     ...msg,
     tabId
-  });
+  }).catch((e) => {
+    console.error("[dual sub popup] failed to send message", e);
+    return null;
+  }) as T | null;
 }
 
 export async function grabManifest() {
