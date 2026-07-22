@@ -21,7 +21,7 @@ let croptixCanvas: HTMLCanvasElement | null = null;
 let vttRender: VTTRender | null = null;
 let fontFamily = "";
 
-export function setFontProperty(str?: string) {
+export function setFont(str?: string, size?: number) {
   if (!document.head.dataset.addedFonts) {
     document.head.dataset.addedFonts = "true";
     document.head.innerHTML += FONTS_CODE;
@@ -32,6 +32,9 @@ export function setFontProperty(str?: string) {
     fontFamily = `"DM Sans", sans-serif`;
   }
   overlayText.style.fontFamily = fontFamily;
+  const fontSize = String(size || 26);
+  log(`new font size is ${fontSize}`)
+  overlayText.style.fontSize = `${fontSize}px`;
 }
 
 export async function grabVideo() {
@@ -115,7 +118,7 @@ export async function updateOffsetsAndFont(pref: Preference) {
     vttRender.setOffsetMs((pref.doCc ? pref.secondaryOffsetMs : pref.primaryOffsetMs) ?? 0);
     log(`changed offset of VTT rendering to ${vttRender.getOffsetMs() / 1000}sec`);
   }
-  setFontProperty(pref.fontProperty);
+  setFont(pref.fontProperty, pref.fontSize);
 }
 
 export async function shutdownRender() {

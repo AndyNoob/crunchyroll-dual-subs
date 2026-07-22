@@ -350,3 +350,15 @@ button.small-button {
 div[id^=font-picker] ul li button:hover, div[id^=font-picker] ul li button:focus {
   background: var(--muted-orange) !important;
 }
+
+label[for="font-size"] {
+  display: inline-block;
+  margin-right: 20px;
+}
+
+#font-size {
+  height: 10px;
+  width: 80px;
+  display: inline-block;
+  text-align: center;
+}
