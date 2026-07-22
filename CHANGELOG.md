@@ -1,3 +1,17 @@
+> Latest commit: c66defc
+
+# 0.12.1
+
+- Fix Opera support; temporarily disable moving subtitles (AndyNoob)
+- Anchor secondary sub on its bottom center instead (AndyNoob)
+- Anchor secondary sub on its top center (AndyNoob)
+- Use move-it to move secondary sub overlay (AndyNoob)
+- Minor QOL fixes (AndyNoob)
+- Add sidebar demo screenshots (AndyNoob)
+- Add last commit hashes to CHANGELOG.md and read from that (AndyNoob)
+
+
+
 > Last commit: 04beffd2
 
 # 0.12.0
