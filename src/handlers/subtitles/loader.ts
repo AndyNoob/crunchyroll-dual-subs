@@ -83,6 +83,11 @@ const deviceType = "web";
 
 export async function grabSubtitleManifest(tabId: number, refresh = false, isRetry = false): Promise<SubtitleManifest> {
   const manifest = await grabEpisodeManifest(tabId);
+  const rawPlayback = await browser.tabs.sendMessage(tabId, {type: "RAW_PLAYBACK"}).catch(() => null);
+  if (rawPlayback) {
+    console.log("[grabSubtitleManifest] grabbed raw manifest from content")
+    return handleSubtitleManifest(manifest, rawPlayback);
+  }
   if (!refresh) {
     const cached = await getCachedSubtitleManifest(manifest);
     if (cached != null) {
@@ -92,11 +97,6 @@ export async function grabSubtitleManifest(tabId: number, refresh = false, isRet
     logger.info("manifest cache not found, begin loading cues...");
   } else {
     logger.warn("manifest refresh requested...");
-  }
-  const rawPlayback = await browser.tabs.sendMessage(tabId, {type: "RAW_PLAYBACK"}).catch(() => null);
-  if (rawPlayback) {
-    console.log("[grabSubtitleManifest] grabbed raw manifest from content")
-    return handleSubtitleManifest(manifest, rawPlayback);
   }
   const response = await sendManifestRequest(
     (await grabEpisodeManifest(tabId)).episodeGuid,

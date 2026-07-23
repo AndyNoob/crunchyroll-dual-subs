@@ -140,7 +140,7 @@ function addListeners() {
   browser.runtime.onMessage.addListener((msg: any) => {
     switch (msg?.type) {
       case "REFRESH_CUES":
-        if (msg.guid === getSlug(location.href)) {
+        if (tracks != null && msg.guid === getSlug(location.href)) {
           log("skipping refresh, guid is the same");
           return false;
         }
