@@ -83,9 +83,12 @@ const deviceType = "web";
 
 export async function grabSubtitleManifest(tabId: number, refresh = false, isRetry = false): Promise<SubtitleManifest> {
   const manifest = await grabEpisodeManifest(tabId);
-  const rawPlayback = await browser.tabs.sendMessage(tabId, {type: "RAW_PLAYBACK"}).catch(() => null);
+  const rawPlayback = await browser.tabs.sendMessage(tabId, {type: "RAW_PLAYBACK"}).catch((e) => {
+    console.error("[subtitle manifest] failed to grab raw playback", e);
+    return null;
+  });
   if (rawPlayback) {
-    console.log("[grabSubtitleManifest] grabbed raw manifest from content")
+    console.log("[grabSubtitleManifest] grabbed raw manifest from content");
     return handleSubtitleManifest(manifest, rawPlayback);
   }
   if (!refresh) {
@@ -98,6 +101,7 @@ export async function grabSubtitleManifest(tabId: number, refresh = false, isRet
   } else {
     logger.warn("manifest refresh requested...");
   }
+  console.error("[subtitle manifest] resorting to playback request", {tabId, refresh, isRetry, rawPlayback});
   const response = await sendManifestRequest(
     (await grabEpisodeManifest(tabId)).episodeGuid,
     deviceType,
