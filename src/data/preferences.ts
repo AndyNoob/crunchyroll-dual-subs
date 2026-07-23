@@ -17,7 +17,8 @@ export interface Preference {
   secondaryOffsetMs?: number,
   subMask?: SubMask,
   fontProperty?: string,
-  fontSize?: number
+  fontSize?: number,
+  backgroundOpacity?: number
 }
 
 export interface SubMask {

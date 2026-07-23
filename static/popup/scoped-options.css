@@ -314,16 +314,20 @@ button.small-button {
 
 #font-picker {
   margin-bottom: 14px !important;
+  display: inline-block;
+  width: 170px !important;
+  border-radius: 12px;
 }
 
 .dropdown-button {
-  background: transparent !important;
+  background: var(--field) !important;
   border: 1px solid var(--border) !important;
   margin-bottom: 0 !important;
+  height: 29px !important;
 }
 
 .dropdown-button:hover, .dropdown-button:focus {
-  background: var(--muted-orange) !important;
+  background: rgba(244, 117, 33, 0.24) !important;
   border: 1px solid var(--cr-orange) !important;
   box-shadow: 0 0 0 3px rgb(165 75 14);
 }
@@ -351,14 +355,33 @@ div[id^=font-picker] ul li button:hover, div[id^=font-picker] ul li button:focus
   background: var(--muted-orange) !important;
 }
 
-label[for="font-size"] {
-  display: inline-block;
-  margin-right: 20px;
+.dropdown-icon::before {
+  border-top: 6px solid white !important;
 }
 
-#font-size {
-  height: 10px;
-  width: 80px;
+.editor-block {
+  display: flex;
+}
+
+label[for="font-size"], label[for="background-opacity"], label[for="font-picker"] {
+  display: inline-block;
+  margin-right: 20px;
+
+  .hint {
+    font-weight: normal;
+    font-size: 10px;
+  }
+}
+
+#font-size, #background-opacity {
+  height: 29px;
+  width: 65px;
   display: inline-block;
   text-align: center;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
