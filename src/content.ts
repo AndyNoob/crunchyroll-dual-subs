@@ -197,7 +197,7 @@ function addListeners() {
           preference = await grabPreference();
           if (preference.subtitlePos)
             overlayTextMoving.updateState(preference.subtitlePos);
-          setFont(preference.fontProperty, preference.fontSize);
+          setFont(preference.fontProperty, preference.fontSize, preference.backgroundOpacity);
           if (old) log({
             doCC: old.doCc === preference.doCc,
             subLang: old.subLanguage === preference.subLanguage,

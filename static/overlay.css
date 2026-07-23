@@ -29,7 +29,8 @@
           -1px -1px 0 #000;
 
   padding: 4px 8px;
-  background-color: #0000004f;
+  background-color: rgb(0 0 0 / var(--background-opacity, 0.3));
+  --background-opacity: 0.3;
 }
 
 #cr-dual-subs-secondary.editing {

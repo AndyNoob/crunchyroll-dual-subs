@@ -23,6 +23,7 @@ const addMaskButton = document.querySelector("#add-mask-button") as HTMLButtonEl
 const fontSizeInput = document.querySelector("#font-size") as HTMLInputElement;
 // const invertMaskCheckbox = document.querySelector("#invert-masks") as HTMLInputElement;
 let fontPicker: FontPicker;
+const backgroundOpacityInput = document.querySelector("#background-opacity") as HTMLInputElement;
 
 export const settingsContent = document.querySelector("#cr-dual-subs-overlay-options") as HTMLDivElement;
 
@@ -222,6 +223,7 @@ async function renderFontPicker(pref: Partial<Preference>) {
   }
   console.log(`[font picker] set up complete`, fontPicker.getActiveFont());
   fontSizeInput.value = String(pref.fontSize || 26);
+  backgroundOpacityInput.value = String(pref.backgroundOpacity || 0.3);
 }
 
 async function loadScopedPreference(): Promise<Partial<Preference>> {
@@ -433,6 +435,18 @@ function attachListeners() {
     }
     await saveScopedPreference({
       fontSize
+    });
+  });
+
+  backgroundOpacityInput.addEventListener("change", async () => {
+    let opacity = Number(backgroundOpacityInput.value);
+    if (isNaN(opacity) || opacity < 0 || opacity > 1) {
+      opacity = 0.3;
+      backgroundOpacityInput.value = String(opacity);
+      return;
+    }
+    await saveScopedPreference({
+      backgroundOpacity: opacity
     });
   });
 }
