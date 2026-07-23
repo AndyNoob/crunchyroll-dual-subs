@@ -51,10 +51,17 @@ export async function handleEpisodeManifest(tabId: number, response: any): Promi
   return manifest;
 }
 
-export const grabEpisodeManifest = singleFlight(
-  grabAndHandleManifest0,
-  (tabId, _ = false) => tabId.toString()
-);
+export const grabEpisodeManifest = async (tabId: number) => {
+  const rawManifest = await browser.tabs.sendMessage(tabId, {type: "RAW_MANIFEST"}).catch(() => null);
+  if (rawManifest) {
+    console.log("[grabAndHandleManifest0] grabbed raw manifest from content")
+    return handleEpisodeManifest(tabId, rawManifest);
+  }
+  return (singleFlight(
+    grabAndHandleManifest0,
+    (tabId, _ = false) => tabId.toString()
+  ))(tabId);
+};
 
 async function getGuid(tabId: number) {
   return (await browser.tabs.get(tabId))?.url?.match(/watch\/(.+)\//)?.[1];
@@ -75,11 +82,6 @@ async function grabAndHandleManifest0(tabId: number, refresh: boolean = false) {
       l.info("manifest already exists, not refreshing.");
       return manifest;
     }
-  }
-  const rawManifest = await browser.tabs.sendMessage(tabId, {type: "RAW_MANIFEST"}).catch(() => null);
-  if (rawManifest) {
-    console.log("[grabAndHandleManifest0] grabbed raw manifest from content")
-    return handleEpisodeManifest(tabId, rawManifest);
   }
   let headers = await getOrLoadHeaders(tabId);
   if (!headers) {

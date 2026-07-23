@@ -31,6 +31,7 @@ export function makeMoving(subMask: SubMask, callback: (newMask: SubMask) => voi
   editingMasks = true;
   log("editing masks!");
   overlayText.classList.add("editing");
+  if (!subMask || !subMask.rects) return;
   for (let i = 0; i < subMask.rects.length; i++){
     let rect = subMask.rects[i]!;
     const element = overlayRoot.appendChild(document.createElement("div"));
