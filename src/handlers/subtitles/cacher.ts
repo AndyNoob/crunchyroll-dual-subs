@@ -117,6 +117,12 @@ export async function setCachedSubtitleManifest(
   await saveSubtitleManifestCache(cache);
 }
 
+export async function removeCachedSubtitleManifest(episodeGuid: string) {
+  const cache: SubtitleManifestCache = await loadSubtitleManifestCache();
+  delete cache[episodeGuid];
+  await saveSubtitleManifestCache(cache);
+}
+
 function timeUntilExpiry(url: string | undefined): number | null {
   if (!url) return null;
   const t = new URL(url).searchParams.get("t");
@@ -159,6 +165,12 @@ export async function setCachedCues(
 
   logger.info(`new entry for "${manifest.episodeTitle}" added to cue cache`, entry);
 
+  await saveSubtitleCache(cache);
+}
+
+export async function removeCachedCues(episodeGuid: string) {
+  const cache = await loadSubtitleCache();
+  delete cache[episodeGuid];
   await saveSubtitleCache(cache);
 }
 

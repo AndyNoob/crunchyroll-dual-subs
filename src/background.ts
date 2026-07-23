@@ -11,13 +11,18 @@ import {
   type RawProfile,
   setProfile
 } from "./data/profiles";
-import {getGuid, setNextRequestTime, shortenUrl, sleep} from "./utils";
+import {getGuid, setNextRequestTime, shortenUrl} from "./utils";
 import type {PreferencePatch, PreferenceScope} from "./data/preferences";
 import {findEpisodeGuid, findSeasonGuid, getEpisodeManifest, manifestMap} from "./data/episode";
 import {grabSubtitleManifest, handleSubtitleManifest} from "./handlers/subtitles/loader";
-import {getCachedSubtitleManifest} from "./handlers/subtitles/cacher";
+import {getCachedSubtitleManifest, removeCachedCues, removeCachedSubtitleManifest} from "./handlers/subtitles/cacher";
 
 console.log("[dual-sub] background loaded");
+
+(globalThis as any).removeGuidCache = async (guid: string) => {
+  await removeCachedCues(guid);
+  await removeCachedSubtitleManifest(guid);
+};
 
 browser.runtime.onMessage.addListener(async (msg: any, sender: Runtime.MessageSender) => {
   const tab = sender.tab;
@@ -119,7 +124,13 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
       switch (detail.type) {
         case "playback": {
           const epsManifest = await grabEpisodeManifest(tabId);
-          return await handleSubtitleManifest(epsManifest, detail.payload);
+          try {
+            await handleSubtitleManifest(epsManifest, detail.payload);
+            await refreshCues(tabId);
+          } finally {
+            currentlyLoading.delete(tabId);
+          }
+          return true;
         }
         case "manifest": {
           return await handleEpisodeManifest(tabId, detail.payload);
@@ -260,6 +271,8 @@ async function refreshCues(tabId: number) {
   notifyCueRefresh(tabId, await bundleCues(tabId));
 }
 
+const currentlyLoading = new Map<number, string>();
+
 async function receiveTabUpdate(tabId: number, changeInfo: Tabs.OnUpdatedChangeInfoType, tab: Tabs.Tab) {
   if (!changeInfo.url || !tab.url) return;
   const url = changeInfo.url;
@@ -274,16 +287,16 @@ async function receiveTabUpdate(tabId: number, changeInfo: Tabs.OnUpdatedChangeI
   const newGuid = getGuid(url);
   console.log(`[tab update] ${oldGuid} -> ${newGuid}`);
   if (newGuid === oldGuid) return;
+  if (currentlyLoading.has(tabId)) return;
   console.log(`[tab update] new tab url for tab ${tabId} is ${shortenUrl(url)}`);
   manifestMap.delete(tabId);
+  currentlyLoading.set(tabId, newGuid!);
   try {
     await clearCues(tabId);
   } catch (e) {
     console.warn(`[dual-sub] failed to clear cues for tab ${tabId}`, e);
   }
-  console.log(`[dual-sub] cleared cues on tab ${tabId}, waiting 1.5s...`);
-  await sleep(1500);
-  await refreshCues(tabId);
+  console.log(`[dual-sub] cleared cues on tab ${tabId}, waiting for playback monkey patch update`);
 }
 
 function receiveUpdateNotif(details: Runtime.OnUpdateAvailableDetailsType) {
