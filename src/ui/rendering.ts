@@ -6,9 +6,7 @@ import ASS from "assjs";
 import {parse} from "@plussub/srt-vtt-parser";
 import type {Entry} from "@plussub/srt-vtt-parser/dist/types";
 import {askMainWorld} from "../world-bridge";
-import {convertToPixels} from "@andynoob/move-it";
 import {editingMasks} from "./editing";
-import {DEFAULT_SECONDARY_STATE} from "../shared";
 
 export let videoEl: HTMLVideoElement;
 
@@ -186,7 +184,12 @@ function pathFor(mask: SubMask, w: number, h: number) {
   const outer = `M0 0 H${w} V${h} H0 Z`;
   const inner = mask.rects
     .map((r) => {
-      const rect = convertToPixels({offsetWidth: w, offsetHeight: h}, r);
+      const rect = {
+        x: r.x * w,
+        width: r.width * w,
+        y: r.y * h,
+        height: r.height * w,
+      };
       return `M${rect.x} ${rect.y} H${rect.x + rect.width} V${rect.y + rect.height} H${rect.x} Z`;
     })
     .join(" ");
@@ -347,7 +350,6 @@ class VTTRender {
       if (overlayText.style.display !== display)
         overlayText.style.display = display;
       if (overlayText.textContent !== nextText) {
-        overlayTextMoving.updateState({...DEFAULT_SECONDARY_STATE});
         overlayText.textContent = nextText;
       }
     }
