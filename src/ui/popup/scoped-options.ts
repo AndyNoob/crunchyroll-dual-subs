@@ -406,7 +406,6 @@ function attachListeners() {
       width: 0.1,
       height: 0.17777777778, // to make square in 640x360 aspect ratio
       rotation: 0,
-      usePercent: true
     });
     pref.subMask = mask;
     await saveScopedPreference({

@@ -1,10 +1,11 @@
-import {grabPreference, log} from "../content";
+import {grabPreference, log, preference} from "../content";
 import {
   createMoveMe,
   type Moving,
   type RectState
 } from "@andynoob/move-it";
 import {DEFAULT_SECONDARY_STATE} from "../shared";
+import browser from "webextension-polyfill";
 
 export let overlayRoot: HTMLDivElement;
 export let overlayTextContainer: HTMLDivElement;
@@ -55,8 +56,11 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
     log(`container size is ${overlayTextContainer.offsetWidth} x ${overlayTextContainer.offsetHeight}`);
     overlayTextMoving = createMoveMe(overlayText, {
       controlRoot: overlayTextContainer,
-      initialState: {...DEFAULT_SECONDARY_STATE},
-      doResize: true,
+      initialState: {...(pref.subtitlePos || DEFAULT_SECONDARY_STATE)},
+      format: {
+        centered: true,
+        asPercent: true
+      },
       autoSize: true,
       disableFeatures: {
         rotate: true,
@@ -67,30 +71,31 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
           threshold: 4,
           displayThreshold: 8,
           verticalX: [0.5],
-          horizontalY: [0.95]
+          horizontalY: [0.95],
+          asPercent: true
         }
       },
-      // pivotOffset: {
-      //   x: 0,
-      //   y: 0.5
-      // },
+      pivotOffset: {
+        x: 0,
+        y: 0.5
+      },
       onChange: () => {
-        // const pos = overlayTextMoving.getState(true, true);
-        // console.log(lastPos, pos);
-        // if (preference) preference.subtitlePos = pos;
-        // if (lastPos
-        //   && lastPos.x === pos.x
-        //   && lastPos.y === pos.y) {
-        //   lastPos = pos;
-        //   return;
-        // }
-        // grabPreference().then(pref => {
-        //   pref.subtitlePos = pos;
-        //   browser.runtime.sendMessage({type: "SET_PREFERENCE", pref})
-        //     .then(() => console.log("[dual sub editor] new subtitle pos set", pref, pos))
-        //     .catch((e) => console.error("[dual sub editor] failed to set subtitle pos", pref, pos, e));
-        // });
-        // lastPos = pos;
+        const pos = overlayTextMoving.getState();
+        console.log(lastPos, pos);
+        if (preference) preference.subtitlePos = pos;
+        if (lastPos
+          && lastPos.x === pos.x
+          && lastPos.y === pos.y) {
+          lastPos = pos;
+          return;
+        }
+        grabPreference().then(pref => {
+          pref.subtitlePos = pos;
+          browser.runtime.sendMessage({type: "SET_PREFERENCE", pref})
+            .then(() => console.log("[dual sub editor] new subtitle pos set", pref, pos))
+            .catch((e) => console.error("[dual sub editor] failed to set subtitle pos", pref, pos, e));
+        });
+        lastPos = pos;
       }
     });
     overlayTextMoving.render();
@@ -99,10 +104,10 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
       e.stopPropagation();
       overlayTextMoving.updateState({...DEFAULT_SECONDARY_STATE});
     }, {capture: true});
-    overlayText.addEventListener("pointerdown", (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-    }, {capture: true});
+    // overlayText.addEventListener("pointerdown", (e) => {
+    //   e.stopPropagation();
+    //   e.preventDefault();
+    // }, {capture: true});
   });
 }
 

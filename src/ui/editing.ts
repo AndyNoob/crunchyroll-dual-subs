@@ -1,8 +1,6 @@
 import type {SubMask} from "../data/preferences";
 import {overlayRoot, overlayText} from "./overlay";
 import {
-  convertToPercent,
-  convertToPixels,
   createMoveMe,
   type Moving,
 } from "@andynoob/move-it";
@@ -38,13 +36,16 @@ export function makeMoving(subMask: SubMask, callback: (newMask: SubMask) => voi
     movingList.push(createMoveMe(
       element,
       {
-        initialState: convertToPixels(overlayRoot, rect),
+        initialState: rect,
+        format: {
+          asPercent: true,
+          centered: true
+        },
         controlRoot: overlayRoot,
         onChange: (state) => {
-          subMask.rects[i] = {...rect, ...convertToPercent(overlayRoot, state)};
+          subMask.rects[i] = {...rect, ...state};
           callback(subMask);
         },
-        doResize: true,
         disableFeatures: {
           rotate: true
         },
@@ -52,7 +53,8 @@ export function makeMoving(subMask: SubMask, callback: (newMask: SubMask) => voi
           grid: {
             threshold: 4,
             displayThreshold: 8,
-            verticalX: [0.5]
+            verticalX: [0.5],
+            asPercent: true
           }
         }
       }
