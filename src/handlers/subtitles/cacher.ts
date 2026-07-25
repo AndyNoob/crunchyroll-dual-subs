@@ -92,7 +92,6 @@ export async function setCachedSubtitleManifest(
 
   if (urls.length === 0) {
     logger.error(`sub manifest for "${epsManifest.episodeTitle}" has no urls`);
-    return;
   }
 
   const times = urls
