@@ -34,20 +34,23 @@ browser.runtime.onMessage.addListener(async (msg: any, sender: Runtime.MessageSe
 browser.webRequest.onBeforeRequest.addListener(receiveMiscReqs, {urls: ["*://www.crunchyroll.com/*"]});
 browser.tabs.onUpdated.addListener(receiveTabUpdate);
 browser.runtime.onUpdateAvailable.addListener(receiveUpdateNotif);
-if (__BROWSER_TYPE__ === "chrome") {
-  // @ts-ignore
-  const onClosed = chrome.sidePanel ? chrome.sidePanel.onClosed : null;
-  if (onClosed != null)
-    onClosed.addListener(() => {
-      browser.tabs.query({url: "https://*.crunchyroll.com/watch/*"}).then((tabs) => {
-        for (const tab of tabs) {
-          browser.tabs.sendMessage(tab.id!, {type: "CLEAR_MOVING"})
-            .catch(e => console.error("[dual sub pop-up] failed to clear moving on chrome side panel close", tab, e));
-        }
-      });
-    });
-}
+browser.runtime.onConnect.addListener((port) => {
+  // clean up masks
+  if (port.name === "sidebar-channel") {
+    console.log("[side bar] sidebar has been opened.");
 
+    port.onDisconnect.addListener(() => {
+      browser.tabs.query({url: "https://*.crunchyroll.com/watch/*"})
+        .then((tabs) => {
+          for (const tab of tabs) {
+            browser.tabs.sendMessage(tab.id!, {type: "CLEAR_MOVING"})
+              .catch(e => console.error("[side bar] failed to clear moving on side bar close", tab, e));
+          }
+          console.log("[side bar] sidebar has been closed.");
+        });
+    });
+  }
+});
 browser.action.onClicked.addListener(async (tab) => {
   await openSidebar(tab);
 });

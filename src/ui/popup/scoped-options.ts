@@ -584,6 +584,7 @@ window.addEventListener("beforeunload", () => {
   browser.tabs.sendMessage(tabId, {type: "CLEAR_MOVING"})
     .catch(e => console.error("[dual sub pop-up] failed to clear moving on unload", e));
 });
+browser.runtime.connect({ name: "sidebar-channel" });
 
 async function handleRefresh() {
   await init();
