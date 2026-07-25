@@ -164,8 +164,8 @@ function normalizeCues(parsed: Entry[]): Cue[] {
   }));
 }
 
-export async function updateEraser() {
-  const mask = (await grabPreference()).subMask;
+export async function updateEraser(subMask?: SubMask) {
+  const mask = subMask ?? (await grabPreference()).subMask;
   if (!mask) return;
   if (isCroptix) {
     const to = setInterval(() => {
@@ -180,16 +180,20 @@ export async function updateEraser() {
   }
 }
 
-function pathFor(mask: SubMask, w: number, h: number) {
-  const outer = `M0 0 H${w} V${h} H0 Z`;
+function pathFor(mask: SubMask, width: number, height: number) {
+  const outer = `M0 0 H${width} V${height} H0 Z`;
   const inner = mask.rects
     .map((r) => {
-      const rect = {
-        x: r.x * w,
-        width: r.width * w,
-        y: r.y * h,
-        height: r.height * w,
-      };
+      const rect = {...r};
+      // to pixels
+      rect.x *= width;
+      rect.y *= height;
+      rect.width *= width;
+      rect.height *= height;
+
+      // uncenter
+      rect.x -= rect.width / 2;
+      rect.y -= rect.height / 2;
       return `M${rect.x} ${rect.y} H${rect.x + rect.width} V${rect.y + rect.height} H${rect.x} Z`;
     })
     .join(" ");

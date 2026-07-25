@@ -230,8 +230,8 @@ function addListeners() {
       }
       case "CLEAR_MOVING": {
         preference = null;
-        return grabPreference().then(() => {
-          updateEraser().then(() => {
+        return grabPreference().then((pref) => {
+          updateEraser(pref.subMask).then(() => {
             clearMoving();
             log("CLEAR_MOVING complete");
           })
@@ -239,12 +239,12 @@ function addListeners() {
       }
       case "CREATE_MOVING": {
         clearMoving();
-        updateEraser().then();
+        updateEraser().then(msg.subMask);
         return makeMoving(msg.subMask, (mask) => {
           browser.runtime.sendMessage({type: "UPDATE_MOVING", subMask: mask}).then(() => {
             if (preference) {
               preference.subMask = mask;
-              updateEraser().then(() => log("eraser updated on mask move"));
+              updateEraser(mask).then(() => log("eraser updated on mask move"));
             }
           });
         });
