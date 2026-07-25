@@ -85,7 +85,6 @@ function ensureSubtitleListeners() {
     refreshButton.addEventListener("click", async (e) => {
       if (!refreshButton) return;
       console.log(`[dual-subs] refresh button clicked, refreshing (hard refreshing: ${e.shiftKey})...`);
-      if (!refreshButton) return;
 
       startRefreshSpin();
       refreshButton.style.opacity = "0.4";
