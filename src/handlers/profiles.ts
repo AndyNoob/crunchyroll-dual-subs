@@ -30,7 +30,14 @@ export function handleProfiles(tabId: number, data: any): Profile {
 }
 
 export const grabSelectedProfile = singleFlight(
-  grabAndHandleProfiles,
+  async (tabId: number, refresh: boolean = false) => {
+    const rawProfiles = await browser.tabs.sendMessage(tabId, {type: "RAW_PROFILES"}).catch(() => null);
+    if (rawProfiles) {
+      console.log("[grabAndHandleProfiles] grabbed raw profiles from content")
+      return handleProfiles(tabId, {profiles: rawProfiles});
+    }
+    return await grabAndHandleProfiles(tabId, refresh);
+  },
   (tabId, _ = false) => tabId.toString()
 );
 
@@ -41,11 +48,6 @@ async function grabAndHandleProfiles(tabId: number, refresh: boolean = false): P
       console.log("[grabAndHandleProfiles] profile already exists, not refreshing.");
       return profile;
     }
-  }
-  const rawProfiles = await browser.tabs.sendMessage(tabId, {type: "RAW_PROFILES"}).catch(() => null);
-  if (rawProfiles) {
-    console.log("[grabAndHandleProfiles] grabbed raw profiles from content")
-    return handleProfiles(tabId, {profiles: rawProfiles});
   }
   const headers = await getOrLoadHeaders(tabId);
   if (!headers) return Promise.reject("no auth");
