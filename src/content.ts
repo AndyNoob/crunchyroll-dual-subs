@@ -231,15 +231,14 @@ function addListeners() {
       case "CLEAR_MOVING": {
         preference = null;
         return grabPreference().then((pref) => {
+          clearMoving();
           updateEraser(pref.subMask).then(() => {
-            clearMoving();
             log("CLEAR_MOVING complete");
-          })
+          });
         });
       }
       case "CREATE_MOVING": {
         clearMoving();
-        updateEraser().then(msg.subMask);
         return makeMoving(msg.subMask, (mask) => {
           browser.runtime.sendMessage({type: "UPDATE_MOVING", subMask: mask}).then(() => {
             if (preference) {

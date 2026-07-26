@@ -27,7 +27,7 @@ console.log("[dual-sub] background loaded");
 browser.runtime.onMessage.addListener(async (msg: any, sender: Runtime.MessageSender) => {
   const tab = sender.tab;
   const isPopup = tab == null || tab?.url?.includes("chrome-extension://");
-  console.log("incoming message from", tab?.url, {isPopup});
+  console.log("incoming message from", tab?.url, msg);
   if (isPopup) return await receivePopupMsg(msg);
   else return await receiveContentMsg(msg, sender);
 });

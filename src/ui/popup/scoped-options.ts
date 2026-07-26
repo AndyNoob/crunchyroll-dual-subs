@@ -168,7 +168,7 @@ function renderMaskList(pref: Partial<Preference>) {
     const deleteBtn = el.querySelector(".small-button")!;
     deleteBtn.addEventListener("click", (e) => {
       e.stopImmediatePropagation();
-      for (let i1 = 0; i1 < mask.rects.length; i1++){
+      for (let i1 = 0; i1 < mask.rects.length; i1++) {
         let r = mask.rects[i1];
         if (r?.id === rect.id) {
           // @ts-ignore
@@ -201,8 +201,13 @@ async function renderFontPicker(pref: Partial<Preference>) {
         });
     }
   );
+
+  let count = 0;
+  // wait for the stupid thing to load...
+  while (count++ < 10 && fontPicker.getFonts().size < 10)
+    await sleep(250);
+
   if (pref.fontProperty) {
-    await sleep(1500);
     try {
       const fonts = fontPicker.getFonts();
       (window as any).fonts = fonts;
@@ -220,10 +225,12 @@ async function renderFontPicker(pref: Partial<Preference>) {
       console.warn(e);
       pref.fontProperty = fontPicker.getActiveFont().family;
     }
+  } else if (scopeSelect.dataset.scopeValue !== "global") {
+    document.querySelector("#font-picker .dropdown-font-family")!.textContent = "none";
   }
   console.log(`[font picker] set up complete`, fontPicker.getActiveFont());
-  fontSizeInput.value = String(pref.fontSize || 26);
-  backgroundOpacityInput.value = String(pref.backgroundOpacity || 0.3);
+  fontSizeInput.value = String(pref.fontSize || "");
+  backgroundOpacityInput.value = String(pref.backgroundOpacity || "");
 }
 
 async function loadScopedPreference(): Promise<Partial<Preference>> {
@@ -301,6 +308,10 @@ function attachListeners() {
     const newScope = e.target.value as PreferenceScope;
     scopeSelect.style.setProperty("--segment-position", `${scopeOptions.indexOf(newScope) * 100}%`);
     scopeSelect.dataset.scopeValue = newScope;
+    subEditContainer.setAttribute("collapsed", "true");
+    console.log("---");
+    console.log("scope changed ––––>", newScope);
+    console.log("---");
     await saveLastScope(scopeSelect.dataset.scopeValue as PreferenceScope);
     await refreshForm();
     await browser.tabs.sendMessage(tabId!, {type: "CLEAR_MOVING"})
@@ -426,6 +437,12 @@ function attachListeners() {
   });
 
   fontSizeInput.addEventListener("change", async () => {
+    if (!fontSizeInput.value) {
+      await saveScopedPreference({
+        fontSize: null
+      });
+      return;
+    }
     let fontSize = Number(fontSizeInput.value);
     if (isNaN(fontSize) || fontSize <= 0) {
       fontSize = 26;
@@ -438,6 +455,12 @@ function attachListeners() {
   });
 
   backgroundOpacityInput.addEventListener("change", async () => {
+    if (!backgroundOpacityInput.value) {
+      await saveScopedPreference({
+        backgroundOpacity: null
+      });
+      return;
+    }
     let opacity = Number(backgroundOpacityInput.value);
     if (isNaN(opacity) || opacity < 0 || opacity > 1) {
       opacity = 0.3;
@@ -446,6 +469,15 @@ function attachListeners() {
     }
     await saveScopedPreference({
       backgroundOpacity: opacity
+    });
+  });
+
+  (document.querySelector("#font-picker")! as HTMLElement).addEventListener("contextmenu", async (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    document.querySelector("#font-picker .dropdown-font-family")!.textContent = "none";
+    await saveScopedPreference({
+      fontProperty: null
     });
   });
 }
@@ -502,10 +534,9 @@ async function init() {
     return;
   }
 
-  setLoading(true);
-
   const [currentTab] = await browser.tabs.query({currentWindow: true, active: true});
   if (!currentTab || !currentTab!.url?.includes("/watch/")) {
+    setLoading(true);
     loadingState.textContent = "Open this on a Crunchyroll episode page.";
     tabId = null;
     context = null;
@@ -521,8 +552,11 @@ async function init() {
     context = await send<ContextResponse>({type: "GET_CONTEXT"});
     if (oldContext && oldContext.episodeGuid === context?.episodeGuid) {
       console.log("[init] skipping re-init bruh");
+      setLoading(false);
       return;
     }
+
+    setLoading(true);
 
     subEditContainer.setAttribute("collapsed", "true");
     browser.tabs.sendMessage(tabId, {type: "CLEAR_MOVING"})
@@ -584,7 +618,9 @@ window.addEventListener("beforeunload", () => {
   browser.tabs.sendMessage(tabId, {type: "CLEAR_MOVING"})
     .catch(e => console.error("[dual sub pop-up] failed to clear moving on unload", e));
 });
-browser.runtime.connect({ name: "sidebar-channel" });
+browser.runtime.connect({name: "sidebar-channel"});
+
+setLoading(true);
 
 async function handleRefresh() {
   await init();
