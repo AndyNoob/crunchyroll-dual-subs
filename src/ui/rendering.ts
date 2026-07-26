@@ -337,11 +337,6 @@ class VTTRender {
       return;
     }
 
-    const time = videoEl.currentTime;
-
-    const secondaryCue = getActiveCue(renderer.track, time + Number(renderer.offsetMs ?? 0) / 1000);
-    const nextText = secondaryCue?.text || "";
-
     const isEditing = overlayTextMoving.isSelected() || editingMasks;
 
     if (isEditing) {
@@ -350,6 +345,11 @@ class VTTRender {
       if (overlayText.style.textRendering !== "(right click to reset)")
         overlayText.textContent = "(right click to reset)";
     } else {
+      const time = videoEl.currentTime;
+      const secondaryCue = getActiveCue(renderer.track, time + Number(renderer.offsetMs ?? 0) / 1000);
+
+      const nextText = secondaryCue?.text || "";
+
       const display = nextText.length > 0 ? "block" : "none";
       if (overlayText.style.display !== display)
         overlayText.style.display = display;
