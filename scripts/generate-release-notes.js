@@ -4,7 +4,8 @@ import pkg from "../package.json" with { type: "json" };
 
 async function generateReleaseNotes() {
   const changelog = await readFile("./CHANGELOG.md", "utf-8") || "";
-  const commit = changelog.match(/> Last commit: (.+)/)[ 1 ] || "HEAD";
+  const commit = changelog.match(/> Latest commit: (.+)/)[ 1 ] || "HEAD";
+  console.log(commit)
   const notes = execSync(`
         git log ${ commit }..HEAD --pretty=format:'- %s (%an)' |
               grep -v 'github-actions\\[bot\\]' |
