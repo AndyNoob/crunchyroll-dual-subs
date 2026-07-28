@@ -48,10 +48,6 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
       return;
     }
     let lastPos: RectState | null = pref.subtitlePos || null;
-    if (lastPos) {
-      lastPos.width = 100;
-      lastPos.height = 100;
-    }
     log("updating subtitle from pref", lastPos);
     log(`container size is ${overlayTextContainer.offsetWidth} x ${overlayTextContainer.offsetHeight}`);
     overlayTextMoving = createMoveMe(overlayText, {
@@ -81,7 +77,6 @@ export function ensureSubtitleOverlay(videoEl: HTMLVideoElement) {
       },
       onChange: () => {
         const pos = overlayTextMoving.getState();
-        console.log(lastPos, pos);
         if (preference) preference.subtitlePos = pos;
         if (lastPos
           && lastPos.x === pos.x
