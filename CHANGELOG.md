@@ -1,3 +1,29 @@
+> Latest commit: e9de6ff
+
+# 0.12.4
+
+- Fix scope not affect sub editor (AndyNoob)
+- Fix subtitle masks desync and offset by half-extent (AndyNoob)
+- Fix empty sub manifest triggering a playback request (AndyNoob)
+- Remove warning about outdated firefox build (AndyNoob)
+- Fix firefox lifecycle issue (AndyNoob)
+- Add sidebar-background connection (AndyNoob)
+- Bring back subtitle position editing (AndyNoob)
+- Background: wait for content script to be ready (AndyNoob)
+- Fix content script undef access error (AndyNoob)
+- Add background opacity input and restyle stuff (AndyNoob)
+- Add font size input (AndyNoob)
+- Fix lifecycle issues to add a stupid font picker (AndyNoob)
+- Fix Opera support; temporarily disable moving subtitles (AndyNoob)
+- Anchor secondary sub on its bottom center instead (AndyNoob)
+- Anchor secondary sub on its top center (AndyNoob)
+- Use move-it to move secondary sub overlay (AndyNoob)
+- Minor QOL fixes (AndyNoob)
+- Add sidebar demo screenshots (AndyNoob)
+- Add last commit hashes to CHANGELOG.md and read from that (AndyNoob)
+
+
+
 > Latest commit: e071c58
 
 # 0.12.3
