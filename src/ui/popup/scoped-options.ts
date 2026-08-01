@@ -2,7 +2,7 @@ import browser from "webextension-polyfill";
 import type {Preference, PreferencePatch, PreferenceScope} from "../../data/preferences";
 import type {SubtitleManifest, Subtitles} from "../../data/subtitles";
 import {type ContextResponse, getActiveCrunchyrollTabId, grabManifest, send} from "./common";
-import {DEFAULT_SECONDARY_STATE} from "../../shared";
+import {AUDIO_LANGUAGES, type AudioLanguage, DEFAULT_SECONDARY_STATE} from "../../shared";
 import FontPicker from "font-picker";
 import {sleep} from "../../utils";
 
@@ -95,26 +95,48 @@ function renderSubtitleSelect(pref: Partial<Preference>) {
 
   subtitleSelect.innerHTML = "";
 
-  const appendOptions = (subtitles: Subtitles, doCc: boolean) => {
-    for (const sub of Object.values(subtitles)) {
-      const option = document.createElement("option");
+  if (scopeSelect.dataset.scopeValue as PreferenceScope === "episode") {
+    // show only the possible languages
+    const appendOptions = (subtitles: Subtitles, doCc: boolean) => {
+      for (const sub of Object.values(subtitles)) {
+        const option = document.createElement("option");
 
-      option.value = `${sub.language}:${doCc ? "cc" : "sub"}`;
-      option.dataset.language = sub.language;
-      option.dataset.cc = String(doCc);
+        option.value = `${sub.language}:${doCc ? "cc" : "sub"}`;
+        option.dataset.language = sub.language;
+        option.dataset.cc = String(doCc);
 
-      option.textContent = `${(sub.language)}${doCc ? " [CC]" : ""}`;
+        option.textContent = `${(sub.language)}${doCc ? " [CC]" : ""}`;
 
-      if (pref.subLanguage === sub.language && pref.doCc === doCc) {
-        option.selected = true;
+        if (pref.subLanguage === sub.language && pref.doCc === doCc) {
+          option.selected = true;
+        }
+
+        subtitleSelect.appendChild(option);
       }
+    };
 
-      subtitleSelect.appendChild(option);
+    appendOptions(manifest.subs, false);
+    appendOptions(manifest.ccs, true);
+  } else {
+    // show every possible language (global, season)
+    for (const audioLang of Object.keys(AUDIO_LANGUAGES)) {
+      for (const doCc of [true, false]) {
+        const option = document.createElement("option");
+
+        option.value = `${audioLang}:${doCc ? "cc" : "sub"}`;
+        option.dataset.language = audioLang;
+        option.dataset.cc = String(doCc);
+
+        option.textContent = `${audioLang}${doCc ? " [CC]" : ""}`;
+
+        if (pref.subLanguage === audioLang && pref.doCc === doCc) {
+          option.selected = true;
+        }
+
+        subtitleSelect.appendChild(option);
+      }
     }
-  };
-
-  appendOptions(manifest.subs, false);
-  appendOptions(manifest.ccs, true);
+  }
 
   const unset = document.createElement("option");
 
@@ -332,7 +354,7 @@ function attachListeners() {
       return;
     }
 
-    const subLanguage = option.dataset.language;
+    const subLanguage = option.dataset.language as AudioLanguage | undefined;
     const doCc = option.dataset.cc === "true";
 
     if (!subLanguage) return;

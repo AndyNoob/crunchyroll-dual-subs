@@ -1,3 +1,5 @@
+import type {AudioLanguage} from "../shared";
+
 export function getProfile(tabId: number): Profile | undefined {
   return profileMap.get(tabId);
 }
@@ -36,13 +38,13 @@ export interface RawProfile {
 export function mapProfile(raw: RawProfile): Profile {
   return {
     isSelected: raw.is_selected,
-    subLanguage: raw.preferred_content_subtitle_language ?? (() => {
+    subLanguage: (raw.preferred_content_subtitle_language ?? (() => {
       console.log(
         "[mapProfile] preferred_content_subtitle_language not found, deferring to preferred_communication_language",
         raw.preferred_communication_language
       );
       return raw.preferred_communication_language;
-    })(),
+    })()) as AudioLanguage,
     doCc: raw.prefer_closed_captions,
     profileId: raw.profile_id,
     profileName: raw.profile_name,
@@ -52,7 +54,7 @@ export function mapProfile(raw: RawProfile): Profile {
 
 export interface Profile {
   isSelected: boolean,
-  subLanguage: string,
+  subLanguage: AudioLanguage,
   doCc: boolean,
   profileId: string,
   profileName: string,

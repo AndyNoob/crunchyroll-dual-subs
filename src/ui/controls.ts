@@ -1,8 +1,8 @@
 import browser from "webextension-polyfill";
 import {updateCuesAndRender, updateDropdownOptions} from "../content";
-
 import type {Preference} from "../data/preferences";
 import type {SubtitleManifest} from "../data/subtitles";
+import type {AudioLanguage} from "../shared";
 
 // I love when GPT-5.2 does 90% of the work :muscles:
 
@@ -13,6 +13,7 @@ let subtitleLabelNode: Text | null = null;
 let casing: HTMLDivElement | null = null;
 let refreshButton: HTMLButtonElement | null = null;
 export let updateNotice: HTMLDivElement | null = null;
+let subtitleChoices = null;
 
 // casing -> [refresh button, [[trigger -> label], menu]]
 
@@ -155,7 +156,7 @@ export async function updateSubtitleDropdownOptions(manifest: SubtitleManifest, 
 
   let hasSelected = false;
 
-  const all = [
+  subtitleChoices = [
     ...Object.entries(manifest.subs).map(([key, v]) => ({
       key,
       language: v.language,
@@ -176,14 +177,16 @@ export async function updateSubtitleDropdownOptions(manifest: SubtitleManifest, 
     return a.type === "sub" ? -1 : 1; // sub before cc
   });
 
-  for (const sub of all) {
+  for (const sub of subtitleChoices) {
     const option = document.createElement("div");
     option.className = "cr-dual-subs-sub-option";
     option.textContent = sub.type === "cc" ? `${sub.language} [CC]` : sub.language;
     option.dataset.key = sub.key;
     option.dataset.type = sub.type;
 
-    if (!hasSelected && sub.key === pref.subLanguage && pref.doCc === (sub.type === "cc")) {
+    if (!hasSelected &&
+      sub.key === pref.subLanguage
+      && (sub.type === "cc") === pref.doCc) {
       option.classList.add("active");
       subtitleLabelNode.textContent = `${option.textContent} `;
       hasSelected = true;
@@ -193,13 +196,7 @@ export async function updateSubtitleDropdownOptions(manifest: SubtitleManifest, 
   }
 
   if (!hasSelected) {
-    const first = subtitleMenu.querySelector(".cr-dual-subs-sub-option") as HTMLElement | null;
-    if (first) {
-      first.classList.add("active");
-      subtitleLabelNode.textContent = `${first.textContent} `;
-      console.log("[dual-sub] preference not available for this episode, overriding", first);
-      first.click();
-    }
+    subtitleLabelNode.textContent = "(unavailable)";
   }
 }
 
@@ -215,7 +212,7 @@ async function handleSubtitleOptionClick(option: HTMLElement) {
   const key = option.dataset.key;
   const isCc = option.dataset.type === "cc";
 
-  const pref: Preference = {doCc: isCc, subLanguage: key!}
+  const pref: Preference = {doCc: isCc, subLanguage: key as AudioLanguage}
   await browser.runtime.sendMessage({type: "SET_PREFERENCE", pref});
   console.log("[dual-sub] new pref set", pref);
   await updateCuesAndRender();

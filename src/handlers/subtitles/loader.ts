@@ -9,6 +9,7 @@ import {findHeaderValue, getOrLoadHeaders, type Header} from "../../data/headers
 import {Logger} from "tslog";
 import {getCachedCues, getCachedSubtitleManifest, setCachedCues, setCachedSubtitleManifest} from "./cacher";
 import type {EpisodeManifest} from "../../data/episode";
+import type {AudioLanguage} from "../../shared";
 
 const logger = new Logger({
   name: "subtitleLoader"
@@ -61,7 +62,7 @@ async function loadSubtitles(tabId: number, pref: Preference): Promise<CachedCue
       subtitles = pref.doCc ? manifest.subs : manifest.ccs;
       keys = Object.keys(subtitles);
     }
-    subtitle = subtitles[keys[0]!];
+    subtitle = subtitles[keys[0]! as AudioLanguage];
     if (!subtitle) {
       logger.warn("there are none in preferred subtitle type", pref);
       return Promise.reject("can't find it, gave up");

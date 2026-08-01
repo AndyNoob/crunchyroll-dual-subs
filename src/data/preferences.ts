@@ -1,4 +1,5 @@
 import type {RectState} from "@andynoob/move-it";
+import type {AudioLanguage} from "../shared";
 
 export interface StoredPreferences {
   global: Record<string, Preference>;
@@ -11,7 +12,7 @@ export interface Preference {
    * use CC for secondary subtitle
    */
   doCc: boolean,
-  subLanguage: string,
+  subLanguage: AudioLanguage,
   subtitlePos?: RectState,
   primaryOffsetMs?: number,
   secondaryOffsetMs?: number,

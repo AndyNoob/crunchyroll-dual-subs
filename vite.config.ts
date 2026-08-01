@@ -61,7 +61,7 @@ function makeManifest() {
         run_at: "document_idle"
       },
       {
-        js: ["src/monkey-patch/croptix-subtitle.js", "src/monkey-patch/fetch.js", "src/monkey-patch/webpack.js"],
+        js: ["src/monkey-patch/croptix-subtitle.js", "src/monkey-patch/fetch.js", "src/monkey-patch/webpack.js", "src/operation-playback.js"],
         matches: ["*://*.crunchyroll.com/*"],
         run_at: "document_start",
         world: "MAIN"

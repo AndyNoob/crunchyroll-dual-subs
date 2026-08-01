@@ -1,3 +1,4 @@
+import type {AudioLanguage} from "../shared";
 
 export function getEpisodeManifest(tabId: number): EpisodeManifest | undefined {
   return manifestMap.get(tabId);
@@ -31,12 +32,12 @@ export interface EpisodeManifest {
   seriesTitle: string,
   seasonTitle: string,
   episodeTitle: string,
-  audioLocale: string,
+  audioLocale: AudioLanguage,
   versions: EpisodeVersion[],
 }
 
 export interface EpisodeVersion {
-  audioLocale: string,
+  audioLocale: AudioLanguage,
   seasonGuid: string,
   guid: string
 }

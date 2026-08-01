@@ -16,12 +16,29 @@ window.fetch = async function ( input, init ) {
         input instanceof URL ? input.href :
           String(input);
 
+    // ignore extension initiated requests
+    if (url.includes("dual_sub=676767")) return res;
+
     if (url.includes("playback/v3")) {
       console.log("[dual-sub] playback hijacked");
       const clone = res.clone();
       sendAuthHeaders(init);
       const data = await clone.json();
+      let changed = false;
+
+      if (window.__dualSubsSubtitles) {
+        const replaced = [];
+        for (const key of Object.keys(window.__dualSubsSubtitles)) {
+          if (data["subtitles"][key]) continue;
+          data["subtitles"][key] = window.__dualSubsSubtitles[key];
+          replaced.push(key);
+        }
+        console.log("[dual sub soft sub] injected subtitles", data, replaced);
+        changed = true;
+      }
+
       dispatchExtensionEvent("playback", data);
+
       if (typeof window.SubtitlesOctopus != "function") {
         const noSub = data[ "hardSubs" ][ "none" ].url;
         for (let [ key, value ] of Object.entries(data[ "hardSubs" ])) {
@@ -29,6 +46,10 @@ window.fetch = async function ( input, init ) {
           value.url = noSub;
           console.log("[dual sub soft sub] changed hard sub url", key, noSub);
         }
+        changed = true;
+      }
+
+      if (changed) {
         const cleanBlob = new Blob([ JSON.stringify(data) ], { type: 'application/json' });
         return new Response(cleanBlob, {
           status: res.status,
@@ -70,6 +91,9 @@ XMLHttpRequest.prototype.open = function ( method, url, ...rest ) {
 XMLHttpRequest.prototype.send = function ( ...args ) {
   this.addEventListener("load", function () {
     const url = this.__crDualSubsUrl;
+
+    // ignore extension initiated requests
+    if (url.includes("dual_sub=676767")) return;
 
     try {
       if (url?.includes("/multiprofile")) {
