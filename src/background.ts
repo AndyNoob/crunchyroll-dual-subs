@@ -1,4 +1,4 @@
-import browser, {type Runtime, type Tabs, type WebRequest} from "webextension-polyfill";
+import browser, {type Runtime, type Tabs} from "webextension-polyfill";
 import {bundleCues, getPlaybackBlockedUntil, notifyCueRefresh} from "./handlers/manager";
 import {grabSelectedProfile, handleProfiles} from "./handlers/profiles";
 import {grabEpisodeManifest, handleEpisodeManifest} from "./handlers/episode";
@@ -11,7 +11,7 @@ import {
   type RawProfile,
   setProfile
 } from "./data/profiles";
-import {getGuid, setNextRequestTime, shortenUrl} from "./utils";
+import {getGuid, shortenUrl} from "./utils";
 import type {PreferencePatch, PreferenceScope} from "./data/preferences";
 import {findEpisodeGuid, findSeasonGuid, getEpisodeManifest, manifestMap} from "./data/episode";
 import {grabSubtitleManifest, handleSubtitleManifest} from "./handlers/subtitles/loader";
@@ -31,7 +31,6 @@ browser.runtime.onMessage.addListener(async (msg: any, sender: Runtime.MessageSe
   if (isPopup) return await receivePopupMsg(msg);
   else return await receiveContentMsg(msg, sender);
 });
-browser.webRequest.onBeforeRequest.addListener(receiveMiscReqs, {urls: ["*://www.crunchyroll.com/*"]});
 browser.tabs.onUpdated.addListener(receiveTabUpdate);
 browser.runtime.onUpdateAvailable.addListener(receiveUpdateNotif);
 browser.runtime.onConnect.addListener((port) => {
@@ -40,9 +39,10 @@ browser.runtime.onConnect.addListener((port) => {
     console.log("[side bar] sidebar has been opened.");
 
     port.onDisconnect.addListener(() => {
-      browser.tabs.query({url: "https://*.crunchyroll.com/watch/*"})
+      browser.tabs.query({url: "https://*.crunchyroll.com/*"})
         .then((tabs) => {
           for (const tab of tabs) {
+            if (!tab.url?.includes("/watch/")) continue;
             browser.tabs.sendMessage(tab.id!, {type: "CLEAR_MOVING"})
               .catch(e => console.error("[side bar] failed to clear moving on side bar close", tab, e));
           }
@@ -260,12 +260,6 @@ async function resolveProfile(tabId: number, profileId: string) {
   return profile;
 }
 
-function receiveMiscReqs(details: WebRequest.OnBeforeRequestDetailsType) {
-  if (details.tabId < 0) return;
-  if (details.url.includes("?dual_sub=676767")) return;
-  setNextRequestTime(performance.now() + 5000);
-}
-
 async function clearCues(tabId: number) {
   await browser.tabs.sendMessage(tabId, {type: "CLEAR_CUES"});
 }
@@ -279,7 +273,7 @@ const currentlyLoading = new Map<number, string>();
 async function receiveTabUpdate(tabId: number, changeInfo: Tabs.OnUpdatedChangeInfoType, tab: Tabs.Tab) {
   if (!changeInfo.url || !tab.url) return;
   const url = changeInfo.url;
-  if (!url.includes("crunchyroll.com/watch/")) {
+  if (!url.includes("/watch/")) {
     manifestMap.delete(tabId);
     console.log(`[tab update] removed manifest for tab ${tabId}`);
     browser.extension.getViews({type: "popup"}).forEach(p => p.close());

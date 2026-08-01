@@ -87,5 +87,5 @@ export function msToTime(s: number) {
 }
 
 export function getGuid(url: string) {
-  return url.match(/crunchyroll\.com\/watch\/([^\/]+)/)?.[1];
+  return url.match(/crunchyroll\.com\/(?:[^/]+\/)?watch\/([^\/]+)/)?.[1];
 }
