@@ -52,20 +52,34 @@ export async function handleEpisodeManifest(tabId: number, response: any): Promi
   return manifest;
 }
 
+const singleFlightGrab = (singleFlight(
+  grabAndHandleManifest0,
+  (tabId, _ = false) => tabId.toString()
+));
+
 export const grabEpisodeManifest = async (tabId: number) => {
-  const rawManifest = await browser.tabs.sendMessage(tabId, {type: "RAW_MANIFEST"}).catch(() => null);
+  const existing = getEpisodeManifest(tabId);
+  if (existing) return existing;
+  const rawManifest = await browser.tabs.sendMessage(tabId, {type: "RAW_MANIFEST", reason: "grabEpisodeManifest"})
+    .catch(e => {
+      console.warn("[grab from content] failed to grab manifest from content", tabId, e);
+      return null;
+    });
+  console.log("[grab from content] grabbed raw manifest from content", rawManifest);
   if (rawManifest) {
-    console.log("[grabAndHandleManifest0] grabbed raw manifest from content")
     return handleEpisodeManifest(tabId, rawManifest);
   }
-  return (singleFlight(
-    grabAndHandleManifest0,
-    (tabId, _ = false) => tabId.toString()
-  ))(tabId);
+  console.warn("[grabEpisodeManifest] resorting to API request", tabId);
+  return singleFlightGrab(tabId);
 };
 
-async function getGuid(tabId: number) {
-  return (await browser.tabs.get(tabId))?.url?.match(/watch\/(.+)\//)?.[1];
+async function getGuidByTabId(tabId: number): Promise<string | null> {
+  const tab = await browser.tabs.get(tabId)
+    .catch(e => {
+      console.error("[get guid by tab id] failed to grab the tab", e);
+    });
+  if (!tab || !tab.url) return null;
+  return tab.url.match(/watch\/([^/]+)\//)?.[1] || null;
 }
 
 async function grabAndHandleManifest0(tabId: number, refresh: boolean = false) {
@@ -74,7 +88,7 @@ async function grabAndHandleManifest0(tabId: number, refresh: boolean = false) {
   });
   if (!refresh) {
     const manifest = getEpisodeManifest(tabId);
-    const currentGuid = await getGuid(tabId);
+    const currentGuid = await getGuidByTabId(tabId);
     if (currentGuid == undefined) {
       l.error("url guid not found.");
       return Promise.reject("can't find guid, gave up");
@@ -89,12 +103,12 @@ async function grabAndHandleManifest0(tabId: number, refresh: boolean = false) {
     l.error("headers not set")
     return Promise.reject("no auth");
   }
-  const url = (await browser.tabs.get(tabId)).url;
-  if (!url) {
-    l.info("url not found, aborting");
-    return Promise.reject(`could not find url of tab ${tabId}`);
+
+  const contentId = await getGuidByTabId(tabId);
+
+  if (!contentId) {
+    throw new Error("[grab and handle manifest inner] failed to get guid by tab id");
   }
-  const contentId = url.match(/crunchyroll\.com\/watch\/(.+)\//)![1];
 
   {
     const timeDiff = waitUntil - performance.now();

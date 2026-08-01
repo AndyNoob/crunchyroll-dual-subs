@@ -24,6 +24,7 @@ console.log("[dual-sub] background loaded");
   await removeCachedSubtitleManifest(guid);
 };
 
+// content/popup –– background messaging
 browser.runtime.onMessage.addListener(async (msg: any, sender: Runtime.MessageSender) => {
   const tab = sender.tab;
   const isPopup = tab == null || tab?.url?.includes("chrome-extension://");
@@ -31,8 +32,12 @@ browser.runtime.onMessage.addListener(async (msg: any, sender: Runtime.MessageSe
   if (isPopup) return await receivePopupMsg(msg);
   else return await receiveContentMsg(msg, sender);
 });
+// content tab URL updates
 browser.tabs.onUpdated.addListener(receiveTabUpdate);
+// extension update notification (pretty much useless)
 browser.runtime.onUpdateAvailable.addListener(receiveUpdateNotif);
+// port connection with content/popup to hopefully keep background service worker alive
+// and also to clean up anything left behind when connection severs
 browser.runtime.onConnect.addListener((port) => {
   // clean up masks
   if (port.name === "sidebar-channel") {
@@ -41,6 +46,7 @@ browser.runtime.onConnect.addListener((port) => {
     port.onDisconnect.addListener(() => {
       browser.tabs.query({url: "https://*.crunchyroll.com/*"})
         .then((tabs) => {
+          if (!tabs || tabs.length === 0) return;
           for (const tab of tabs) {
             if (!tab.url?.includes("/watch/")) continue;
             browser.tabs.sendMessage(tab.id!, {type: "CLEAR_MOVING"})
@@ -67,12 +73,18 @@ async function openSidebar(tab: Tabs.Tab) {
 async function resolveSubManifest(tabId: number) {
   let manifest = getEpisodeManifest(tabId);
   if (!manifest) {
-    console.log("eps manifest not found, loading...");
-    manifest = await grabEpisodeManifest(tabId);
+    console.log("[resolveSubManifest] episode manifest not found, loading...");
+    manifest = await grabEpisodeManifest(tabId).catch(e => {
+      console.error("[resolveSubManifest] couldn't load episode manifest (what?)", e);
+      return undefined;
+    });
+    if (!manifest) {
+      throw new Error("[resolveSubManifest] couldn't load episode manifest");
+    }
   }
   let val = await getCachedSubtitleManifest(manifest, true);
   if (!val) {
-    console.log("sub manifest not found, loading...");
+    console.log("[resolveSubManifest] sub manifest not found, loading...");
   }
   return val ?? (await grabSubtitleManifest(tabId));
 }
@@ -96,12 +108,16 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
       }
     }
     case "GET_PREFERENCE":
-      await grabEpisodeManifest(tabId);
+      await grabEpisodeManifest(tabId).catch(e => {
+        console.error("[get preference] failed to grab episode manifest", e);
+      });
       const preference = await resolvePreference(
         getProfile(tabId) ?? await grabSelectedProfile(tabId),
         findSeasonGuid(tabId)!,
         findEpisodeGuid(tabId)!
-      );
+      ).catch(e => {
+        console.error("[get preference] failed to resolve preference", e);
+      });
       console.log("[receiveContentMsg] GET_PREFERENCE", preference);
       return preference;
     case "SET_PREFERENCE":

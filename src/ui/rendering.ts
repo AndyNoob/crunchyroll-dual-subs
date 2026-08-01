@@ -165,7 +165,7 @@ function normalizeCues(parsed: Entry[]): Cue[] {
 }
 
 export async function updateEraser(subMask?: SubMask) {
-  const mask = subMask ?? (await grabPreference()).subMask;
+  const mask = subMask ?? (await grabPreference())?.subMask;
   if (!mask) return;
   if (isCroptix) {
     const to = setInterval(() => {

@@ -18,7 +18,8 @@ export function clearMoving() {
   for (const moving of movingList) {
     moving.destroy();
   }
-  movingList.splice(0, movingList.length);
+  if (movingList.length > 0)
+    movingList.splice(0, movingList.length);
   for (const element of removing) {
     element.remove();
   }

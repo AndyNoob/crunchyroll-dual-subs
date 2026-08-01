@@ -72,7 +72,10 @@ async function grabSubManifest() {
 
 export async function grabPreference(refresh = true): Promise<Preference> {
   if (refresh || !preference) {
-    return preference = (await browser.runtime.sendMessage({type: "GET_PREFERENCE"})) as Preference;
+    return preference = (await browser.runtime.sendMessage({type: "GET_PREFERENCE"})
+      .catch((e) => {
+        console.error("[dual subs grab preference] failed to grab preference from background", e);
+      })) as Preference;
   } else {
     return preference;
   }
@@ -134,16 +137,17 @@ async function ensurePageInjections() {
 }
 
 function addListeners() {
+  browser.runtime.connect({name: "content-script"});
   browser.runtime.onMessage.addListener((msg: any) => {
     switch (msg?.type) {
       case "REFRESH_CUES":
         if (tracks != null && msg.guid === getGuid(location.href)) {
           log("skipping refresh, guid is the same");
-          return false;
+          return Promise.resolve();
         }
         tracks = msg.cues;
         log(`refreshed cues`);
-        init().then(async (r) => {
+        return init().then(async (r) => {
           if (!r) {
             log(`manual init`);
             await updateDropdownOptions();
@@ -154,7 +158,6 @@ function addListeners() {
           console.error(`[dual-sub] failed to (re)init extension on ${location.href}`);
           console.error(r);
         });
-        return true;
       case "TRY_HACK": // preceded SEND_TOKEN
         return tryHackToRefreshToken().then(() => true).catch(() => false);
       case "SEND_TOKEN": {
@@ -217,22 +220,30 @@ function addListeners() {
         break;
       }
       case "RAW_PROFILES": {
-        return rawProfiles;
+        log("[local cache] sending raw profiles...", rawProfiles);
+        return Promise.resolve(rawProfiles);
       }
       case "RAW_MANIFEST": {
-        return currentManifest;
+        log("[local cache] sending raw manifest...", msg.reason, currentManifest);
+        return Promise.resolve(currentManifest);
       }
       case "RAW_PLAYBACK": {
-        return currentPlayback;
+        log("[local cache] sending raw playback...", currentPlayback);
+        return Promise.resolve(currentPlayback);
       }
       case "CLEAR_MOVING": {
         preference = null;
-        return grabPreference().then((pref) => {
-          clearMoving();
-          updateEraser(pref.subMask).then(() => {
-            log("CLEAR_MOVING complete");
+        return grabPreference()
+          .then((pref) => {
+            clearMoving();
+            if (pref.subMask)
+              updateEraser(pref.subMask).then(() => {
+                log("CLEAR_MOVING complete");
+              });
+          })
+          .catch(e => {
+            console.warn("[dual subs moving] failed to clear moving", e);
           });
-        });
       }
       case "CREATE_MOVING": {
         clearMoving();
@@ -256,14 +267,17 @@ function addListeners() {
       if (detail.type === "profiles") {
         rawProfiles = detail.payload["profiles"];
         w.__dualSubsProfiles = rawProfiles;
+        log("[monkey patch] local profile cache updated", rawProfiles);
       }
       if (detail.type === "manifest") {
         currentManifest = detail.payload;
         w.__dualSubsManifest = currentManifest;
+        log("[monkey patch] local manifest cache updated", currentManifest);
       }
       if (detail.type === "playback") {
         currentPlayback = detail.payload;
         w.__dualSubsPlayback = currentPlayback;
+        log("[monkey patch] local playback cache updated", currentPlayback);
       }
       await browser.runtime.sendMessage({type: "MONKEY_PATCH_UPDATE", detail});
     }
@@ -307,7 +321,7 @@ async function tryHackToRefreshToken() {
 }
 
 export function log(...data: any[]) {
-  console.log("[dual-sub]", `${getCallerName()}:`, ...data);
+  console.log("[dual sub]", `${getCallerName()}:`, ...data);
 }
 
 function getCallerName() {
