@@ -14,7 +14,7 @@ export async function send<T>(msg: Record<string, unknown>): Promise<T | null> {
     ...msg,
     tabId
   }).catch((e) => {
-    console.error("[dual sub popup] failed to send message", e);
+    console.error("[dual sub popup] failed to send message", e, msg);
     return null;
   }) as T | null;
 }

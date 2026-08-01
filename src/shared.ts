@@ -34,7 +34,8 @@ export const AUDIO_LANGUAGES = {
   "zh-HK": "中文 (粵語)",
   "zh-TW": "中文 (國語)",
   "ko-KR": "한국어",
-  "th-TH": "ไทย"
+  "th-TH": "ไทย",
+  "none": "None"
 };
 
 export type AudioLanguage = keyof typeof AUDIO_LANGUAGES;

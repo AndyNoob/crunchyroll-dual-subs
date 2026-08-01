@@ -80,14 +80,12 @@ export function getPlaybackBlockedUntil() {
 }
 
 export async function getToken(tabId: number): Promise<string | null> {
-  try {
-    const ss = await browser.tabs.sendMessage(tabId, {type: "SEND_TOKEN"}).catch(e => {
-      console.warn(e);
-      return null;
-    }) as string | null;
-    const s = "Bearer " + ss;
-    if (ss) return s;
-  } catch {
-  }
+  const ss = await browser.tabs.sendMessage(tabId, {type: "SEND_TOKEN"}).catch(e => {
+    console.warn("[get token] failed", e);
+    return null;
+  }) as string | null;
+  const s = "Bearer " + ss;
+  if (ss) return s;
+
   return null;
 }
