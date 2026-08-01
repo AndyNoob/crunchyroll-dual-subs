@@ -15,7 +15,6 @@
   "homepage": "https://github.com/AndyNoob/crunchyroll-dual-subs",
   "dependencies": {
     "@andynoob/move-it": "^1.0.0",
-
     "@plussub/srt-vtt-parser": "^2.0.5",
     "assjs": "github:AndyNoob/ASS",
     "bottleneck": "^2.19.5",

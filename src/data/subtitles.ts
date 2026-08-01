@@ -1,3 +1,5 @@
+import type {AudioLanguage} from "../shared";
+
 export function getAudio(tabId: number) {
   return audioMap.get(tabId);
 }
@@ -14,13 +16,13 @@ export interface SubtitleManifest {
   subs: Subtitles,
 }
 
-export interface Subtitles {
-  [key: string]: {
-    language: string,
-    format?: string,
-    url?: string
-  }
-}
+export type Subtitles = {
+  [key in AudioLanguage]: {
+    language: string;
+    format?: string;
+    url?: string;
+  };
+};
 
 export interface SubtitleCacheEntry {
   cachedAt: number,

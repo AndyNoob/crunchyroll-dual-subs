@@ -62,7 +62,7 @@ export async function resolveCues(tabId: number, refresh = false, pref: Preferen
   }
   return {
     format: cues.format as Format,
-    lang: `${preference.subLanguage}-${preference.doCc ? "cc" : ""}`,
+    lang: `${preference.subLanguage}-${preference.doCc ? "cc" : "sub"}`,
     content: cues.content
   };
 }

@@ -10,6 +10,7 @@ import {
 } from "../utils";
 import {type EpisodeManifest, getEpisodeManifest, setEpisodeManifest} from "../data/episode";
 import {Logger} from "tslog";
+import type {AudioLanguage} from "../shared";
 
 const logger = new Logger({
   name: "episodeManifests"
@@ -40,7 +41,7 @@ export async function handleEpisodeManifest(tabId: number, response: any): Promi
     seriesTitle: meta.series_title as string,
     seasonTitle: meta.season_title as string,
     episodeTitle: item.title as string,
-    audioLocale: meta.audio_locale as string,
+    audioLocale: meta.audio_locale as AudioLanguage,
     versions: (meta.versions ?? []).map((v: any) => ({
       audioLocale: v.audio_locale,
       guid: v.guid,
