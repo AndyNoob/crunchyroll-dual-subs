@@ -23,6 +23,7 @@ import {
 import {askMainWorld} from "./world-bridge";
 import type {RawProfile} from "./data/profiles";
 import {clearMoving, makeMoving} from "./ui/editing";
+import {getGuid} from "./utils";
 
 export type Format = "vtt" | "ass" | "none";
 
@@ -88,12 +89,8 @@ export async function updateDropdownOptions() {
   log("updated sub choices");
 }
 
-function getSlug(url: string) {
-  return url.match(/crunchyroll\.com\/watch\/([^\/]+)/)?.[1];
-}
-
 async function init() {
-  const slug = getSlug(location.href);
+  const slug = getGuid(location.href);
   if (!slug) {
     log("not a watch page (probably)");
     return Promise.reject("[dual-sub] skipping, not a watch page (probably)");
@@ -140,7 +137,7 @@ function addListeners() {
   browser.runtime.onMessage.addListener((msg: any) => {
     switch (msg?.type) {
       case "REFRESH_CUES":
-        if (tracks != null && msg.guid === getSlug(location.href)) {
+        if (tracks != null && msg.guid === getGuid(location.href)) {
           log("skipping refresh, guid is the same");
           return false;
         }
@@ -275,8 +272,8 @@ function addListeners() {
   window.navigation.addEventListener("currententrychange", (event) => {
     const currentUrl = event.from.url;
     const newUrl = window.navigation.currentEntry?.url;
-    const curSlug = getSlug(currentUrl!);
-    const newSlug = getSlug(newUrl!);
+    const curSlug = getGuid(currentUrl!);
+    const newSlug = getGuid(newUrl!);
     if (!newSlug || curSlug !== newSlug) {
       log("url changed");
       lastInit = null;
