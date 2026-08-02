@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="popup/common.css">
     <link rel="stylesheet" href="popup/dev-notes.css">
     <link rel="stylesheet" href="popup/scoped-options.css">
+    <link rel="stylesheet" href="popup/additional-subs.css">
 </head>
 
 <body>
@@ -108,11 +109,17 @@
             </div>
         </div>
     </div>
+    <label class="checkbox-row" id="enable-additional-subs-label">
+        <input id="enable-additional-subs" type="checkbox" />
+        Load additional subtitles for dubs
+        <span class="hint">Additional subtitles are from the original audio; this may trigger stream limit, disable if issues arise</span>
+    </label>
     <footer>
         <a href="https://github.com/AndyNoob/crunchyroll-dual-subs/" target="_blank">SOURCE ↗</a>
         <span>|</span>
         <a href="https://github.com/AndyNoob/crunchyroll-dual-subs/issues" target="_blank">REPORT PROBLEMS ↗</a>
     </footer>
+    <!--region Templates-->
     <template id="note-template">
         <div class="note" role="button">
             <span>Title</span>
@@ -140,9 +147,11 @@
             </button>
         </div>
     </template>
+    <!--endregion-->
     <script src="../src/ui/popup/common.ts" type="module"></script>
     <script src="../src/ui/popup/scoped-options.ts" type="module"></script>
     <script src="../src/ui/popup/dev-note.ts" type="module"></script>
+    <script src="../src/ui/popup/additional-subs.ts" type="module"></script>
 </body>
 
 </html>

@@ -24,6 +24,7 @@ import {askMainWorld} from "./world-bridge";
 import type {RawProfile} from "./data/profiles";
 import {clearMoving, makeMoving} from "./ui/editing";
 import {getGuid} from "./utils";
+import {ADDITIONAL_SUBS_KEYS} from "./shared";
 
 export type Format = "vtt" | "ass" | "none";
 
@@ -292,6 +293,17 @@ function addListeners() {
       log("url changed");
       lastInit = null;
       if (!curSlug) init().then();
+    }
+  });
+
+  // @ts-ignore
+  window.addEventListener("cr-dual-sub-request", async (event: CustomEvent) => {
+    const { type, uid } = JSON.parse(event.detail as string);
+    if (type === "ENABLE_ADDITIONAL_SUBS") {
+      const result = await browser.storage.local.get(ADDITIONAL_SUBS_KEYS);
+      window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
+        detail: {uid, result: Boolean(result[ADDITIONAL_SUBS_KEYS])}
+      }));
     }
   });
 }

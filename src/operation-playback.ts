@@ -1,5 +1,6 @@
 import type {EpisodeVersion} from "./data/episode";
 import {type Subtitles} from "./data/subtitles";
+import {askMainWorld} from "./world-bridge";
 
 interface HardSub {
   url: string,
@@ -14,22 +15,41 @@ type VideoToken = string;
 
 const w = window as any;
 
-navigation.addEventListener("currententrychange", (e) => {
+navigation.addEventListener("currententrychange", async (e) => {
   const from = getGuid(e.from.url ?? "");
   const to = getGuid(navigation.currentEntry?.url ?? "");
   if (!(from !== to && to)) {
     return;
   }
   delete w.__dualSubsSubtitles;
-  w.__dualSubsSubtitles = doOps();
+  if (await isEnabled()) {
+    w.__dualSubsSubtitles = doOps();
+  } else {
+    console.log("[op playback] disabled.");
+  }
 });
 
-w.__dualSubsSubtitles = doOps();
+isEnabled().then(r => {
+  if (r) {
+    w.__dualSubsSubtitles = doOps();
+  } else {
+    delete w.__dualSubsSubtitles;
+    console.log("[op playback] disabled.");
+  }
+})
+
 w.opPlayback = {
   getAccessToken,
   deleteVideoToken,
   getPlayback,
   getManifest
+}
+
+async function isEnabled() {
+  return await askMainWorld<boolean>("ENABLE_ADDITIONAL_SUBS").catch(e => {
+    console.warn("[op playback] could not ask isolated world", e);
+    return true;
+  });
 }
 
 function getGuid(url: string) {

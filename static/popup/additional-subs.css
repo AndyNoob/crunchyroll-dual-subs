@@ -1,0 +1,16 @@
+#enable-additional-subs-label {
+  flex-wrap: wrap;
+  margin-top: 20px;
+  padding-left: 40px;
+  gap: 14px;
+  padding-right: 20px;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  .hint {
+    flex-basis: 100%;
+    margin-left: 28px;
+    margin-top: -10px;
+  }
+}
