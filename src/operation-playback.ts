@@ -12,19 +12,20 @@ interface HardSubs {
 
 type VideoToken = string;
 
+const w = window as any;
+
 navigation.addEventListener("currententrychange", (e) => {
   const from = getGuid(e.from.url ?? "");
   const to = getGuid(navigation.currentEntry?.url ?? "");
   if (!(from !== to && to)) {
     return;
   }
-  delete (window as any).__dualSubsSubtitles;
-  void doOps();
+  delete w.__dualSubsSubtitles;
+  w.__dualSubsSubtitles = doOps();
 });
 
-void doOps();
-
-(window as any).opPlayback = {
+w.__dualSubsSubtitles = doOps();
+w.opPlayback = {
   getAccessToken,
   deleteVideoToken,
   getPlayback,
@@ -68,8 +69,8 @@ async function doOps() {
   const [_, subtitles, videoToken] = await getPlayback(originalVersion.guid, token);
   await deleteVideoToken(originalVersion.guid, videoToken, token);
   console.log("[op playback] deleted video token", videoToken);
-  (window as any).__dualSubsSubtitles = subtitles;
   console.log("[op playback] subtitles loaded", subtitles);
+  return subtitles;
 }
 
 async function getAccessToken(): Promise<string> {
