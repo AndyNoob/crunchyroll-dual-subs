@@ -94,7 +94,7 @@ export async function beginRender(tracks: Tracks) {
   videoResizeObs.observe(videoEl);
   log("render began!", {
     vtt: !!vttRender,
-    sweet: otherSet
+    ass: otherSet
   });
 }
 

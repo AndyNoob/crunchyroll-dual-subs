@@ -39,3 +39,5 @@ export const AUDIO_LANGUAGES = {
 };
 
 export type AudioLanguage = keyof typeof AUDIO_LANGUAGES;
+
+export const ADDITIONAL_SUBS_KEYS = "cr-dual-sub-enable-additional-subs";
