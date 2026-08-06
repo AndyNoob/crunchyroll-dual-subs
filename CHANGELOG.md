@@ -1,3 +1,20 @@
+e9de6ff
+> Latest commit: 8515999
+
+# 0.13.0
+
+- Keep both original and dub subs; fix UI & loading (AndyNoob)
+- Add a on/off switch for additional subs (AndyNoob)
+- Wait for additional subs to be loaded (AndyNoob)
+- Fix remaining broken regex; content local cache not returning with Promise.resolve (AndyNoob)
+- Fix extension not loading in other languages (/es/watch/, /de/watch/) (AndyNoob)
+- Load & show all subtitles (fix #3) (AndyNoob)
+- Fix typo in generate-release-notes.js (AndyNoob)
+- Add run configuration (AndyNoob)
+- Fix secondary subtitle teleporting to Narnia (AndyNoob)
+
+
+
 > Latest commit: e9de6ff
 
 # 0.12.4
