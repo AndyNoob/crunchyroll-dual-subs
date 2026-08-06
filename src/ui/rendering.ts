@@ -38,7 +38,7 @@ export function setFont(str?: string, size?: number, opacity?: number) {
 
 export async function grabVideo() {
   let vid = getVideo();
-  let counter = 4;
+  let counter = 6;
   while (!vid && counter-- > 0) {
     await sleep(1000);
     vid = getVideo();
@@ -53,11 +53,15 @@ export async function grabVideo() {
 }
 
 export async function beginRender(tracks: Tracks) {
+  if (!tracks) {
+    console.error("[dual subs] [begin render] tracks is undef");
+    return;
+  }
   log("render initiating...", Object.keys(tracks));
   if (vttRender || assRender) await shutdownRender();
   let otherSet = false;
   isCroptix = await askMainWorld<boolean>("CHECK_CROPTIX").catch(() => false);
-  for (let [_, value] of Object.entries(tracks)) {
+  for (let [key, value] of Object.entries(tracks)) {
     if (value.format === "none") continue;
     if (value.format === "vtt") {
       if (vttRender) continue;
@@ -68,7 +72,7 @@ export async function beginRender(tracks: Tracks) {
     if (otherSet) continue;
     otherSet = true;
 
-    if (isCroptix) {
+    if (key.startsWith("1-") && isCroptix) {
       log("detected croptix, will not set up ASS renderer");
       continue;
     }

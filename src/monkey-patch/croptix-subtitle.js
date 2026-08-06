@@ -48,18 +48,20 @@
   ;(document.documentElement || document.head).appendChild(s)
   s.remove()
 
-  window.addEventListener("cr-dual-sub-request", async (event) => {
+  window.addEventListener("message", (event) => {
+    if (event.data.source !== "cr-dual-sub-request") return;
     let uid, type, payload;
-    const detail = JSON.parse(event["detail"]);
+    const detail = JSON.parse(event.data["detail"]);
     try {
       uid = detail["uid"];
       type = detail["type"];
       payload = detail["payload"];
     } catch (e) {
       console.error("[dual subs croptix] failed to grab event detail", detail, e);
-      window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
-        detail: { uid, result: false }
-      }));
+      window.postMessage({
+        source: "cr-dual-sub-response",
+        detail: { uid, error: String(e?.message ?? e), result: false }
+      });
       return;
     }
 
@@ -82,13 +84,15 @@
         }
       }
 
-      window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
+      window.postMessage({
+        source: "cr-dual-sub-response",
         detail: { uid, result }
-      }));
+      });
     } catch (e) {
-      window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
+      window.postMessage({
+        source: "cr-dual-sub-response",
         detail: { uid, error: String(e?.message ?? e), result: false }
-      }));
+      });
     }
   });
 })()

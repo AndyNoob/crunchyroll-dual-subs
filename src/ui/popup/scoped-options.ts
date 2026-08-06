@@ -98,14 +98,15 @@ function renderSubtitleSelect(pref: Partial<Preference>) {
   if (scopeSelect.dataset.scopeValue as PreferenceScope === "episode") {
     // show only the possible languages
     const appendOptions = (subtitles: Subtitles, doCc: boolean) => {
-      for (const sub of Object.values(subtitles)) {
+      for (const key of Object.keys(subtitles)) {
+        const sub = subtitles[key as keyof Subtitles];
         const option = document.createElement("option");
 
         option.value = `${sub.language}:${doCc ? "cc" : "sub"}`;
         option.dataset.language = sub.language;
         option.dataset.cc = String(doCc);
 
-        option.textContent = `${(sub.language)}${doCc ? " [CC]" : ""}`;
+        option.textContent = `${(key)}${doCc ? " [CC]" : ""}`;
 
         if (pref.subLanguage === sub.language && pref.doCc === doCc) {
           option.selected = true;
@@ -135,6 +136,19 @@ function renderSubtitleSelect(pref: Partial<Preference>) {
 
         subtitleSelect.appendChild(option);
       }
+      const option = document.createElement("option");
+
+      option.value = `${audioLang}[original]:sub`;
+      option.dataset.language = `${audioLang}[original]`;
+      option.dataset.cc = "false";
+
+      option.textContent = `${audioLang}[original]`;
+
+      if (pref.subLanguage === option.textContent && pref.doCc === false) {
+        option.selected = true;
+      }
+
+      subtitleSelect.appendChild(option);
     }
   }
 
@@ -546,7 +560,7 @@ export function showStreamLimitNotice(blockedUntil: number) {
   cooldownTimer = window.setInterval(render, 1000);
 }
 
-async function init() {
+async function init(force = false) {
   const status = await send<{ blockedUntil: number }>({
     type: "GET_PLAYBACK_BLOCK_STATUS"
   });
@@ -572,7 +586,7 @@ async function init() {
 
     const oldContext = context || null;
     context = await send<ContextResponse>({type: "GET_CONTEXT"});
-    if (oldContext && oldContext.episodeGuid === context?.episodeGuid) {
+    if (!force && oldContext && oldContext.episodeGuid === context?.episodeGuid) {
       console.log("[init] skipping re-init bruh");
       setLoading(false);
       return;
@@ -635,17 +649,12 @@ browser.runtime.onMessage.addListener((msg: any, _: any) => {
     });
   }
 });
-window.addEventListener("beforeunload", () => {
-  if (!tabId) return;
-  browser.tabs.sendMessage(tabId, {type: "CLEAR_MOVING"})
-    .catch(e => console.error("[dual sub pop-up] failed to clear moving on unload", e));
-});
 browser.runtime.connect({name: "sidebar-channel"});
 
 setLoading(true);
 
 async function handleRefresh() {
-  await init();
+  await init(true);
 }
 
 const FONT_API_KEY = "AIzaSyD8ER9NwPVq_gfBtkOYXgMxVvfO-QtR1Q0";

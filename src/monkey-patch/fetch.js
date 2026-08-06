@@ -32,15 +32,17 @@ window.fetch = async function ( input, init ) {
           console.log("[dual sub soft sub] failed to wait to additional subtitles to be loaded", e);
           return null;
         });
-        console.log(`[dual sub soft sub] waited ${Math.round(performance.now() - time)}ms for additional subtitles to load`);
+        console.log(`[dual sub soft sub] waited ${ Math.round(performance.now() - time) }ms for additional subtitles to load`);
         if (subtitles) {
-          const replaced = [];
-          for (const key of Object.keys(subtitles)) {
-            if (data[ "subtitles" ][ key ]) continue;
-            data[ "subtitles" ][ key ] = subtitles[ key ];
-            replaced.push(key);
+          const added = [];
+          for (let key of Object.keys(subtitles)) {
+            const val = subtitles[ key ];
+            if (data[ "subtitles" ][ key ])
+              key += "[original]";
+            data[ "subtitles" ][ key ] = val;
+            added.push(key);
           }
-          console.log("[dual sub soft sub] injected subtitles", data, replaced);
+          console.log("[dual sub soft sub] injected subtitles", data, added);
           changed = true;
         } else console.log("[dual sub soft sub] additional subtitles could not be loaded");
       }

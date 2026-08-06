@@ -62,6 +62,12 @@ async function doOps() {
   if (!guid) return;
   console.log(`[op playback] guid is ${guid}`);
 
+  const entry = checkCache(guid);
+  if (entry) {
+    console.log(`[op playback] returning cached entry`, entry);
+    return entry;
+  }
+
   const token = await getAccessToken();
   console.log(`[op playback] retrieved access token (len=${token.length})`);
 
@@ -89,7 +95,8 @@ async function doOps() {
   const [_, subtitles, videoToken] = await getPlayback(originalVersion.guid, token);
   await deleteVideoToken(originalVersion.guid, videoToken, token);
   console.log("[op playback] deleted video token", videoToken);
-  console.log("[op playback] subtitles loaded", subtitles);
+  saveCacheEntry(guid, subtitles);
+  console.log("[op playback] subtitles loaded and saved", subtitles);
   return subtitles;
 }
 
@@ -177,4 +184,34 @@ async function getPlayback(guid: string, token: string): Promise<[HardSubs, Subt
   if (!response.ok) throw new Error("failed to getPlayback");
   const json = await response.json();
   return [json["hardSubs"] as HardSubs, json["subtitles"] as Subtitles, json["token"]];
+}
+
+const KEY = "cr-dual-subs-playback-cache";
+
+function getCache() {
+  const val = localStorage.getItem(KEY);
+  if (!val) return null;
+  return JSON.parse(val) as PlaybackCache;
+}
+
+function checkCache(guid: string) {
+  const entry = getCache()?.[guid];
+  if (!entry) return null;
+  return entry.expiryTime > Date.now() ? (entry.subtitles || null) : null;
+}
+
+function saveCacheEntry(guid: string, subtitles: Subtitles) {
+  const cache = getCache() || {};
+  cache[guid] = {
+    subtitles,
+    expiryTime: Date.now() + 2 * 60 * 60 * 1000 // two hours
+  };
+  localStorage.setItem(KEY, JSON.stringify(cache));
+}
+
+interface PlaybackCache {
+  [guid: string]: {
+    expiryTime: number,
+    subtitles: Subtitles
+  }
 }

@@ -10,26 +10,32 @@ export function askMainWorld<T>(type: string, payload?: unknown, timeoutMs = 100
 
     function cleanup() {
       clearTimeout(timeout);
-      window.removeEventListener("cr-dual-sub-response", onResponse as EventListener);
+      window.removeEventListener("message", listener);
     }
 
-    function onResponse(event: CustomEvent) {
-      if (event.detail?.result === undefined) {
-        console.error(`[dual sub bridge] detail.result was undefined`, event);
+    function onResponse(data: {source: string, detail: any}) {
+      if (data.source !== "cr-dual-sub-response") return;
+      if (data.detail?.result === undefined) {
+        console.error(`[dual sub bridge] detail.result was undefined`, data);
         return;
       }
-      if (event.detail?.uid !== uid) return;
+      if (data.detail?.uid !== uid) return;
 
       cleanup();
 
-      if (event.detail.error) reject(new Error(event.detail.error));
-      else resolve(event.detail.result);
+      if (data.detail.error) reject(new Error(data.detail.error));
+      else resolve(data.detail.result);
     }
 
-    window.addEventListener("cr-dual-sub-response", onResponse as EventListener);
+    const listener = (e: MessageEvent) => {
+      onResponse(e.data);
+    };
+    window.addEventListener("message", listener);
 
-    window.dispatchEvent(new CustomEvent("cr-dual-sub-request", {
+    window.postMessage({
+      source: "cr-dual-sub-request",
       detail: JSON.stringify({ uid, type, payload })
-    }));
+    });
+
   });
 }

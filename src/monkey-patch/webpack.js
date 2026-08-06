@@ -55,6 +55,7 @@
   }
 
   function findAuthModule( req ) {
+    if (!req) return null;
     for (const id of Object.keys(req.m)) {
       let mod;
       try {
@@ -94,8 +95,9 @@
     }
   }, 50);
 
-  window.addEventListener("cr-dual-sub-request", async ( event ) => {
-    const detail = JSON.parse(event[ "detail" ]);
+  window.addEventListener("message", ( event ) => {
+    if (event.data.source !== "cr-dual-sub-request") return;
+    const detail = JSON.parse(event.data[ "detail" ]);
     const { uid, type } = { ...detail };
     try {
       let result;
@@ -115,13 +117,15 @@
         }
       }
 
-      window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
+      window.postMessage({
+        source: "cr-dual-sub-response",
         detail: { uid, result }
-      }));
+      });
     } catch (e) {
-      window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
+      window.postMessage({
+        source: "cr-dual-sub-response",
         detail: { uid, error: String(e?.message ?? e), result: false }
-      }));
+      });
     }
   });
 } )();

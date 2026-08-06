@@ -180,7 +180,7 @@ export async function updateSubtitleDropdownOptions(manifest: SubtitleManifest, 
   for (const sub of subtitleChoices) {
     const option = document.createElement("div");
     option.className = "cr-dual-subs-sub-option";
-    option.textContent = sub.type === "cc" ? `${sub.language} [CC]` : sub.language;
+    option.textContent = sub.type === "cc" ? `${sub.key} [CC]` : sub.key;
     option.dataset.key = sub.key;
     option.dataset.type = sub.type;
 
