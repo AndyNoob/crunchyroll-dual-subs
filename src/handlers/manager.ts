@@ -37,8 +37,12 @@ export async function bundleCues(tabId: number, refresh = false) {
     console.log("[receiveContentMsg] GET_CUES: forcing soft sub");
     const trackSecondary = await resolveCues(tabId, refresh);
     const trackInPlayer = await resolveCues(tabId, refresh, profile);
-    tracks[trackInPlayer.lang] = trackInPlayer;
-    tracks[trackSecondary.lang] = trackSecondary;
+    tracks["2-" + trackSecondary.lang] = trackSecondary;
+    if (trackSecondary?.format !== trackInPlayer?.format) {
+      tracks["1-" + trackInPlayer.lang] = trackInPlayer;
+    } else {
+      console.log("[receiveContentMsg] GET_CUES: duplicate format, preferring secondary");
+    }
   }
   return tracks;
 }

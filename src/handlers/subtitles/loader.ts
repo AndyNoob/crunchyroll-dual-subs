@@ -89,7 +89,7 @@ export async function grabSubtitleManifest(tabId: number, refresh = false, isRet
     return null;
   });
   if (rawPlayback) {
-    console.log("[grabSubtitleManifest] grabbed raw manifest from content");
+    console.log("[grabSubtitleManifest] grabbed raw manifest from content", rawPlayback);
     return handleSubtitleManifest(manifest, rawPlayback);
   }
   if (!refresh) {
@@ -140,8 +140,8 @@ export async function grabSubtitleManifest(tabId: number, refresh = false, isRet
 }
 
 export async function handleSubtitleManifest(manifest: EpisodeManifest, playback: any) {
-  const ccs: Subtitles = playback["captions"];
-  const subs: Subtitles = playback["subtitles"];
+  const ccs: Subtitles = playback["captions"] || {};
+  const subs: Subtitles = playback["subtitles"] || {};
   const subManifest = {
     ccs,
     subs
@@ -153,7 +153,7 @@ export async function handleSubtitleManifest(manifest: EpisodeManifest, playback
 async function fetchAndParseSubtitle(tabId: number, url: string): Promise<string> {
   logger.info(`fetching sub from ${url}`);
   const raw = (await browser.tabs.sendMessage(tabId, {type: "FETCH_SUBTITLE", url})) as string;
-  if (raw.length === 0) {
+  if (!raw || raw.length === 0) {
     logger.error("subtitle request returned empty.");
     return "";
   }

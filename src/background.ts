@@ -132,6 +132,9 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
         findSeasonGuid(tabId),
         findEpisodeGuid(tabId)
       );
+      browser.runtime.sendMessage({type: "REFRESH_POPUP"})
+        .then(() => console.log("[receiveContentMsg] SET_PREFERENCE: refreshed popup"))
+        .catch(e => console.error(e));
       console.log(`[receiveContentMsg] SET_PREFERENCE(${scope}): done`, msg, set);
       break;
     case "REFRESH_TAB": {

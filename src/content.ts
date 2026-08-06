@@ -296,14 +296,16 @@ function addListeners() {
     }
   });
 
-  // @ts-ignore
-  window.addEventListener("cr-dual-sub-request", async (event: CustomEvent) => {
-    const { type, uid } = JSON.parse(event.detail as string);
+  window.addEventListener("message", (event) => {
+    if (event.data.source !== "cr-dual-sub-request") return;
+    const {type, uid} = JSON.parse(event.data.detail as string);
     if (type === "ENABLE_ADDITIONAL_SUBS") {
-      const result = await browser.storage.local.get(ADDITIONAL_SUBS_KEYS);
-      window.dispatchEvent(new CustomEvent("cr-dual-sub-response", {
-        detail: {uid, result: Boolean(result[ADDITIONAL_SUBS_KEYS])}
-      }));
+      browser.storage.local.get(ADDITIONAL_SUBS_KEYS).then(result => {
+        window.postMessage({
+          source: "cr-dual-sub-response",
+          detail: {uid, result: Boolean(result[ADDITIONAL_SUBS_KEYS])}
+        });
+      });
     }
   });
 }

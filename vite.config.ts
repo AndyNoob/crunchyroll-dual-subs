@@ -56,9 +56,14 @@ function makeManifest() {
     content_scripts: [
       {
         css: ["static/overlay.css", "static/controls.css"],
-        js: ["src/content.js", "src/monkey-patch/animate.js"],
+        js: ["src/monkey-patch/animate.js"],
         matches: ["*://*.crunchyroll.com/*"],
         run_at: "document_idle"
+      },
+      {
+        js: ["src/content.js"],
+        matches: ["*://*.crunchyroll.com/*"],
+        run_at: "document_start",
       },
       {
         js: ["src/monkey-patch/croptix-subtitle.js", "src/monkey-patch/fetch.js", "src/monkey-patch/webpack.js", "src/operation-playback.js"],
