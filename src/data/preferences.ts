@@ -19,7 +19,8 @@ export interface Preference {
   subMask?: SubMask,
   fontProperty?: string,
   fontSize?: number,
-  backgroundOpacity?: number
+  backgroundOpacity?: number,
+  verticalShift?: number, // pads from the bottom
 }
 
 export interface SubMask {

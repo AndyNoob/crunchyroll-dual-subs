@@ -363,7 +363,7 @@ div[id^=font-picker] ul li button:hover, div[id^=font-picker] ul li button:focus
   display: flex;
 }
 
-label[for="font-size"], label[for="background-opacity"], label[for="font-picker"] {
+label[for="font-size"], label[for="background-opacity"], label[for="font-picker"], label[for="vertical-shift"] {
   display: inline-block;
   margin-right: 20px;
 
@@ -373,9 +373,9 @@ label[for="font-size"], label[for="background-opacity"], label[for="font-picker"
   }
 }
 
-#font-size, #background-opacity {
+#font-size, #background-opacity, #vertical-shift {
   height: 29px;
-  width: 65px;
+  width: 85px;
   display: inline-block;
   text-align: center;
 }

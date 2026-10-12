@@ -24,6 +24,7 @@ const fontSizeInput = document.querySelector("#font-size") as HTMLInputElement;
 // const invertMaskCheckbox = document.querySelector("#invert-masks") as HTMLInputElement;
 let fontPicker: FontPicker;
 const backgroundOpacityInput = document.querySelector("#background-opacity") as HTMLInputElement;
+const verticalShiftInput = document.querySelector("#vertical-shift") as HTMLInputElement;
 
 export const settingsContent = document.querySelector("#cr-dual-subs-overlay-options") as HTMLDivElement;
 
@@ -267,6 +268,7 @@ async function renderFontPicker(pref: Partial<Preference>) {
   console.log(`[font picker] set up complete`, fontPicker.getActiveFont());
   fontSizeInput.value = String(pref.fontSize || "");
   backgroundOpacityInput.value = String(pref.backgroundOpacity || "");
+  verticalShiftInput.value = String(pref.verticalShift || "");
 }
 
 async function loadScopedPreference(): Promise<Partial<Preference>> {
@@ -505,6 +507,24 @@ function attachListeners() {
     }
     await saveScopedPreference({
       backgroundOpacity: opacity
+    });
+  });
+
+  verticalShiftInput.addEventListener("change", async () => {
+    if (!verticalShiftInput.value) {
+      await saveScopedPreference({
+        verticalShift: null
+      });
+      return;
+    }
+    let shift = Number(verticalShiftInput.value);
+    if (isNaN(shift) || shift < 0 || shift > 1) {
+      shift = 0;
+      verticalShiftInput.value = String(shift);
+      return;
+    }
+    await saveScopedPreference({
+      verticalShift: shift
     });
   });
 

@@ -19,7 +19,7 @@ let croptixCanvas: HTMLCanvasElement | null = null;
 let vttRender: VTTRender | null = null;
 let fontFamily = "";
 
-export function setFont(str?: string, size?: number, opacity?: number) {
+export function setFont(str?: string, size?: number, opacity?: number, verticalShift?: number) {
   if (!document.head.dataset.addedFonts) {
     document.head.dataset.addedFonts = "true";
     document.head.innerHTML += FONTS_CODE;
@@ -34,6 +34,7 @@ export function setFont(str?: string, size?: number, opacity?: number) {
   log(`new font size is ${fontSize}`)
   overlayText.style.fontSize = `${fontSize}px`;
   overlayText.style.setProperty("--background-opacity", String(opacity != undefined ? opacity : 0.3));
+  if (overlayCanvasContainer?.style) overlayCanvasContainer.style.bottom = verticalShift ? `${verticalShift * 100}%` : "0";
 }
 
 export async function grabVideo() {
@@ -121,7 +122,7 @@ export async function updateOffsetsAndFont(pref: Preference) {
     vttRender.setOffsetMs((pref.doCc ? pref.secondaryOffsetMs : pref.primaryOffsetMs) ?? 0);
     log(`changed offset of VTT rendering to ${vttRender.getOffsetMs() / 1000}sec`);
   }
-  setFont(pref.fontProperty, pref.fontSize, pref.backgroundOpacity);
+  setFont(pref.fontProperty, pref.fontSize, pref.backgroundOpacity, pref.verticalShift);
 }
 
 export async function shutdownRender() {
