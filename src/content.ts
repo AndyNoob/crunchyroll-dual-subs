@@ -112,8 +112,10 @@ async function init() {
   }
   log("not skipping, injecting...");
   await ensurePageInjections();
-  log("done, grabbing cues in 1.5s...");
-  await sleep(1500);
+  log("done, waiting for profiles...");
+  while (!rawProfiles?.length) {
+    await sleep(500);
+  }
   await updateCuesAndRender();
   if (tracks == null) {
     console.warn("failed to grab cues!");
@@ -335,7 +337,8 @@ async function tryHackToRefreshToken() {
 }
 
 export function log(...data: any[]) {
-  console.log("[dual sub]", `${getCallerName()}:`, ...data);
+  if (__BROWSER_TYPE__ !== "firefox") console.log("[dual sub]", `${getCallerName()}:`, ...data);
+  else console.log("[dual sub]", ...data);
 }
 
 function getCallerName() {
