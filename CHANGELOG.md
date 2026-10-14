@@ -1,3 +1,13 @@
+> Latest commit: fa9f12d
+
+# 0.14.0
+
+- Fix logging and content loading (AndyNoob)
+- Add bottom padding/vertical shift (close #9) (AndyNoob)
+- Get rid of debug log in generate-release-notes.js (AndyNoob)
+
+
+
 e9de6ff
 > Latest commit: 8515999
 
