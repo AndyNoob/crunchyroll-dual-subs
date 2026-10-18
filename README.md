@@ -3,7 +3,9 @@
 
 Web extension created to fix the annoying issue of not being able to use `English` and `English [CC]` subtitles at the same time[^1]. The extension works best on shows like Frieren: Beyond Journey's End where there are both types of subtitles. This extension supports [Croptix](https://github.com/stratumadev/croptix) and [Improve Crunchyroll](https://github.com/ThomasTavernier/Improve-Crunchyroll).
 
-![demo gif](assets/cr-dual-sub-demo.gif)
+See below for a demo video (please turn on subtitles for explanations of features):
+<br>
+[![demo video](https://img.youtube.com/vi/C6fvmeJ0SoM/0.jpg)](https://www.youtube.com/watch?v=C6fvmeJ0SoM)
 
 ## Terminologies
 
