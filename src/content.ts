@@ -282,6 +282,18 @@ function addListeners() {
         w.__dualSubsPlayback = currentPlayback;
         log("[monkey patch] local playback cache updated", currentPlayback);
       }
+      if (detail.type === "patch_profile") {
+        const newProfile = detail.payload;
+        w.__dualSubsPlayback = currentPlayback;
+        for (let i = 0; i < rawProfiles.length; i++) {
+          const rawProfile = rawProfiles[i];
+          if (rawProfile && rawProfile["profile_id"] === newProfile["profile_id"]) {
+            rawProfiles[i] = newProfile;
+            log("[monkey patch] local profile cache updated (patch)", rawProfiles);
+            break;
+          }
+        }
+      }
       await browser.runtime.sendMessage({type: "MONKEY_PATCH_UPDATE", detail});
     }
   );
