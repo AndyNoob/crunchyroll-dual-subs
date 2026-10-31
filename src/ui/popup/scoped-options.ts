@@ -30,6 +30,14 @@ export const settingsContent = document.querySelector("#cr-dual-subs-overlay-opt
 
 const scopeOptions: PreferenceScope[] = ["global", "season", "episode"];
 
+export type ScopedPreferenceRequest = {
+  type: "GET_SCOPED_PREFERENCE";
+  profileId: string,
+  scope: PreferenceScope,
+  seasonGuid: string | undefined;
+  episodeGuid: string | undefined;
+};
+
 /*function formatLocale(locale: string) {
   try {
     return new Intl.DisplayNames(
@@ -184,10 +192,12 @@ function renderOffset(pref: Partial<Preference>) {
 }
 
 function renderMaskList(pref: Partial<Preference>) {
-  if (!pref.subMask) return;
+  subEditContainer.querySelectorAll(".mask-item").forEach(e => e.remove());
+  if (!pref.subMask) {
+    return;
+  }
   const mask = pref.subMask;
   console.log("[dual sub pop up] rendering mask list", mask);
-  subEditContainer.querySelectorAll(".mask-item").forEach(e => e.remove());
   const template = document.querySelector("#mask-item-template") as HTMLTemplateElement;
   for (let i = 0; i < mask.rects.length; i++) {
     const rect = mask.rects[i]!;
@@ -273,13 +283,14 @@ async function renderFontPicker(pref: Partial<Preference>) {
 
 async function loadScopedPreference(): Promise<Partial<Preference>> {
   if (!context) throw new Error("context is null");
-  return await send<Partial<Preference>>({
+  const request: ScopedPreferenceRequest = {
     type: "GET_SCOPED_PREFERENCE",
     profileId: context.currentProfile.profileId,
     scope: scopeSelect.dataset.scopeValue as PreferenceScope,
     seasonGuid: context.seasonGuid,
-    episodeGuid: context.episodeGuid
-  }) || {};
+    episodeGuid: context.episodeGuid,
+  };
+  return await send<Partial<Preference>>(request) || {};
 }
 
 async function saveScopedPreference(pref: PreferencePatch, scope?: PreferenceScope) {
