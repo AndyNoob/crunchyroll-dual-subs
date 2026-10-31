@@ -16,6 +16,7 @@ import type {PreferencePatch, PreferenceScope} from "./data/preferences";
 import {findEpisodeGuid, findSeasonGuid, getEpisodeManifest, manifestMap} from "./data/episode";
 import {grabSubtitleManifest, handleSubtitleManifest} from "./handlers/subtitles/loader";
 import {getCachedSubtitleManifest, removeCachedCues, removeCachedSubtitleManifest} from "./handlers/subtitles/cacher";
+import type {ScopedPreferenceRequest} from "./ui/popup/scoped-options";
 
 console.log("[dual-sub] background loaded");
 
@@ -212,10 +213,11 @@ async function receivePopupMsg(msg: any) {
       }
       case "GET_SCOPED_PREFERENCE": {
         console.groupCollapsed(`[receivePopupMsg] GET_SCOPED_PREFERENCE(${tabId}): retrieving...`);
-        const seasonGuid: string = msg.seasonGuid;
-        const episodeGuid: string = msg.episodeGuid;
-        const profileId: string = msg.profileId;
-        const scope: PreferenceScope = msg.scope;
+        let req: ScopedPreferenceRequest = msg;
+        const seasonGuid = req.seasonGuid;
+        const episodeGuid = req.episodeGuid;
+        const profileId = req.profileId;
+        const scope = req.scope;
 
         console.log({
           seasonGuid, episodeGuid, profileId, scope

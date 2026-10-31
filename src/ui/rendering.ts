@@ -171,17 +171,28 @@ function normalizeCues(parsed: Entry[]): Cue[] {
 
 export async function updateEraser(subMask?: SubMask) {
   const mask = subMask ?? (await grabPreference())?.subMask;
-  if (!mask) return;
+  if (!mask) {
+    log("no mask, not updating eraser");
+    return;
+  }
   if (isCroptix) {
     const to = setInterval(() => {
       if (croptixCanvas == null) croptixCanvas = document.querySelector(".libassjs-canvas") || null;
       if (croptixCanvas == null) return;
       clearInterval(to);
       croptixCanvas.style.clipPath = pathFor(mask, croptixCanvas.offsetWidth, croptixCanvas.offsetHeight);
+      log("croptix eraser updated");
     }, 1000);
-  } else if (assRender) {
-    const box = overlayCanvasContainer.querySelector(".ASS-box") as HTMLElement;
-    box.style.clipPath = pathFor(mask, box.offsetWidth, box.offsetHeight)
+  }
+  if (assRender) {
+    const to = setInterval(() => {
+      const box = overlayCanvasContainer;
+      if (!box) return;
+      if (!box.querySelector(".ASS-box")) return;
+      clearInterval(to);
+      box.style.clipPath = pathFor(mask, box.offsetWidth, box.offsetHeight);
+      log("ASS eraser updated");
+    }, 1000);
   }
 }
 
