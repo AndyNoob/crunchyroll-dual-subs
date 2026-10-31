@@ -1,3 +1,17 @@
+> Latest commit: d5dc83a
+
+# 0.14.3
+
+- Fix croptix masking being applied on canvas rather than parent (AndyNoob)
+- Fix Crunchyroll changing their playback endpoint again...? (AndyNoob)
+- Fix various subMask issues (AndyNoob)
+- Actually fix in page player language not propagating to background on switch (AndyNoob)
+- Fix in page player language not propagating to background on switch (AndyNoob)
+- Use the youtube video for demo (README) (AndyNoob)
+- Reword README (AndyNoob)
+
+
+
 > Latest commit: fa9f12d
 
 # 0.14.0
