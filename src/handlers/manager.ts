@@ -30,7 +30,7 @@ export async function bundleCues(tabId: number, refresh = false, profile: Profil
   const tracks: Tracks = {};
   if (profile.doCc) {
     // no need to force soft subbing
-    console.log("[receiveContentMsg] GET_CUES: only grabbing CC");
+    console.log("[receiveContentMsg] GET_CUES: only grabbing one");
     const track = await resolveCues(tabId, refresh);
     tracks[track.lang] = track;
   } else {
