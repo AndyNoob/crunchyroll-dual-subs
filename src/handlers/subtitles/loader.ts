@@ -18,7 +18,7 @@ const logger = new Logger({
 async function sendManifestRequest(contentId: string | undefined, deviceType: string, device: string, headers: Header[], crTabId: string) {
   if (!contentId) return null;
   console.log(`[grabAndHandleManifest] cr-tab-id is ${crTabId}`);
-  return await fetch(`https://www.crunchyroll.com/playback/v3/${contentId}/${deviceType}/${device}/play?dual_sub=676767`, {
+  return await fetch(`https://www.crunchyroll.com/playback/v4/${contentId}/${deviceType}/${device}/play?dual_sub=676767`, {
     headers: {
       "Authorization": findHeaderValue(headers, "Authorization"),
       "x-cr-tab-id": crTabId
