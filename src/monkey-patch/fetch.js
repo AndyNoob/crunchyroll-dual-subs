@@ -19,7 +19,7 @@ window.fetch = async function ( input, init ) {
     // ignore extension initiated requests
     if (url.includes("dual_sub=676767")) return res;
 
-    if (url.includes("playback/v4")) {
+    if (url.includes("/playback/")) {
       console.log("[dual-sub] playback hijacked");
       const clone = res.clone();
       sendAuthHeaders(init);
