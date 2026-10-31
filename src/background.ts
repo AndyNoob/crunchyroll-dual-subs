@@ -7,7 +7,7 @@ import {
   addToAllProfiles,
   getFromAllProfiles,
   getProfile,
-  mapProfile,
+  mapProfile, type Profile,
   type RawProfile,
   setProfile
 } from "./data/profiles";
@@ -166,7 +166,7 @@ async function receiveContentMsg(msg: any, sender: Runtime.MessageSender) {
             console.log("[receiveContentMsg] new profile applying...");
             setProfile(tabId, newProfile);
             await clearCues(tabId);
-            await refreshCues(tabId);
+            await refreshCues(tabId, newProfile);
             console.log("[receiveContentMsg] rebundled cues after profile patching");
             console.log("[receiveContentMsg] new profile applied");
           }
@@ -283,8 +283,8 @@ async function clearCues(tabId: number) {
   await browser.tabs.sendMessage(tabId, {type: "CLEAR_CUES"});
 }
 
-async function refreshCues(tabId: number) {
-  notifyCueRefresh(tabId, await bundleCues(tabId));
+async function refreshCues(tabId: number, profile: Profile | undefined = undefined) {
+  notifyCueRefresh(tabId, await bundleCues(tabId, false, profile));
 }
 
 const currentlyLoading = new Map<number, string>();
