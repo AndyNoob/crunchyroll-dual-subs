@@ -3,7 +3,7 @@ import type {Format, Track, Tracks} from "../content";
 import {grabSelectedProfile} from "./profiles";
 import {resolvePreference} from "./preferences";
 import {grabEpisodeManifest} from "./episode";
-import {getProfile} from "../data/profiles";
+import {getProfile, type Profile} from "../data/profiles";
 import {findEpisodeGuid, findSeasonGuid, getEpisodeManifest} from "../data/episode";
 import {grabCues} from "./subtitles/loader";
 import type {Preference} from "../data/preferences";
@@ -25,8 +25,8 @@ export function notifyCueRefresh(tabId: number, cues: Tracks, attemptsLeft = 3) 
   });
 }
 
-export async function bundleCues(tabId: number, refresh = false) {
-  const profile = await grabSelectedProfile(tabId);
+export async function bundleCues(tabId: number, refresh = false, profile: Profile | undefined = undefined) {
+  profile = profile || await grabSelectedProfile(tabId);
   const tracks: Tracks = {};
   if (profile.doCc) {
     // no need to force soft subbing
