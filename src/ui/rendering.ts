@@ -177,10 +177,11 @@ export async function updateEraser(subMask?: SubMask) {
   }
   if (isCroptix) {
     const to = setInterval(() => {
-      if (croptixCanvas == null) croptixCanvas = document.querySelector(".libassjs-canvas") || null;
-      if (croptixCanvas == null) return;
+      if (croptixCanvas == null)
+        croptixCanvas = document.querySelector(".libassjs-canvas") || null;
+      if (croptixCanvas == null || croptixCanvas.parentElement == null) return;
       clearInterval(to);
-      croptixCanvas.style.clipPath = pathFor(mask, croptixCanvas.offsetWidth, croptixCanvas.offsetHeight);
+      croptixCanvas.parentElement.style.clipPath = pathFor(mask, croptixCanvas.offsetWidth, croptixCanvas.offsetHeight);
       log("croptix eraser updated");
     }, 1000);
   }
