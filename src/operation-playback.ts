@@ -173,7 +173,7 @@ async function getManifest(guid: string, token: string): Promise<(EpisodeVersion
 }
 
 async function getPlayback(guid: string, token: string): Promise<[HardSubs, Subtitles, VideoToken]> {
-  const url = `https://www.crunchyroll.com/playback/v3/${guid}/web/${__BROWSER_TYPE__}/play?dual_sub=676767`;
+  const url = `https://www.crunchyroll.com/playback/v4/${guid}/web/${__BROWSER_TYPE__}/play?dual_sub=676767`;
   const response = await fetch(url, {
     headers: {
       "Authorization": `Bearer ${token}`,
