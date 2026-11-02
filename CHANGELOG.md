@@ -1,3 +1,11 @@
+> Latest commit: ca8a838
+
+# 0.14.4
+
+- Fix Croptix eraser not applying after switching episodes (AndyNoob)
+
+
+
 > Latest commit: d5dc83a
 
 # 0.14.3
