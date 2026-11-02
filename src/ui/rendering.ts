@@ -15,7 +15,7 @@ let assRender: ASS | null = null;
 let isCroptix = false;
 let videoResizeObs: ResizeObserver | null;
 let assMutateObs: MutationObserver | null;
-let croptixCanvas: HTMLCanvasElement | null = null;
+export let croptixCanvas: HTMLCanvasElement | null = null;
 let vttRender: VTTRender | null = null;
 let fontFamily = "";
 
@@ -176,13 +176,15 @@ export async function updateEraser(subMask?: SubMask) {
     return;
   }
   if (isCroptix) {
+    // make sure we have the latest version :)
+    croptixCanvas = null;
     const to = setInterval(() => {
       if (croptixCanvas == null)
         croptixCanvas = document.querySelector(".libassjs-canvas") || null;
       if (croptixCanvas == null || croptixCanvas.parentElement == null) return;
       clearInterval(to);
       croptixCanvas.parentElement.style.clipPath = pathFor(mask, croptixCanvas.offsetWidth, croptixCanvas.offsetHeight);
-      log("croptix eraser updated");
+      log("croptix eraser updated", croptixCanvas.parentElement.style.clipPath);
     }, 1000);
   }
   if (assRender) {
@@ -192,7 +194,7 @@ export async function updateEraser(subMask?: SubMask) {
       if (!box.querySelector(".ASS-box")) return;
       clearInterval(to);
       box.style.clipPath = pathFor(mask, box.offsetWidth, box.offsetHeight);
-      log("ASS eraser updated");
+      log("ASS eraser updated", box.style.clipPath);
     }, 1000);
   }
 }

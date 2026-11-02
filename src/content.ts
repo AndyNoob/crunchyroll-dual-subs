@@ -306,7 +306,17 @@ function addListeners() {
     if (!newSlug || curSlug !== newSlug) {
       log("url changed");
       lastInit = null;
-      if (!curSlug) init().then();
+      if (!curSlug) init().then(() => {
+        // for some bloody reason, after going to a new episode with Croptix
+        // the eraser just doesn't get applied onto the libass canvas
+        // i suspect it is because Croptix does some kind of bs to remove
+        // and then add a new canvas...
+        // great coding i guess? way to comment your code!
+        // this is just insurance to make sure the eraser is applied.
+        setTimeout(() => {
+          if (preference) updateEraser(preference.subMask).then();
+        }, 1000);
+      });
     }
   });
 
