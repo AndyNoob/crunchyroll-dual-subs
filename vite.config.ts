@@ -101,6 +101,8 @@ function makeManifest() {
     },
     sidebar_action: {
       default_panel: "static/popup.html",
+      default_icon: "icon-128.png",
+      default_title: "Subtitle Settings",
     },
     side_panel: {
       default_path: "static/popup.html"
